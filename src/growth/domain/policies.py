@@ -150,7 +150,6 @@ def evaluate(
     4. Scale conditions - if met, SCALE; else HOLD
     """
     from uuid import uuid4
-    from datetime import datetime, timezone
 
     # 1. Check guardrails first (highest priority)
     guardrail_result = check_guardrails(
