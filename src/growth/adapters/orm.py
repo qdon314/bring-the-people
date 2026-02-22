@@ -106,6 +106,29 @@ class DecisionORM(Base):
     experiment: Mapped["ExperimentORM"] = relationship(back_populates="decisions")
 
 
+class AudienceSegmentORM(Base):
+    __tablename__ = "audience_segments"
+
+    segment_id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    show_id: Mapped[str] = mapped_column(ForeignKey("shows.show_id"))
+    name: Mapped[str] = mapped_column(String(255))
+    definition_json: Mapped[dict[str, Any]] = mapped_column(JSON)
+    estimated_size: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    created_by: Mapped[str] = mapped_column(String(100))
+
+
+class CreativeFrameORM(Base):
+    __tablename__ = "creative_frames"
+
+    frame_id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    show_id: Mapped[str] = mapped_column(ForeignKey("shows.show_id"))
+    segment_id: Mapped[str] = mapped_column(ForeignKey("audience_segments.segment_id"))
+    hypothesis: Mapped[str] = mapped_column(String(500))
+    promise: Mapped[str] = mapped_column(String(500))
+    evidence_refs: Mapped[list[dict[str, Any]]] = mapped_column(JSON)
+    risk_notes: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
+
+
 def get_engine(db_url: str = "sqlite:///growth.db"):
     """Create a SQLAlchemy engine."""
     return create_engine(db_url, echo=False)

@@ -6,13 +6,18 @@ from uuid import UUID
 from sqlalchemy.orm import Session
 
 from growth.adapters.orm import (
+    AudienceSegmentORM,
+    CreativeFrameORM,
     DecisionORM,
     ExperimentORM,
     ObservationORM,
     ShowORM,
 )
 from growth.domain.models import (
+    AudienceSegment,
+    CreativeFrame,
     Decision,
+    DecisionAction,
     Experiment,
     ExperimentStatus,
     Observation,
@@ -20,6 +25,8 @@ from growth.domain.models import (
 )
 from growth.ports.repositories import (
     ExperimentRepository,
+    FrameRepository,
+    SegmentRepository,
     ShowRepository,
 )
 
@@ -152,6 +159,19 @@ def _decision_to_orm(domain: Decision) -> DecisionORM:
     )
 
 
+def _decision_to_domain(orm: DecisionORM) -> Decision:
+    """Convert DecisionORM to domain Decision."""
+    return Decision(
+        decision_id=UUID(orm.decision_id),
+        experiment_id=UUID(orm.experiment_id),
+        action=DecisionAction(orm.action),
+        confidence=orm.confidence,
+        rationale=orm.rationale,
+        policy_version=orm.policy_version,
+        metrics_snapshot=orm.metrics_snapshot,
+    )
+
+
 class SQLAlchemyShowRepository(ShowRepository):
     """SQLAlchemy implementation of ShowRepository."""
 
@@ -168,6 +188,10 @@ class SQLAlchemyShowRepository(ShowRepository):
         orm = _show_to_orm(show)
         self._session.merge(orm)
         self._session.commit()
+
+    def list_all(self) -> list[Show]:
+        orms = self._session.query(ShowORM).all()
+        return [_show_to_domain(orm) for orm in orms]
 
 
 class SQLAlchemyExperimentRepository(ExperimentRepository):
@@ -206,3 +230,103 @@ class SQLAlchemyExperimentRepository(ExperimentRepository):
         orm = _decision_to_orm(decision)
         self._session.merge(orm)
         self._session.commit()
+
+    def get_decisions(self, experiment_id: UUID) -> list[Decision]:
+        orms = self._session.query(DecisionORM).filter_by(
+            experiment_id=str(experiment_id)
+        ).all()
+        return [_decision_to_domain(orm) for orm in orms]
+
+
+def _segment_to_domain(orm: AudienceSegmentORM) -> AudienceSegment:
+    """Convert AudienceSegmentORM to domain AudienceSegment."""
+    return AudienceSegment(
+        segment_id=UUID(orm.segment_id),
+        show_id=UUID(orm.show_id),
+        name=orm.name,
+        definition_json=orm.definition_json,
+        estimated_size=orm.estimated_size,
+        created_by=orm.created_by,
+    )
+
+
+def _segment_to_orm(domain: AudienceSegment) -> AudienceSegmentORM:
+    """Convert domain AudienceSegment to AudienceSegmentORM."""
+    return AudienceSegmentORM(
+        segment_id=str(domain.segment_id),
+        show_id=str(domain.show_id),
+        name=domain.name,
+        definition_json=domain.definition_json,
+        estimated_size=domain.estimated_size,
+        created_by=domain.created_by,
+    )
+
+
+def _frame_to_domain(orm: CreativeFrameORM) -> CreativeFrame:
+    """Convert CreativeFrameORM to domain CreativeFrame."""
+    return CreativeFrame(
+        frame_id=UUID(orm.frame_id),
+        show_id=UUID(orm.show_id),
+        segment_id=UUID(orm.segment_id),
+        hypothesis=orm.hypothesis,
+        promise=orm.promise,
+        evidence_refs=orm.evidence_refs,
+        risk_notes=orm.risk_notes,
+    )
+
+
+def _frame_to_orm(domain: CreativeFrame) -> CreativeFrameORM:
+    """Convert domain CreativeFrame to CreativeFrameORM."""
+    return CreativeFrameORM(
+        frame_id=str(domain.frame_id),
+        show_id=str(domain.show_id),
+        segment_id=str(domain.segment_id),
+        hypothesis=domain.hypothesis,
+        promise=domain.promise,
+        evidence_refs=domain.evidence_refs,
+        risk_notes=domain.risk_notes,
+    )
+
+
+class SQLAlchemySegmentRepository(SegmentRepository):
+    """SQLAlchemy implementation of SegmentRepository."""
+
+    def __init__(self, session: Session):
+        self._session = session
+
+    def get_by_id(self, segment_id: UUID) -> AudienceSegment | None:
+        orm = self._session.get(AudienceSegmentORM, str(segment_id))
+        if orm is None:
+            return None
+        return _segment_to_domain(orm)
+
+    def save(self, segment: AudienceSegment) -> None:
+        orm = _segment_to_orm(segment)
+        self._session.merge(orm)
+        self._session.commit()
+
+    def get_by_show(self, show_id: UUID) -> list[AudienceSegment]:
+        orms = self._session.query(AudienceSegmentORM).filter_by(show_id=str(show_id)).all()
+        return [_segment_to_domain(orm) for orm in orms]
+
+
+class SQLAlchemyFrameRepository(FrameRepository):
+    """SQLAlchemy implementation of FrameRepository."""
+
+    def __init__(self, session: Session):
+        self._session = session
+
+    def get_by_id(self, frame_id: UUID) -> CreativeFrame | None:
+        orm = self._session.get(CreativeFrameORM, str(frame_id))
+        if orm is None:
+            return None
+        return _frame_to_domain(orm)
+
+    def save(self, frame: CreativeFrame) -> None:
+        orm = _frame_to_orm(frame)
+        self._session.merge(orm)
+        self._session.commit()
+
+    def get_by_show(self, show_id: UUID) -> list[CreativeFrame]:
+        orms = self._session.query(CreativeFrameORM).filter_by(show_id=str(show_id)).all()
+        return [_frame_to_domain(orm) for orm in orms]
