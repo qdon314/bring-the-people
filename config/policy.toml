@@ -1,0 +1,26 @@
+[evidence_minimums]
+min_windows = 2
+min_clicks = 150
+min_purchases = 5
+
+[scale_thresholds]
+min_incremental_tickets_per_100usd = 0.0
+max_cac_vs_baseline_ratio = 0.85
+
+[kill_thresholds]
+min_conversion_rate_vs_baseline_ratio = 0.50
+
+[guardrails]
+max_refund_rate = 0.10
+max_complaint_rate = 0.05
+max_negative_comment_rate = 0.15
+
+[confidence_weights]
+sample_sufficiency = 0.4
+lift_strength = 0.4
+window_consistency = 0.2
+
+[budget_caps]
+discovery_max_pct = 0.10
+validation_max_pct = 0.20
+scale_max_pct = 0.40
