@@ -69,6 +69,7 @@ class TestFrameRepository:
             hypothesis="Indie fans respond to intimate venue framing",
             promise="An unforgettable night of live indie music",
             evidence_refs=[{"source": "past_experiment", "id": "abc123"}],
+            channel="meta",
             risk_notes="Small venue may limit appeal",
         )
         repo.save(frame)
@@ -88,6 +89,7 @@ class TestFrameRepository:
                 hypothesis=f"Hypothesis {i}",
                 promise=f"Promise {i}",
                 evidence_refs=[],
+                channel="meta",
             ))
         frames = repo.get_by_show(show_id)
         assert len(frames) == 2
