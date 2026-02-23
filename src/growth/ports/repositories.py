@@ -1,10 +1,38 @@
 """Repository protocols (ports) for the domain."""
 from __future__ import annotations
 
+from datetime import datetime
 from typing import Protocol
 from uuid import UUID
 
-from growth.domain.models import AudienceSegment, CreativeFrame, CreativeVariant, Decision, Experiment, Observation, ProducerMemo, Show
+from growth.domain.models import (
+    AudienceSegment,
+    BackgroundJob,
+    CreativeFrame,
+    CreativeVariant,
+    Cycle,
+    Decision,
+    Experiment,
+    Observation,
+    ProducerMemo,
+    Show,
+)
+
+
+class CycleRepository(Protocol):
+    """Protocol for cycle persistence."""
+
+    def get_by_id(self, cycle_id: UUID) -> Cycle | None:
+        """Get a cycle by ID."""
+        ...
+
+    def save(self, cycle: Cycle) -> None:
+        """Save a cycle."""
+        ...
+
+    def get_by_show(self, show_id: UUID) -> list[Cycle]:
+        """Get all cycles for a show."""
+        ...
 
 
 class SegmentRepository(Protocol):
@@ -116,4 +144,24 @@ class ExperimentRepository(Protocol):
 
     def get_decisions(self, experiment_id: UUID) -> list[Decision]:
         """Get all decisions for an experiment."""
+        ...
+
+
+class JobRepository(Protocol):
+    """Protocol for background job persistence."""
+
+    def get_by_id(self, job_id: UUID) -> BackgroundJob | None:
+        """Get a job by ID."""
+        ...
+
+    def save(self, job: BackgroundJob) -> None:
+        """Save a job."""
+        ...
+
+    def claim_next_queued(self) -> BackgroundJob | None:
+        """Atomically transition one queued job to running. Returns it or None."""
+        ...
+
+    def reset_stale_running_jobs(self, stale_after_seconds: int = 120) -> int:
+        """Reset running jobs with stale heartbeat back to queued. Returns count reset."""
         ...

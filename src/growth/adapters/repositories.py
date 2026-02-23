@@ -60,6 +60,7 @@ def _show_to_domain(orm: ShowORM) -> Show:
         tickets_total=orm.tickets_total,
         tickets_sold=orm.tickets_sold,
         currency=orm.currency,
+        ticket_base_url=orm.ticket_base_url,
     )
 
 
@@ -76,6 +77,7 @@ def _show_to_orm(domain: Show) -> ShowORM:
         tickets_total=domain.tickets_total,
         tickets_sold=domain.tickets_sold,
         currency=domain.currency,
+        ticket_base_url=domain.ticket_base_url,
     )
 
 
@@ -118,7 +120,6 @@ def _experiment_to_orm(domain: Experiment) -> ExperimentORM:
 
 def _observation_to_domain(orm: ObservationORM) -> Observation:
     """Convert ObservationORM to domain Observation."""
-    from datetime import timezone
     return Observation(
         observation_id=UUID(orm.observation_id),
         experiment_id=UUID(orm.experiment_id),
@@ -265,6 +266,9 @@ def _segment_to_domain(orm: AudienceSegmentORM) -> AudienceSegment:
         estimated_size=orm.estimated_size,
         created_by=orm.created_by,
         cycle_id=UUID(orm.cycle_id) if orm.cycle_id else None,
+        review_status=orm.review_status,
+        reviewed_at=orm.reviewed_at,
+        reviewed_by=orm.reviewed_by,
     )
 
 
@@ -278,6 +282,9 @@ def _segment_to_orm(domain: AudienceSegment) -> AudienceSegmentORM:
         estimated_size=domain.estimated_size,
         created_by=domain.created_by,
         cycle_id=str(domain.cycle_id) if domain.cycle_id else None,
+        review_status=domain.review_status,
+        reviewed_at=domain.reviewed_at,
+        reviewed_by=domain.reviewed_by,
     )
 
 
@@ -293,6 +300,9 @@ def _frame_to_domain(orm: CreativeFrameORM) -> CreativeFrame:
         channel=orm.channel,
         risk_notes=orm.risk_notes,
         cycle_id=UUID(orm.cycle_id) if orm.cycle_id else None,
+        review_status=orm.review_status,
+        reviewed_at=orm.reviewed_at,
+        reviewed_by=orm.reviewed_by,
     )
 
 
@@ -308,6 +318,9 @@ def _frame_to_orm(domain: CreativeFrame) -> CreativeFrameORM:
         channel=domain.channel,
         risk_notes=domain.risk_notes,
         cycle_id=str(domain.cycle_id) if domain.cycle_id else None,
+        review_status=domain.review_status,
+        reviewed_at=domain.reviewed_at,
+        reviewed_by=domain.reviewed_by,
     )
 
 
@@ -365,6 +378,9 @@ def _variant_to_domain(orm: CreativeVariantORM) -> CreativeVariant:
         cta=orm.cta,
         constraints_passed=bool(orm.constraints_passed),
         cycle_id=UUID(orm.cycle_id) if orm.cycle_id else None,
+        review_status=orm.review_status,
+        reviewed_at=orm.reviewed_at,
+        reviewed_by=orm.reviewed_by,
     )
 
 
@@ -378,6 +394,9 @@ def _variant_to_orm(domain: CreativeVariant) -> CreativeVariantORM:
         cta=domain.cta,
         constraints_passed=int(domain.constraints_passed),
         cycle_id=str(domain.cycle_id) if domain.cycle_id else None,
+        review_status=domain.review_status,
+        reviewed_at=domain.reviewed_at,
+        reviewed_by=domain.reviewed_by,
     )
 
 
@@ -442,6 +461,7 @@ class SQLAlchemyProducerMemoRepository(ProducerMemoRepository):
     def get_by_show(self, show_id: UUID) -> list[ProducerMemo]:
         orms = self._session.query(ProducerMemoORM).filter_by(show_id=str(show_id)).all()
         return [_memo_to_domain(orm) for orm in orms]
+
 
 # --- Cycle ---
 

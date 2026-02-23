@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Any, Optional
+from typing import Any, Literal, Optional
 from uuid import UUID
 
 from pydantic import BaseModel, Field, model_validator
@@ -20,6 +20,7 @@ class ShowCreate(BaseModel):
     tickets_total: int = Field(ge=0)
     tickets_sold: int = Field(ge=0)
     currency: str = Field(default="USD", max_length=3)
+    ticket_base_url: Optional[str] = None
 
 
 class ShowUpdate(BaseModel):
@@ -31,6 +32,7 @@ class ShowUpdate(BaseModel):
     capacity: Optional[int] = Field(default=None, gt=0)
     tickets_total: Optional[int] = Field(default=None, ge=0)
     tickets_sold: Optional[int] = Field(default=None, ge=0)
+    ticket_base_url: Optional[str] = None
 
 
 class ShowResponse(BaseModel):
@@ -44,6 +46,7 @@ class ShowResponse(BaseModel):
     tickets_total: int
     tickets_sold: int
     currency: str
+    ticket_base_url: Optional[str] = None
 
     @classmethod
     def from_domain(cls, show) -> ShowResponse:
@@ -58,6 +61,7 @@ class ShowResponse(BaseModel):
             tickets_total=show.tickets_total,
             tickets_sold=show.tickets_sold,
             currency=show.currency,
+            ticket_base_url=show.ticket_base_url,
         )
 
 
@@ -205,6 +209,7 @@ class DecisionResponse(BaseModel):
 class ApprovalRequest(BaseModel):
     approved: bool
     notes: str = Field(default="", max_length=1000)
+
 
 # --- Cycle schemas ---
 

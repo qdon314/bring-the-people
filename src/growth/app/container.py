@@ -64,6 +64,10 @@ class Container:
         from growth.adapters.repositories import SQLAlchemyCycleRepository
         return SQLAlchemyCycleRepository(self._session)
 
+    def job_repo(self):
+        from growth.adapters.repositories import SQLAlchemyJobRepository
+        return SQLAlchemyJobRepository(self._session)
+
     def event_log(self) -> JSONLEventLog:
         return JSONLEventLog(self._event_log_path)
 
@@ -92,6 +96,7 @@ class Container:
             exp_repo=self.experiment_repo(),
             seg_repo=self.segment_repo(),
             frame_repo=self.frame_repo(),
+            cycle_repo=self.cycle_repo(),
             event_log=self.event_log(),
             policy=self.policy_config(),
             runs_path=self._runs_path,

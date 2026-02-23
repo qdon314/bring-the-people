@@ -17,7 +17,7 @@ from growth.adapters.llm.prompts.strategy import (
 )
 from growth.adapters.llm.schemas import StrategyOutput
 from growth.domain.events import StrategyCompleted, StrategyFailed
-from growth.domain.models import AudienceSegment, CreativeFrame
+from growth.domain.models import AudienceSegment, CreativeFrame, Cycle
 from growth.domain.policy_config import PolicyConfig
 from growth.ports.event_log import EventLog
 from growth.ports.repositories import (
@@ -41,6 +41,7 @@ class StrategyRunResult:
     """Result from a successful strategy run."""
 
     run_id: UUID
+    cycle_id: UUID
     strategy_output: StrategyOutput
     segment_ids: List[UUID]
     frame_ids: List[UUID]
@@ -59,6 +60,7 @@ class StrategyService:
         exp_repo: ExperimentRepository,
         seg_repo: SegmentRepository,
         frame_repo: FrameRepository,
+        cycle_repo,  # CycleRepository - added for cycle management
         event_log: EventLog,
         policy: PolicyConfig,
         runs_path: Path = Path("data/runs"),
@@ -68,6 +70,7 @@ class StrategyService:
         self._exp_repo = exp_repo
         self._seg_repo = seg_repo
         self._frame_repo = frame_repo
+        self._cycle_repo = cycle_repo
         self._event_log = event_log
         self._policy = policy
         self._runs_path = runs_path
@@ -77,6 +80,16 @@ class StrategyService:
         show = self._show_repo.get_by_id(show_id)
         if show is None:
             raise ValueError(f"Show {show_id} not found")
+
+        # Create a new cycle for this strategy run
+        cycle_id = uuid4()
+        cycle = Cycle(
+            cycle_id=cycle_id,
+            show_id=show_id,
+            started_at=datetime.now(timezone.utc),
+            label=None,   # auto-generate later or accept as param
+        )
+        self._cycle_repo.save(cycle)
 
         run_id = uuid4()
         run_dir = self._runs_path / str(run_id)
@@ -125,6 +138,7 @@ class StrategyService:
                 definition_json=plan.segment_definition.model_dump(),
                 estimated_size=plan.estimated_size,
                 created_by="strategy_agent",
+                cycle_id=cycle_id,
             )
             self._seg_repo.save(segment)
             segment_ids.append(seg_id)
@@ -139,6 +153,7 @@ class StrategyService:
                 evidence_refs=[ref.model_dump() for ref in plan.evidence_refs],
                 channel=plan.channel.value,
                 risk_notes=plan.risk_notes,
+                cycle_id=cycle_id,
             )
             self._frame_repo.save(frame)
             frame_ids.append(frame_id)
@@ -175,6 +190,7 @@ class StrategyService:
 
         return StrategyRunResult(
             run_id=run_id,
+            cycle_id=cycle_id,
             strategy_output=strategy_output,
             segment_ids=segment_ids,
             frame_ids=frame_ids,
