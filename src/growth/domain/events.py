@@ -102,3 +102,50 @@ class StrategyFailed(DomainEvent):
     error_type: str
     error_message: str
     event_type: str = field(default="strategy_failed", init=False)
+
+
+@dataclass(frozen=True)
+class CreativeCompleted(DomainEvent):
+    """Emitted when the Creative Agent produces variants successfully."""
+    frame_id: UUID
+    run_id: UUID
+    num_variants: int
+    variant_ids: tuple[UUID, ...]
+    turns_used: int
+    total_input_tokens: int
+    total_output_tokens: int
+    event_type: str = field(default="creative_completed", init=False)
+
+
+@dataclass(frozen=True)
+class CreativeFailed(DomainEvent):
+    """Emitted when the Creative Agent fails."""
+    frame_id: UUID
+    run_id: UUID
+    error_type: str
+    error_message: str
+    event_type: str = field(default="creative_failed", init=False)
+
+
+@dataclass(frozen=True)
+class MemoCompleted(DomainEvent):
+    """Emitted when the Memo Agent produces a memo successfully."""
+    show_id: UUID
+    memo_id: UUID
+    run_id: UUID
+    cycle_start: str
+    cycle_end: str
+    turns_used: int
+    total_input_tokens: int
+    total_output_tokens: int
+    event_type: str = field(default="memo_completed", init=False)
+
+
+@dataclass(frozen=True)
+class MemoFailed(DomainEvent):
+    """Emitted when the Memo Agent fails."""
+    show_id: UUID
+    run_id: UUID
+    error_type: str
+    error_message: str
+    event_type: str = field(default="memo_failed", init=False)
