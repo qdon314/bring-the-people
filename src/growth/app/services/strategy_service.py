@@ -5,7 +5,7 @@ import json
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import List
+from typing import List, cast
 from uuid import UUID, uuid4
 
 from growth.adapters.llm.agent_runner import run as run_agent
@@ -111,7 +111,7 @@ class StrategyService:
             self._emit_failure(show_id, run_id, e)
             raise StrategyRunError(str(e), run_id) from e
 
-        strategy_output: StrategyOutput = agent_result.output
+        strategy_output = cast(StrategyOutput, agent_result.output)
 
         # Persist segments and frames
         segment_ids: List[UUID] = []
