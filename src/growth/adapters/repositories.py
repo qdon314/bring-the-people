@@ -423,3 +423,45 @@ class SQLAlchemyProducerMemoRepository(ProducerMemoRepository):
     def get_by_show(self, show_id: UUID) -> list[ProducerMemo]:
         orms = self._session.query(ProducerMemoORM).filter_by(show_id=str(show_id)).all()
         return [_memo_to_domain(orm) for orm in orms]
+
+# --- Cycle ---
+
+def _cycle_to_domain(orm: CycleORM) -> Cycle:
+    from datetime import timezone
+    return Cycle(
+        cycle_id=UUID(orm.cycle_id),
+        show_id=UUID(orm.show_id),
+        started_at=orm.started_at.replace(tzinfo=timezone.utc),
+        label=orm.label,
+    )
+
+
+def _cycle_to_orm(domain: Cycle) -> CycleORM:
+    return CycleORM(
+        cycle_id=str(domain.cycle_id),
+        show_id=str(domain.show_id),
+        started_at=domain.started_at,
+        label=domain.label,
+    )
+
+
+class SQLAlchemyCycleRepository(CycleRepository):
+    def __init__(self, session: Session):
+        self._session = session
+
+    def get_by_id(self, cycle_id: UUID) -> Cycle | None:
+        orm = self._session.get(CycleORM, str(cycle_id))
+        if orm is None:
+            return None
+        return _cycle_to_domain(orm)
+
+    def save(self, cycle: Cycle) -> None:
+        orm = _cycle_to_orm(cycle)
+        self._session.merge(orm)
+        self._session.commit()
+
+    def get_by_show(self, show_id: UUID) -> list[Cycle]:
+        orms = self._session.query(CycleORM).filter_by(show_id=str(show_id)).all()
+        return [_cycle_to_domain(orm) for orm in orms]
+
+

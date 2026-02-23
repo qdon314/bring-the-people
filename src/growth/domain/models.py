@@ -54,6 +54,12 @@ class Show:
     tickets_total: int
     tickets_sold: int
     currency: str = "USD"
+@dataclass(frozen=True)
+class Cycle:
+    cycle_id: UUID
+    show_id: UUID
+    started_at: datetime
+    label: str | None = None    # e.g. "Cycle 3 · Feb 10–16", auto-generated if None
 
 
 @dataclass(frozen=True)

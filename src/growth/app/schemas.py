@@ -203,3 +203,22 @@ class DecisionResponse(BaseModel):
 class ApprovalRequest(BaseModel):
     approved: bool
     notes: str = Field(default="", max_length=1000)
+
+# --- Cycle schemas ---
+
+class CycleResponse(BaseModel):
+    cycle_id: UUID
+    show_id: UUID
+    started_at: datetime
+    label: Optional[str]
+
+    @classmethod
+    def from_domain(cls, cycle) -> CycleResponse:
+        return cls(
+            cycle_id=cycle.cycle_id,
+            show_id=cycle.show_id,
+            started_at=cycle.started_at,
+            label=cycle.label,
+        )
+
+

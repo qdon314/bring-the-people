@@ -150,6 +150,30 @@ class ProducerMemoORM(Base):
     cycle_start: Mapped[datetime] = mapped_column(DateTime)
     cycle_end: Mapped[datetime] = mapped_column(DateTime)
     markdown: Mapped[str] = mapped_column(String(10000))
+class CycleORM(Base):
+    __tablename__ = "cycles"
+
+    cycle_id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    show_id: Mapped[str] = mapped_column(ForeignKey("shows.show_id"))
+    started_at: Mapped[datetime] = mapped_column(DateTime)
+    label: Mapped[Optional[str]] = mapped_column(String(200), nullable=True)
+
+
+class BackgroundJobORM(Base):
+    __tablename__ = "background_jobs"
+
+    job_id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    job_type: Mapped[str] = mapped_column(String(20))
+    status: Mapped[str] = mapped_column(String(20), default="queued", index=True)
+    show_id: Mapped[str] = mapped_column(String(36))
+    input_json: Mapped[dict[str, Any]] = mapped_column(JSON)
+    result_json: Mapped[Optional[dict[str, Any]]] = mapped_column(JSON, nullable=True)
+    error_message: Mapped[Optional[str]] = mapped_column(String(2000), nullable=True)
+    attempt_count: Mapped[int] = mapped_column(Integer, default=0)
+    last_heartbeat_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime)
+    updated_at: Mapped[datetime] = mapped_column(DateTime)
+    completed_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
 
 
 def get_engine(db_url: str = "sqlite:///growth.db"):

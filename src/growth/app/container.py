@@ -60,6 +60,10 @@ class Container:
         from growth.adapters.repositories import SQLAlchemyProducerMemoRepository
         return SQLAlchemyProducerMemoRepository(self._session)
 
+    def cycle_repo(self):
+        from growth.adapters.repositories import SQLAlchemyCycleRepository
+        return SQLAlchemyCycleRepository(self._session)
+
     def event_log(self) -> JSONLEventLog:
         return JSONLEventLog(self._event_log_path)
 
