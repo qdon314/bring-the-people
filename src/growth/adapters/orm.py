@@ -38,6 +38,7 @@ class ShowORM(Base):
     tickets_total: Mapped[int] = mapped_column(Integer)
     tickets_sold: Mapped[int] = mapped_column(Integer)
     currency: Mapped[str] = mapped_column(String(3), default="USD")
+    ticket_base_url: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
 
     experiments: Mapped[list["ExperimentORM"]] = relationship(
         back_populates="show", cascade="all, delete-orphan"
@@ -121,6 +122,9 @@ class AudienceSegmentORM(Base):
     cycle_id: Mapped[Optional[str]] = mapped_column(
         String(36), ForeignKey("cycles.cycle_id"), nullable=True
     )
+    review_status: Mapped[str] = mapped_column(String(20), default="draft")
+    reviewed_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
+    reviewed_by: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
 
 
 class CreativeFrameORM(Base):
@@ -134,6 +138,12 @@ class CreativeFrameORM(Base):
     evidence_refs: Mapped[list[dict[str, Any]]] = mapped_column(JSON)
     channel: Mapped[str] = mapped_column(String(50))
     risk_notes: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
+    cycle_id: Mapped[Optional[str]] = mapped_column(
+        String(36), ForeignKey("cycles.cycle_id"), nullable=True
+    )
+    review_status: Mapped[str] = mapped_column(String(20), default="draft")
+    reviewed_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
+    reviewed_by: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
 
 
 class CreativeVariantORM(Base):
@@ -146,6 +156,12 @@ class CreativeVariantORM(Base):
     body: Mapped[str] = mapped_column(String(2000))
     cta: Mapped[str] = mapped_column(String(200))
     constraints_passed: Mapped[int] = mapped_column(Integer, default=0)
+    cycle_id: Mapped[Optional[str]] = mapped_column(
+        String(36), ForeignKey("cycles.cycle_id"), nullable=True
+    )
+    review_status: Mapped[str] = mapped_column(String(20), default="draft")
+    reviewed_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
+    reviewed_by: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
 
 
 class ProducerMemoORM(Base):
@@ -156,6 +172,11 @@ class ProducerMemoORM(Base):
     cycle_start: Mapped[datetime] = mapped_column(DateTime)
     cycle_end: Mapped[datetime] = mapped_column(DateTime)
     markdown: Mapped[str] = mapped_column(String(10000))
+    cycle_id: Mapped[Optional[str]] = mapped_column(
+        String(36), ForeignKey("cycles.cycle_id"), nullable=True
+    )
+
+
 class CycleORM(Base):
     __tablename__ = "cycles"
 

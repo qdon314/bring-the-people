@@ -224,3 +224,175 @@ class CycleResponse(BaseModel):
         )
 
 
+# --- Segment schemas ---
+
+class SegmentResponse(BaseModel):
+    segment_id: UUID
+    show_id: UUID
+    cycle_id: Optional[UUID]
+    name: str
+    definition_json: dict[str, Any]
+    estimated_size: Optional[int]
+    created_by: str
+    review_status: str
+    reviewed_at: Optional[datetime]
+    reviewed_by: Optional[str]
+
+    @classmethod
+    def from_domain(cls, seg) -> SegmentResponse:
+        return cls(
+            segment_id=seg.segment_id,
+            show_id=seg.show_id,
+            cycle_id=seg.cycle_id,
+            name=seg.name,
+            definition_json=seg.definition_json,
+            estimated_size=seg.estimated_size,
+            created_by=seg.created_by,
+            review_status=seg.review_status,
+            reviewed_at=seg.reviewed_at,
+            reviewed_by=seg.reviewed_by,
+        )
+
+
+# --- Frame schemas ---
+
+class FrameResponse(BaseModel):
+    frame_id: UUID
+    show_id: UUID
+    segment_id: UUID
+    cycle_id: Optional[UUID]
+    hypothesis: str
+    promise: str
+    evidence_refs: list[dict[str, Any]]
+    channel: str
+    risk_notes: Optional[str]
+    review_status: str
+    reviewed_at: Optional[datetime]
+    reviewed_by: Optional[str]
+
+    @classmethod
+    def from_domain(cls, frame) -> FrameResponse:
+        return cls(
+            frame_id=frame.frame_id,
+            show_id=frame.show_id,
+            segment_id=frame.segment_id,
+            cycle_id=frame.cycle_id,
+            hypothesis=frame.hypothesis,
+            promise=frame.promise,
+            evidence_refs=frame.evidence_refs,
+            channel=frame.channel,
+            risk_notes=frame.risk_notes,
+            review_status=frame.review_status,
+            reviewed_at=frame.reviewed_at,
+            reviewed_by=frame.reviewed_by,
+        )
+
+
+# --- Variant schemas ---
+
+class VariantResponse(BaseModel):
+    variant_id: UUID
+    frame_id: UUID
+    cycle_id: Optional[UUID]
+    platform: str
+    hook: str
+    body: str
+    cta: str
+    constraints_passed: bool
+    review_status: str
+    reviewed_at: Optional[datetime]
+    reviewed_by: Optional[str]
+
+    @classmethod
+    def from_domain(cls, variant) -> VariantResponse:
+        return cls(
+            variant_id=variant.variant_id,
+            frame_id=variant.frame_id,
+            cycle_id=variant.cycle_id,
+            platform=variant.platform,
+            hook=variant.hook,
+            body=variant.body,
+            cta=variant.cta,
+            constraints_passed=variant.constraints_passed,
+            review_status=variant.review_status,
+            reviewed_at=variant.reviewed_at,
+            reviewed_by=variant.reviewed_by,
+        )
+
+
+# --- Review schemas ---
+
+class ReviewRequest(BaseModel):
+    action: Literal["approve", "reject"]
+    notes: str = ""
+    reviewed_by: str = "producer"
+
+
+# --- Job schemas ---
+
+class JobResponse(BaseModel):
+    job_id: UUID
+    job_type: str
+    status: str
+    show_id: UUID
+    result_json: Optional[dict[str, Any]]
+    error_message: Optional[str]
+    attempt_count: int
+    created_at: datetime
+    updated_at: datetime
+    completed_at: Optional[datetime]
+
+    @classmethod
+    def from_domain(cls, job) -> JobResponse:
+        return cls(
+            job_id=job.job_id,
+            job_type=job.job_type.value,
+            status=job.status.value,
+            show_id=job.show_id,
+            result_json=job.result_json,
+            error_message=job.error_message,
+            attempt_count=job.attempt_count,
+            created_at=job.created_at,
+            updated_at=job.updated_at,
+            completed_at=job.completed_at,
+        )
+
+
+# --- Experiment Metrics ---
+
+class ExperimentMetrics(BaseModel):
+    experiment_id: UUID
+    total_spend_cents: int
+    total_impressions: int
+    total_clicks: int
+    total_purchases: int
+    total_revenue_cents: int
+    windows_count: int
+    ctr: Optional[float]
+    cpc_cents: Optional[float]
+    cpa_cents: Optional[float]
+    roas: Optional[float]
+    conversion_rate: Optional[float]
+    evidence_sufficient: bool
+
+
+# --- Memo schemas ---
+
+class MemoResponse(BaseModel):
+    memo_id: UUID
+    show_id: UUID
+    cycle_id: Optional[UUID]
+    cycle_start: datetime
+    cycle_end: datetime
+    markdown: str
+
+    @classmethod
+    def from_domain(cls, memo) -> MemoResponse:
+        return cls(
+            memo_id=memo.memo_id,
+            show_id=memo.show_id,
+            cycle_id=memo.cycle_id,
+            cycle_start=memo.cycle_start,
+            cycle_end=memo.cycle_end,
+            markdown=memo.markdown,
+        )

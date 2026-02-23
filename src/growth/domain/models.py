@@ -31,6 +31,12 @@ class DecisionAction(Enum):
     KILL = "kill"
 
 
+class ReviewStatus(str, Enum):
+    DRAFT = "draft"
+    APPROVED = "approved"
+    REJECTED = "rejected"
+
+
 def get_show_phase(show_time: datetime, now: datetime) -> ShowPhase:
     """Determine the show phase based on days until showtime."""
     days_out = (show_time - now).days
