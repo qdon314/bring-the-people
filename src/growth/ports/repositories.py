@@ -4,7 +4,7 @@ from __future__ import annotations
 from typing import Protocol
 from uuid import UUID
 
-from growth.domain.models import AudienceSegment, CreativeFrame, Decision, Experiment, Observation, Show
+from growth.domain.models import AudienceSegment, CreativeFrame, CreativeVariant, Decision, Experiment, Observation, ProducerMemo, Show
 
 
 class SegmentRepository(Protocol):
@@ -36,6 +36,38 @@ class FrameRepository(Protocol):
 
     def get_by_show(self, show_id: UUID) -> list[CreativeFrame]:
         """Get all frames for a show."""
+        ...
+
+
+class CreativeVariantRepository(Protocol):
+    """Protocol for creative variant persistence."""
+
+    def get_by_id(self, variant_id: UUID) -> CreativeVariant | None:
+        """Get a variant by ID."""
+        ...
+
+    def save(self, variant: CreativeVariant) -> None:
+        """Save a variant."""
+        ...
+
+    def get_by_frame(self, frame_id: UUID) -> list[CreativeVariant]:
+        """Get all variants for a frame."""
+        ...
+
+
+class ProducerMemoRepository(Protocol):
+    """Protocol for producer memo persistence."""
+
+    def get_by_id(self, memo_id: UUID) -> ProducerMemo | None:
+        """Get a memo by ID."""
+        ...
+
+    def save(self, memo: ProducerMemo) -> None:
+        """Save a memo."""
+        ...
+
+    def get_by_show(self, show_id: UUID) -> list[ProducerMemo]:
+        """Get all memos for a show."""
         ...
 
 
