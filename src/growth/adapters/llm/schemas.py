@@ -88,3 +88,36 @@ class StrategyOutput(BaseModel):
 
     frame_plans: list[FramePlan] = Field(min_length=3, max_length=5)
     reasoning_summary: str = Field(min_length=20, max_length=800)
+
+
+# --- Creative Agent schemas ---
+
+class CreativeVariantDraft(BaseModel):
+    """A single ad copy variant from the Creative Agent."""
+
+    hook: str = Field(min_length=5, max_length=80)
+    body: str = Field(min_length=10, max_length=500)
+    cta: str = Field(min_length=5, max_length=60)
+    reasoning: str = Field(min_length=10, max_length=280)
+
+
+class CreativeOutput(BaseModel):
+    """Complete output from the Creative Agent."""
+
+    variants: list[CreativeVariantDraft] = Field(min_length=2, max_length=3)
+    reasoning_summary: str = Field(min_length=20, max_length=800)
+
+
+# --- Memo Agent schemas ---
+
+class MemoOutput(BaseModel):
+    """Complete output from the Memo Agent."""
+
+    what_worked: str = Field(min_length=20, max_length=800)
+    what_failed: str = Field(min_length=20, max_length=800)
+    cost_per_seat_cents: int = Field(ge=0)
+    cost_per_seat_explanation: str = Field(min_length=10, max_length=400)
+    next_three_tests: list[str] = Field(min_length=1, max_length=3)
+    policy_exceptions: Optional[str] = Field(default=None, max_length=400)
+    markdown: str = Field(min_length=50)
+    reasoning_summary: str = Field(min_length=20, max_length=800)
