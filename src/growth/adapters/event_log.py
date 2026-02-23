@@ -52,6 +52,21 @@ class JSONLEventLog(EventLog):
             if datetime.fromisoformat(e["occurred_at"]) >= since
         ]
 
+    def read_by_show(self, show_id: str) -> list[dict]:
+        """Read all events for a show from the JSONL log."""
+        if not self._log_path.exists():
+            return []
+        results = []
+        with self._log_path.open() as f:
+            for line in f:
+                try:
+                    event = json.loads(line.strip())
+                    if event.get("show_id") == show_id:
+                        results.append(event)
+                except json.JSONDecodeError:
+                    continue
+        return results
+
 
 def _event_to_dict(event: DomainEvent) -> dict[str, Any]:
     """Convert a domain event to a dictionary for serialization."""
