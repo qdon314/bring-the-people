@@ -137,6 +137,7 @@ class StrategyService:
                 hypothesis=plan.hypothesis,
                 promise=plan.promise,
                 evidence_refs=[ref.model_dump() for ref in plan.evidence_refs],
+                channel=plan.channel.value,
                 risk_notes=plan.risk_notes,
             )
             self._frame_repo.save(frame)

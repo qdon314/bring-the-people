@@ -8,24 +8,30 @@ from sqlalchemy.orm import Session
 from growth.adapters.orm import (
     AudienceSegmentORM,
     CreativeFrameORM,
+    CreativeVariantORM,
     DecisionORM,
     ExperimentORM,
     ObservationORM,
+    ProducerMemoORM,
     ShowORM,
 )
 from growth.domain.models import (
     AudienceSegment,
     CreativeFrame,
+    CreativeVariant,
     Decision,
     DecisionAction,
     Experiment,
     ExperimentStatus,
     Observation,
+    ProducerMemo,
     Show,
 )
 from growth.ports.repositories import (
+    CreativeVariantRepository,
     ExperimentRepository,
     FrameRepository,
+    ProducerMemoRepository,
     SegmentRepository,
     ShowRepository,
 )
@@ -271,6 +277,7 @@ def _frame_to_domain(orm: CreativeFrameORM) -> CreativeFrame:
         hypothesis=orm.hypothesis,
         promise=orm.promise,
         evidence_refs=orm.evidence_refs,
+        channel=orm.channel,
         risk_notes=orm.risk_notes,
     )
 
@@ -284,6 +291,7 @@ def _frame_to_orm(domain: CreativeFrame) -> CreativeFrameORM:
         hypothesis=domain.hypothesis,
         promise=domain.promise,
         evidence_refs=domain.evidence_refs,
+        channel=domain.channel,
         risk_notes=domain.risk_notes,
     )
 
@@ -330,3 +338,88 @@ class SQLAlchemyFrameRepository(FrameRepository):
     def get_by_show(self, show_id: UUID) -> list[CreativeFrame]:
         orms = self._session.query(CreativeFrameORM).filter_by(show_id=str(show_id)).all()
         return [_frame_to_domain(orm) for orm in orms]
+
+
+def _variant_to_domain(orm: CreativeVariantORM) -> CreativeVariant:
+    return CreativeVariant(
+        variant_id=UUID(orm.variant_id),
+        frame_id=UUID(orm.frame_id),
+        platform=orm.platform,
+        hook=orm.hook,
+        body=orm.body,
+        cta=orm.cta,
+        constraints_passed=bool(orm.constraints_passed),
+    )
+
+
+def _variant_to_orm(domain: CreativeVariant) -> CreativeVariantORM:
+    return CreativeVariantORM(
+        variant_id=str(domain.variant_id),
+        frame_id=str(domain.frame_id),
+        platform=domain.platform,
+        hook=domain.hook,
+        body=domain.body,
+        cta=domain.cta,
+        constraints_passed=int(domain.constraints_passed),
+    )
+
+
+class SQLAlchemyCreativeVariantRepository(CreativeVariantRepository):
+    def __init__(self, session: Session):
+        self._session = session
+
+    def get_by_id(self, variant_id: UUID) -> CreativeVariant | None:
+        orm = self._session.get(CreativeVariantORM, str(variant_id))
+        if orm is None:
+            return None
+        return _variant_to_domain(orm)
+
+    def save(self, variant: CreativeVariant) -> None:
+        orm = _variant_to_orm(variant)
+        self._session.merge(orm)
+        self._session.commit()
+
+    def get_by_frame(self, frame_id: UUID) -> list[CreativeVariant]:
+        orms = self._session.query(CreativeVariantORM).filter_by(frame_id=str(frame_id)).all()
+        return [_variant_to_domain(orm) for orm in orms]
+
+
+def _memo_to_domain(orm: ProducerMemoORM) -> ProducerMemo:
+    from datetime import timezone
+    return ProducerMemo(
+        memo_id=UUID(orm.memo_id),
+        show_id=UUID(orm.show_id),
+        cycle_start=orm.cycle_start.replace(tzinfo=timezone.utc),
+        cycle_end=orm.cycle_end.replace(tzinfo=timezone.utc),
+        markdown=orm.markdown,
+    )
+
+
+def _memo_to_orm(domain: ProducerMemo) -> ProducerMemoORM:
+    return ProducerMemoORM(
+        memo_id=str(domain.memo_id),
+        show_id=str(domain.show_id),
+        cycle_start=domain.cycle_start,
+        cycle_end=domain.cycle_end,
+        markdown=domain.markdown,
+    )
+
+
+class SQLAlchemyProducerMemoRepository(ProducerMemoRepository):
+    def __init__(self, session: Session):
+        self._session = session
+
+    def get_by_id(self, memo_id: UUID) -> ProducerMemo | None:
+        orm = self._session.get(ProducerMemoORM, str(memo_id))
+        if orm is None:
+            return None
+        return _memo_to_domain(orm)
+
+    def save(self, memo: ProducerMemo) -> None:
+        orm = _memo_to_orm(memo)
+        self._session.merge(orm)
+        self._session.commit()
+
+    def get_by_show(self, show_id: UUID) -> list[ProducerMemo]:
+        orms = self._session.query(ProducerMemoORM).filter_by(show_id=str(show_id)).all()
+        return [_memo_to_domain(orm) for orm in orms]

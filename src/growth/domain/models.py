@@ -74,6 +74,7 @@ class CreativeFrame:
     hypothesis: str
     promise: str
     evidence_refs: list[dict[str, Any]]
+    channel: str
     risk_notes: str | None = None
 
 

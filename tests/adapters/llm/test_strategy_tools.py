@@ -124,7 +124,7 @@ class TestGetActiveExperiments:
         frame = CreativeFrame(
             frame_id=uuid4(), show_id=show.show_id, segment_id=seg.segment_id,
             hypothesis="Test hypothesis", promise="Test promise",
-            evidence_refs=[], risk_notes=None,
+            evidence_refs=[], channel="meta", risk_notes=None,
         )
         repos["frame_repo"].save(frame)
 
@@ -239,7 +239,7 @@ class TestQueryKnowledgeBase:
         frame = CreativeFrame(
             frame_id=uuid4(), show_id=show.show_id, segment_id=seg.segment_id,
             hypothesis="Past hypothesis", promise="Past promise",
-            evidence_refs=[], risk_notes=None,
+            evidence_refs=[], channel="meta", risk_notes=None,
         )
         repos["frame_repo"].save(frame)
 

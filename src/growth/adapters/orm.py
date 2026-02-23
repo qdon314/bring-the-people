@@ -126,7 +126,30 @@ class CreativeFrameORM(Base):
     hypothesis: Mapped[str] = mapped_column(String(500))
     promise: Mapped[str] = mapped_column(String(500))
     evidence_refs: Mapped[list[dict[str, Any]]] = mapped_column(JSON)
+    channel: Mapped[str] = mapped_column(String(50))
     risk_notes: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
+
+
+class CreativeVariantORM(Base):
+    __tablename__ = "creative_variants"
+
+    variant_id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    frame_id: Mapped[str] = mapped_column(ForeignKey("creative_frames.frame_id"))
+    platform: Mapped[str] = mapped_column(String(50))
+    hook: Mapped[str] = mapped_column(String(500))
+    body: Mapped[str] = mapped_column(String(2000))
+    cta: Mapped[str] = mapped_column(String(200))
+    constraints_passed: Mapped[int] = mapped_column(Integer, default=0)
+
+
+class ProducerMemoORM(Base):
+    __tablename__ = "producer_memos"
+
+    memo_id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    show_id: Mapped[str] = mapped_column(ForeignKey("shows.show_id"))
+    cycle_start: Mapped[datetime] = mapped_column(DateTime)
+    cycle_end: Mapped[datetime] = mapped_column(DateTime)
+    markdown: Mapped[str] = mapped_column(String(10000))
 
 
 def get_engine(db_url: str = "sqlite:///growth.db"):
