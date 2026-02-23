@@ -369,6 +369,107 @@ curl -X POST http://localhost:8000/api/strategy/{show_id}/run
 
 ---
 
+## Creative Agent
+
+### `POST /creative/{frame_id}/run`
+
+Run the Creative Agent to generate ad copy variants for a frame.
+
+**Process**:
+1. Validate frame exists
+2. Initialize Claude agent with tools
+3. Agent queries frame context (frame + segment + show details)
+4. Agent gets platform constraints for the frame's channel
+5. Agent produces 2-3 CreativeVariantDrafts with hook, body, and CTA
+6. Validate variants against platform constraints
+7. Persist creative variants to database
+8. Write artifacts and emit event
+
+**Response (200)**:
+```json
+{
+  "run_id": "uuid",
+  "variant_ids": ["uuid", "uuid", "uuid"],
+  "reasoning_summary": "Focused on urgency messaging for late-phase show...",
+  "turns_used": 5,
+  "total_input_tokens": 3200,
+  "total_output_tokens": 950
+}
+```
+
+**Response (404)**: `{"detail": "Frame not found"}`
+
+**Response (422)**: Constraint violation error with details:
+```json
+{
+  "error": "Constraint violations detected",
+  "run_id": "uuid",
+  "violations": ["Variant 0 hook exceeds 80 chars"]
+}
+```
+
+**Response (502)**: Agent failure (turn limit, parse error, API error)
+
+**Example**:
+```bash
+curl -X POST http://localhost:8000/api/creative/{frame_id}/run
+```
+
+---
+
+## Memo Agent
+
+### `POST /memo/{show_id}/run`
+
+Run the Memo Agent to summarize a completed experiment cycle for the producer.
+
+**Query Parameters**:
+- `cycle_start` (required): ISO 8601 timestamp for cycle start
+- `cycle_end` (required): ISO 8601 timestamp for cycle end
+
+**Validation**: `cycle_start` must be before `cycle_end`
+
+**Process**:
+1. Validate show exists and cycle dates are valid
+2. Initialize Claude agent with tools
+3. Agent queries show details
+4. Agent gets experiments and decisions within the cycle window
+5. Agent queries budget status
+6. Agent produces structured memo output (what worked, what failed, cost per seat, next tests)
+7. Persist producer memo to database
+8. Write artifacts (memo.json + memo.md) and emit event
+
+**Response (200)**:
+```json
+{
+  "run_id": "uuid",
+  "memo_id": "uuid",
+  "what_worked": "Meta ads targeting 25-34 synthwave fans achieved CAC $12...",
+  "what_failed": "Reddit ads had high bounce rate; audience mismatch...",
+  "cost_per_seat_cents": 1200,
+  "cost_per_seat_explanation": "Total spend $2400 / 20 incremental tickets...",
+  "next_three_tests": ["Test Instagram Reels format", "Expand to 35-44 age group", "Try urgency messaging"],
+  "policy_exceptions": null,
+  "reasoning_summary": "Meta outperformed other channels significantly...",
+  "turns_used": 4,
+  "total_input_tokens": 2800,
+  "total_output_tokens": 720
+}
+```
+
+**Response (404)**: `{"detail": "Show not found"}`
+
+**Response (422)**: Invalid parameters (missing dates, start >= end, or invalid output)
+
+**Response (502)**: Agent failure (turn limit, parse error, API error)
+
+**Example**:
+```bash
+curl -X POST "http://localhost:8000/api/memo/{show_id}/run?cycle_start=2026-04-01T00:00:00Z&cycle_end=2026-04-07T23:59:59Z"
+```
+
+---
+
 ## Error Responses
 
 ### Standard Error Format
@@ -386,7 +487,7 @@ curl -X POST http://localhost:8000/api/strategy/{show_id}/run
 | 400 | Bad Request | Invalid JSON, validation error |
 | 404 | Not Found | Resource doesn't exist |
 | 409 | Conflict | Invalid state transition |
-| 422 | Unprocessable Entity | Pydantic validation error |
+| 422 | Unprocessable Entity | Pydantic validation error, constraint violation |
 | 502 | Bad Gateway | LLM agent failure |
 
 ### Conflict Examples
@@ -479,6 +580,32 @@ curl -X POST http://localhost:8000/api/strategy/{show_id}/run
 }
 ```
 
+### CreativeVariant
+
+```json
+{
+  "variant_id": "uuid",
+  "frame_id": "uuid",
+  "platform": "string",
+  "hook": "string (5-80 chars)",
+  "body": "string (10-500 chars)",
+  "cta": "string (5-60 chars)",
+  "constraints_passed": "boolean"
+}
+```
+
+### ProducerMemo
+
+```json
+{
+  "memo_id": "uuid",
+  "show_id": "uuid",
+  "cycle_start": "datetime",
+  "cycle_end": "datetime",
+  "markdown": "string"
+}
+```
+
 ---
 
 ## Complete Workflow Example
@@ -510,7 +637,12 @@ echo "Strategy complete: $(echo $STRATEGY | jq -r '.reasoning_summary')"
 SEGMENT_ID=$(echo $STRATEGY | jq -r '.segment_ids[0]')
 FRAME_ID=$(echo $STRATEGY | jq -r '.frame_ids[0]')
 
-# 3. Create experiment
+# 3. Run creative agent to generate ad copy variants
+CREATIVE=$(curl -s -X POST "$BASE/creative/$FRAME_ID/run")
+echo "Creative complete: $(echo $CREATIVE | jq -r '.reasoning_summary')"
+VARIANT_ID=$(echo $CREATIVE | jq -r '.variant_ids[0]')
+
+# 4. Create experiment
 EXPERIMENT=$(curl -s -X POST "$BASE/experiments" \
   -H "Content-Type: application/json" \
   -d "{
@@ -524,7 +656,7 @@ EXPERIMENT=$(curl -s -X POST "$BASE/experiments" \
 EXP_ID=$(echo $EXPERIMENT | jq -r '.experiment_id')
 echo "Created experiment: $EXP_ID"
 
-# 4. Submit, approve, start
+# 5. Submit, approve, start
 curl -s -X POST "$BASE/experiments/$EXP_ID/submit" > /dev/null
 curl -s -X POST "$BASE/experiments/$EXP_ID/approve" \
   -H "Content-Type: application/json" \
@@ -532,7 +664,7 @@ curl -s -X POST "$BASE/experiments/$EXP_ID/approve" \
 curl -s -X POST "$BASE/experiments/$EXP_ID/start" > /dev/null
 echo "Experiment started"
 
-# 5. Add observations (daily)
+# 6. Add observations (daily)
 curl -s -X POST "$BASE/observations" \
   -H "Content-Type: application/json" \
   -d "{
@@ -553,6 +685,9 @@ curl -s -X POST "$BASE/observations" \
 
 # 6. Evaluate
 curl -s -X POST "$BASE/decisions/evaluate/$EXP_ID" | jq .
+
+# 7. Generate cycle memo (after cycle ends)
+curl -s -X POST "$BASE/memo/$SHOW_ID/run?cycle_start=2026-04-01T00:00:00Z&cycle_end=2026-04-07T23:59:59Z" | jq .
 ```
 
 ---

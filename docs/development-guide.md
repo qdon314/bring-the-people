@@ -10,7 +10,7 @@ Guide for contributing to the Bring The People growth system.
 
 - Python 3.9+
 - Git
-- Anthropic API key (for Strategy Agent)
+- Anthropic API key (for LLM agents: Strategy, Creative, Memo)
 
 ### Installation
 
@@ -50,6 +50,7 @@ src/growth/
 ├── domain/          # Pure business logic
 ├── ports/           # Protocols/interfaces
 ├── adapters/        # Concrete implementations
+│   └── llm/         # Claude-powered agents (Strategy, Creative, Memo)
 └── app/             # Application layer
 ```
 
@@ -342,16 +343,38 @@ for show in repo.list_all():
 "
 ```
 
-### Strategy Agent Debugging
+### LLM Agent Debugging
 
-Each run creates artifacts in `data/runs/{run_id}/`:
+All three agents (Strategy, Creative, Memo) create artifacts in `data/runs/{run_id}/`:
 
+**Strategy Agent**:
 ```bash
 # View conversation log
 cat data/runs/{run_id}/strategy_conversation.jsonl | jq .
 
 # View final plan
 cat data/runs/{run_id}/plan.json | jq .
+```
+
+**Creative Agent**:
+```bash
+# View conversation log
+cat data/runs/{run_id}/creative_conversation.jsonl | jq .
+
+# View generated variants
+cat data/runs/{run_id}/creative_output.json | jq .
+```
+
+**Memo Agent**:
+```bash
+# View conversation log
+cat data/runs/{run_id}/memo_conversation.jsonl | jq .
+
+# View structured output
+cat data/runs/{run_id}/memo.json | jq .
+
+# View formatted markdown
+cat data/runs/{run_id}/memo.md
 ```
 
 ---
@@ -366,11 +389,24 @@ cat data/runs/{run_id}/plan.json | jq .
 4. Update configuration schema in [`src/growth/domain/policy_config.py`](src/growth/domain/policy_config.py)
 5. Add threshold to [`config/policy.toml`](config/policy.toml)
 
-### Adding a New Tool for Strategy Agent
+### Adding a New Tool for an LLM Agent
 
-1. Implement function in `src/growth/adapters/llm/strategy_tools.py`
-2. Add to tool schemas in `src/growth/adapters/llm/prompts/strategy.py`
-3. Add to dispatcher in [`StrategyService._build_tool_dispatcher()`](src/growth/app/services/strategy_service.py:185)
+**For Strategy Agent**:
+1. Implement function in [`src/growth/adapters/llm/strategy_tools.py`](src/growth/adapters/llm/strategy_tools.py)
+2. Add to tool schemas in [`src/growth/adapters/llm/prompts/strategy.py`](src/growth/adapters/llm/prompts/strategy.py)
+3. Add to dispatcher in [`StrategyService._build_tool_dispatcher()`](src/growth/app/services/strategy_service.py)
+4. Add tests
+
+**For Creative Agent**:
+1. Implement function in [`src/growth/adapters/llm/creative_tools.py`](src/growth/adapters/llm/creative_tools.py)
+2. Add to tool schemas in [`src/growth/adapters/llm/prompts/creative.py`](src/growth/adapters/llm/prompts/creative.py)
+3. Add to dispatcher in [`CreativeService._build_tool_dispatcher()`](src/growth/app/services/creative_service.py)
+4. Add tests
+
+**For Memo Agent**:
+1. Implement function in [`src/growth/adapters/llm/memo_tools.py`](src/growth/adapters/llm/memo_tools.py)
+2. Add to tool schemas in [`src/growth/adapters/llm/prompts/memo.py`](src/growth/adapters/llm/prompts/memo.py)
+3. Add to dispatcher in [`MemoService._build_tool_dispatcher()`](src/growth/app/services/memo_service.py)
 4. Add tests
 
 ### Updating Policy Configuration
