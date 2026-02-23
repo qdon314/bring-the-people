@@ -41,4 +41,10 @@ def create_app(container: Optional[Container] = None) -> FastAPI:
     from growth.app.api.strategy import router as strategy_router
     app.include_router(strategy_router, prefix="/api/strategy", tags=["strategy"])
 
+    from growth.app.api.creative import router as creative_router
+    app.include_router(creative_router, prefix="/api/creative", tags=["creative"])
+
+    from growth.app.api.memo import router as memo_router
+    app.include_router(memo_router, prefix="/api/memo", tags=["memo"])
+
     return app

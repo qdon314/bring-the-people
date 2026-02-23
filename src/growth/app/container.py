@@ -52,6 +52,14 @@ class Container:
     def frame_repo(self) -> SQLAlchemyFrameRepository:
         return SQLAlchemyFrameRepository(self._session)
 
+    def variant_repo(self):
+        from growth.adapters.repositories import SQLAlchemyCreativeVariantRepository
+        return SQLAlchemyCreativeVariantRepository(self._session)
+
+    def memo_repo(self):
+        from growth.adapters.repositories import SQLAlchemyProducerMemoRepository
+        return SQLAlchemyProducerMemoRepository(self._session)
+
     def event_log(self) -> JSONLEventLog:
         return JSONLEventLog(self._event_log_path)
 
@@ -80,6 +88,32 @@ class Container:
             exp_repo=self.experiment_repo(),
             seg_repo=self.segment_repo(),
             frame_repo=self.frame_repo(),
+            event_log=self.event_log(),
+            policy=self.policy_config(),
+            runs_path=self._runs_path,
+        )
+
+    def creative_service(self):
+        from growth.app.services.creative_service import CreativeService
+        return CreativeService(
+            claude_client=self.claude_client(),
+            frame_repo=self.frame_repo(),
+            seg_repo=self.segment_repo(),
+            show_repo=self.show_repo(),
+            variant_repo=self.variant_repo(),
+            event_log=self.event_log(),
+            runs_path=self._runs_path,
+        )
+
+    def memo_service(self):
+        from growth.app.services.memo_service import MemoService
+        return MemoService(
+            claude_client=self.claude_client(),
+            show_repo=self.show_repo(),
+            exp_repo=self.experiment_repo(),
+            seg_repo=self.segment_repo(),
+            frame_repo=self.frame_repo(),
+            memo_repo=self.memo_repo(),
             event_log=self.event_log(),
             policy=self.policy_config(),
             runs_path=self._runs_path,
