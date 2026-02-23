@@ -6,7 +6,7 @@ from uuid import UUID, uuid4
 
 from fastapi import APIRouter, HTTPException, Request
 
-from growth.app.schemas import ApprovalRequest, ExperimentCreate, ExperimentResponse
+from growth.app.schemas import ApprovalRequest, ExperimentCreate, ExperimentResponse, ExperimentMetrics
 from growth.domain.models import Experiment, ExperimentStatus
 
 router = APIRouter()
@@ -31,6 +31,7 @@ def create_experiment(body: ExperimentCreate, request: Request):
         start_time=None,
         end_time=None,
         baseline_snapshot=body.baseline_snapshot,
+        cycle_id=None,
     )
     repo.save(exp)
     return ExperimentResponse.from_domain(exp)
@@ -73,6 +74,7 @@ def submit_for_approval(experiment_id: UUID, request: Request):
         start_time=exp.start_time,
         end_time=exp.end_time,
         baseline_snapshot=exp.baseline_snapshot,
+        cycle_id=exp.cycle_id,
     )
     repo.save(updated)
     return ExperimentResponse.from_domain(updated)
@@ -100,6 +102,7 @@ def approve_experiment(experiment_id: UUID, body: ApprovalRequest, request: Requ
         start_time=exp.start_time,
         end_time=exp.end_time,
         baseline_snapshot=exp.baseline_snapshot,
+        cycle_id=exp.cycle_id,
     )
     repo.save(updated)
     return ExperimentResponse.from_domain(updated)
@@ -126,6 +129,109 @@ def start_experiment(experiment_id: UUID, request: Request):
         start_time=datetime.now(timezone.utc),
         end_time=exp.end_time,
         baseline_snapshot=exp.baseline_snapshot,
+        cycle_id=exp.cycle_id,
     )
     repo.save(updated)
     return ExperimentResponse.from_domain(updated)
+
+
+@router.post("/{experiment_id}/complete", response_model=ExperimentResponse)
+def complete_experiment(experiment_id: UUID, request: Request):
+    repo = _get_exp_repo(request)
+    exp = repo.get_by_id(experiment_id)
+    if exp is None:
+        raise HTTPException(status_code=404, detail="Experiment not found")
+    if exp.status != ExperimentStatus.RUNNING:
+        raise HTTPException(status_code=409, detail=f"Cannot complete from status {exp.status.value}")
+    
+    updated = Experiment(
+        experiment_id=exp.experiment_id,
+        show_id=exp.show_id,
+        segment_id=exp.segment_id,
+        frame_id=exp.frame_id,
+        channel=exp.channel,
+        objective=exp.objective,
+        budget_cap_cents=exp.budget_cap_cents,
+        status=ExperimentStatus.COMPLETED,
+        start_time=exp.start_time,
+        end_time=datetime.now(timezone.utc),
+        baseline_snapshot=exp.baseline_snapshot,
+        cycle_id=exp.cycle_id,
+    )
+    repo.save(updated)
+    return ExperimentResponse.from_domain(updated)
+
+
+@router.post("/{experiment_id}/stop", response_model=ExperimentResponse)
+def stop_experiment(experiment_id: UUID, request: Request):
+    repo = _get_exp_repo(request)
+    exp = repo.get_by_id(experiment_id)
+    if exp is None:
+        raise HTTPException(status_code=404, detail="Experiment not found")
+    if exp.status != ExperimentStatus.RUNNING:
+        raise HTTPException(status_code=409, detail=f"Cannot stop from status {exp.status.value}")
+    
+    updated = Experiment(
+        experiment_id=exp.experiment_id,
+        show_id=exp.show_id,
+        segment_id=exp.segment_id,
+        frame_id=exp.frame_id,
+        channel=exp.channel,
+        objective=exp.objective,
+        budget_cap_cents=exp.budget_cap_cents,
+        status=ExperimentStatus.STOPPED,
+        start_time=exp.start_time,
+        end_time=datetime.now(timezone.utc),
+        baseline_snapshot=exp.baseline_snapshot,
+        cycle_id=exp.cycle_id,
+    )
+    repo.save(updated)
+    return ExperimentResponse.from_domain(updated)
+
+
+@router.get("/{experiment_id}/metrics", response_model=ExperimentMetrics)
+def get_experiment_metrics(experiment_id: UUID, request: Request):
+    from growth.app.schemas import ExperimentMetrics as MetricsSchema
+    container = request.app.state.container
+    exp = container.experiment_repo().get_by_id(experiment_id)
+    if exp is None:
+        raise HTTPException(404, "Experiment not found")
+    observations = container.experiment_repo().get_observations(experiment_id)
+    
+    # Compute metrics
+    total_spend_cents = sum(o.spend_cents for o in observations)
+    total_impressions = sum(o.impressions for o in observations)
+    total_clicks = sum(o.clicks for o in observations)
+    total_purchases = sum(o.purchases for o in observations)
+    total_revenue_cents = sum(o.revenue_cents for o in observations)
+    windows_count = len(observations)
+    
+    ctr = total_clicks / total_impressions if total_impressions > 0 else None
+    cpc_cents = total_spend_cents / total_clicks if total_clicks > 0 else None
+    cpa_cents = total_spend_cents / total_purchases if total_purchases > 0 else None
+    roas = total_revenue_cents / total_spend_cents if total_spend_cents > 0 else None
+    conversion_rate = total_purchases / total_clicks if total_clicks > 0 else None
+    
+    # Check evidence sufficiency
+    policy = container.policy_config()
+    evidence_sufficient = (
+        total_impressions >= policy.min_observations_impressions and
+        total_spend_cents >= policy.min_observations_spend_cents and
+        windows_count >= 1
+    )
+    
+    return MetricsSchema(
+        experiment_id=experiment_id,
+        total_spend_cents=total_spend_cents,
+        total_impressions=total_impressions,
+        total_clicks=total_clicks,
+        total_purchases=total_purchases,
+        total_revenue_cents=total_revenue_cents,
+        windows_count=windows_count,
+        ctr=ctr,
+        cpc_cents=cpc_cents,
+        cpa_cents=cpa_cents,
+        roas=roas,
+        conversion_rate=conversion_rate,
+        evidence_sufficient=evidence_sufficient,
+    )
