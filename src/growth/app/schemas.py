@@ -76,6 +76,7 @@ class ExperimentCreate(BaseModel):
 class ExperimentResponse(BaseModel):
     experiment_id: UUID
     show_id: UUID
+    cycle_id: Optional[UUID]
     segment_id: UUID
     frame_id: UUID
     channel: str
@@ -91,6 +92,7 @@ class ExperimentResponse(BaseModel):
         return cls(
             experiment_id=exp.experiment_id,
             show_id=exp.show_id,
+            cycle_id=exp.cycle_id,
             segment_id=exp.segment_id,
             frame_id=exp.frame_id,
             channel=exp.channel,

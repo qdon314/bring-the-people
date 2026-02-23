@@ -70,6 +70,7 @@ class AudienceSegment:
     definition_json: dict[str, Any]
     estimated_size: int | None
     created_by: str
+    cycle_id: UUID | None = None
 
 
 @dataclass(frozen=True)
@@ -82,6 +83,7 @@ class CreativeFrame:
     evidence_refs: list[dict[str, Any]]
     channel: str
     risk_notes: str | None = None
+    cycle_id: UUID | None = None
 
 
 @dataclass(frozen=True)
@@ -93,6 +95,7 @@ class CreativeVariant:
     body: str
     cta: str
     constraints_passed: bool = False
+    cycle_id: UUID | None = None
 
 
 @dataclass(frozen=True)
@@ -108,6 +111,7 @@ class Experiment:
     start_time: datetime | None
     end_time: datetime | None
     baseline_snapshot: dict[str, Any]
+    cycle_id: UUID | None = None
 
 
 @dataclass(frozen=True)

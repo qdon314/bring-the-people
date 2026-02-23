@@ -85,6 +85,7 @@ def _experiment_to_domain(orm: ExperimentORM) -> Experiment:
         start_time=orm.start_time.replace(tzinfo=timezone.utc) if orm.start_time else None,
         end_time=orm.end_time.replace(tzinfo=timezone.utc) if orm.end_time else None,
         baseline_snapshot=orm.baseline_snapshot,
+        cycle_id=UUID(orm.cycle_id) if orm.cycle_id else None,
     )
 
 
@@ -102,6 +103,7 @@ def _experiment_to_orm(domain: Experiment) -> ExperimentORM:
         start_time=domain.start_time,
         end_time=domain.end_time,
         baseline_snapshot=domain.baseline_snapshot,
+        cycle_id=str(domain.cycle_id) if domain.cycle_id else None,
     )
 
 
@@ -253,6 +255,7 @@ def _segment_to_domain(orm: AudienceSegmentORM) -> AudienceSegment:
         definition_json=orm.definition_json,
         estimated_size=orm.estimated_size,
         created_by=orm.created_by,
+        cycle_id=UUID(orm.cycle_id) if orm.cycle_id else None,
     )
 
 
@@ -265,6 +268,7 @@ def _segment_to_orm(domain: AudienceSegment) -> AudienceSegmentORM:
         definition_json=domain.definition_json,
         estimated_size=domain.estimated_size,
         created_by=domain.created_by,
+        cycle_id=str(domain.cycle_id) if domain.cycle_id else None,
     )
 
 
@@ -279,6 +283,7 @@ def _frame_to_domain(orm: CreativeFrameORM) -> CreativeFrame:
         evidence_refs=orm.evidence_refs,
         channel=orm.channel,
         risk_notes=orm.risk_notes,
+        cycle_id=UUID(orm.cycle_id) if orm.cycle_id else None,
     )
 
 
@@ -293,6 +298,7 @@ def _frame_to_orm(domain: CreativeFrame) -> CreativeFrameORM:
         evidence_refs=domain.evidence_refs,
         channel=domain.channel,
         risk_notes=domain.risk_notes,
+        cycle_id=str(domain.cycle_id) if domain.cycle_id else None,
     )
 
 
@@ -349,6 +355,7 @@ def _variant_to_domain(orm: CreativeVariantORM) -> CreativeVariant:
         body=orm.body,
         cta=orm.cta,
         constraints_passed=bool(orm.constraints_passed),
+        cycle_id=UUID(orm.cycle_id) if orm.cycle_id else None,
     )
 
 
@@ -361,6 +368,7 @@ def _variant_to_orm(domain: CreativeVariant) -> CreativeVariantORM:
         body=domain.body,
         cta=domain.cta,
         constraints_passed=int(domain.constraints_passed),
+        cycle_id=str(domain.cycle_id) if domain.cycle_id else None,
     )
 
 
@@ -392,6 +400,7 @@ def _memo_to_domain(orm: ProducerMemoORM) -> ProducerMemo:
         cycle_start=orm.cycle_start.replace(tzinfo=timezone.utc),
         cycle_end=orm.cycle_end.replace(tzinfo=timezone.utc),
         markdown=orm.markdown,
+        cycle_id=UUID(orm.cycle_id) if orm.cycle_id else None,
     )
 
 
@@ -402,6 +411,7 @@ def _memo_to_orm(domain: ProducerMemo) -> ProducerMemoORM:
         cycle_start=domain.cycle_start,
         cycle_end=domain.cycle_end,
         markdown=domain.markdown,
+        cycle_id=str(domain.cycle_id) if domain.cycle_id else None,
     )
 
 

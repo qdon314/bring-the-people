@@ -58,6 +58,9 @@ class ExperimentORM(Base):
     start_time: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
     end_time: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
     baseline_snapshot: Mapped[dict[str, Any]] = mapped_column(JSON)
+    cycle_id: Mapped[Optional[str]] = mapped_column(
+        String(36), ForeignKey("cycles.cycle_id"), nullable=True
+    )
 
     show: Mapped["ShowORM"] = relationship(back_populates="experiments")
     observations: Mapped[list["ObservationORM"]] = relationship(
@@ -115,6 +118,9 @@ class AudienceSegmentORM(Base):
     definition_json: Mapped[dict[str, Any]] = mapped_column(JSON)
     estimated_size: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
     created_by: Mapped[str] = mapped_column(String(100))
+    cycle_id: Mapped[Optional[str]] = mapped_column(
+        String(36), ForeignKey("cycles.cycle_id"), nullable=True
+    )
 
 
 class CreativeFrameORM(Base):
