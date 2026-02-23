@@ -1,41 +1,39 @@
 """Creative Agent API endpoint."""
 from __future__ import annotations
 
-from uuid import UUID
+from datetime import datetime, timezone
+from uuid import UUID, uuid4
 
 from fastapi import APIRouter, HTTPException, Request
 
-from growth.app.services.creative_service import ConstraintViolationError, CreativeRunError
+from growth.domain.models import BackgroundJob, JobStatus, JobType
 
 router = APIRouter()
 
 
-@router.post("/{frame_id}/run")
+@router.post("/{frame_id}/run", status_code=202)
 def run_creative(frame_id: UUID, request: Request):
+    """Run the Creative Agent for a frame (enqueues a job)."""
     container = request.app.state.container
-    service = container.creative_service()
+    
+    # Validate frame exists
+    frame = container.frame_repo().get_by_id(frame_id)
+    if frame is None:
+        raise HTTPException(404, "Frame not found")
 
-    try:
-        result = service.run(frame_id)
-    except ValueError as e:
-        raise HTTPException(status_code=404, detail=str(e))
-    except ConstraintViolationError as e:
-        raise HTTPException(status_code=422, detail={
-            "error": str(e),
-            "run_id": str(e.run_id),
-            "violations": e.violations,
-        })
-    except CreativeRunError as e:
-        raise HTTPException(status_code=502, detail={
-            "error": str(e),
-            "run_id": str(e.run_id),
-        })
-
-    return {
-        "run_id": str(result.run_id),
-        "variant_ids": [str(vid) for vid in result.variant_ids],
-        "reasoning_summary": result.creative_output.reasoning_summary,
-        "turns_used": result.turns_used,
-        "total_input_tokens": result.total_input_tokens,
-        "total_output_tokens": result.total_output_tokens,
-    }
+    job = BackgroundJob(
+        job_id=uuid4(),
+        job_type=JobType.CREATIVE,
+        status=JobStatus.QUEUED,
+        show_id=frame.show_id,
+        input_json={"frame_id": str(frame_id)},
+        result_json=None,
+        error_message=None,
+        attempt_count=0,
+        last_heartbeat_at=None,
+        created_at=datetime.now(timezone.utc),
+        updated_at=datetime.now(timezone.utc),
+        completed_at=None,
+    )
+    container.job_repo().save(job)
+    return {"job_id": str(job.job_id), "status": "queued"}

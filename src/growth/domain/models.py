@@ -37,6 +37,19 @@ class ReviewStatus(str, Enum):
     REJECTED = "rejected"
 
 
+class JobStatus(str, Enum):
+    QUEUED = "queued"
+    RUNNING = "running"
+    COMPLETED = "completed"
+    FAILED = "failed"
+
+
+class JobType(str, Enum):
+    STRATEGY = "strategy"
+    CREATIVE = "creative"
+    MEMO = "memo"
+
+
 def get_show_phase(show_time: datetime, now: datetime) -> ShowPhase:
     """Determine the show phase based on days until showtime."""
     days_out = (show_time - now).days
@@ -60,6 +73,9 @@ class Show:
     tickets_total: int
     tickets_sold: int
     currency: str = "USD"
+    ticket_base_url: str | None = None
+
+
 @dataclass(frozen=True)
 class Cycle:
     cycle_id: UUID
@@ -77,6 +93,9 @@ class AudienceSegment:
     estimated_size: int | None
     created_by: str
     cycle_id: UUID | None = None
+    review_status: str = "draft"
+    reviewed_at: datetime | None = None
+    reviewed_by: str | None = None
 
 
 @dataclass(frozen=True)
@@ -90,6 +109,9 @@ class CreativeFrame:
     channel: str
     risk_notes: str | None = None
     cycle_id: UUID | None = None
+    review_status: str = "draft"
+    reviewed_at: datetime | None = None
+    reviewed_by: str | None = None
 
 
 @dataclass(frozen=True)
@@ -102,6 +124,9 @@ class CreativeVariant:
     cta: str
     constraints_passed: bool = False
     cycle_id: UUID | None = None
+    review_status: str = "draft"
+    reviewed_at: datetime | None = None
+    reviewed_by: str | None = None
 
 
 @dataclass(frozen=True)
@@ -159,3 +184,20 @@ class ProducerMemo:
     cycle_start: datetime
     cycle_end: datetime
     markdown: str
+    cycle_id: UUID | None = None
+
+
+@dataclass(frozen=True)
+class BackgroundJob:
+    job_id: UUID
+    job_type: JobType
+    status: JobStatus
+    show_id: UUID
+    input_json: dict[str, Any]          # e.g. {"show_id": "...", "frame_id": "..."}
+    result_json: dict[str, Any] | None
+    error_message: str | None
+    attempt_count: int
+    last_heartbeat_at: datetime | None
+    created_at: datetime
+    updated_at: datetime
+    completed_at: datetime | None

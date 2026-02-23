@@ -1,14 +1,17 @@
 """SQLAlchemy repository implementations."""
 from __future__ import annotations
 
+from datetime import datetime, timedelta, timezone
 from uuid import UUID
 
 from sqlalchemy.orm import Session
 
 from growth.adapters.orm import (
     AudienceSegmentORM,
+    BackgroundJobORM,
     CreativeFrameORM,
     CreativeVariantORM,
+    CycleORM,
     DecisionORM,
     ExperimentORM,
     ObservationORM,
@@ -17,12 +20,16 @@ from growth.adapters.orm import (
 )
 from growth.domain.models import (
     AudienceSegment,
+    BackgroundJob,
     CreativeFrame,
     CreativeVariant,
+    Cycle,
     Decision,
     DecisionAction,
     Experiment,
     ExperimentStatus,
+    JobStatus,
+    JobType,
     Observation,
     ProducerMemo,
     Show,
@@ -31,9 +38,11 @@ from growth.ports.repositories import (
     CreativeVariantRepository,
     ExperimentRepository,
     FrameRepository,
+    JobRepository,
     ProducerMemoRepository,
     SegmentRepository,
     ShowRepository,
+    CycleRepository,
 )
 
 
@@ -475,3 +484,89 @@ class SQLAlchemyCycleRepository(CycleRepository):
         return [_cycle_to_domain(orm) for orm in orms]
 
 
+# --- Background Jobs ---
+
+def _job_to_domain(orm: BackgroundJobORM) -> BackgroundJob:
+    from datetime import timezone
+    return BackgroundJob(
+        job_id=UUID(orm.job_id),
+        job_type=JobType(orm.job_type),
+        status=JobStatus(orm.status),
+        show_id=UUID(orm.show_id),
+        input_json=orm.input_json,
+        result_json=orm.result_json,
+        error_message=orm.error_message,
+        attempt_count=orm.attempt_count,
+        last_heartbeat_at=orm.last_heartbeat_at.replace(tzinfo=timezone.utc) if orm.last_heartbeat_at else None,
+        created_at=orm.created_at.replace(tzinfo=timezone.utc),
+        updated_at=orm.updated_at.replace(tzinfo=timezone.utc),
+        completed_at=orm.completed_at.replace(tzinfo=timezone.utc) if orm.completed_at else None,
+    )
+
+
+def _job_to_orm(domain: BackgroundJob) -> BackgroundJobORM:
+    return BackgroundJobORM(
+        job_id=str(domain.job_id),
+        job_type=domain.job_type.value,
+        status=domain.status.value,
+        show_id=str(domain.show_id),
+        input_json=domain.input_json,
+        result_json=domain.result_json,
+        error_message=domain.error_message,
+        attempt_count=domain.attempt_count,
+        last_heartbeat_at=domain.last_heartbeat_at,
+        created_at=domain.created_at,
+        updated_at=domain.updated_at,
+        completed_at=domain.completed_at,
+    )
+
+
+class SQLAlchemyJobRepository(JobRepository):
+    def __init__(self, session: Session):
+        self._session = session
+
+    def get_by_id(self, job_id: UUID) -> BackgroundJob | None:
+        orm = self._session.get(BackgroundJobORM, str(job_id))
+        if orm is None:
+            return None
+        return _job_to_domain(orm)
+
+    def save(self, job: BackgroundJob) -> None:
+        orm = _job_to_orm(job)
+        self._session.merge(orm)
+        self._session.commit()
+
+    def claim_next_queued(self) -> BackgroundJob | None:
+        from datetime import timezone
+        now = datetime.now(timezone.utc)
+        orm = (
+            self._session.query(BackgroundJobORM)
+            .filter(BackgroundJobORM.status == "queued")
+            .order_by(BackgroundJobORM.created_at)
+            .first()
+        )
+        if orm is None:
+            return None
+        orm.status = "running"
+        orm.attempt_count += 1
+        orm.last_heartbeat_at = now
+        orm.updated_at = now
+        self._session.commit()
+        return _job_to_domain(orm)
+
+    def reset_stale_running_jobs(self, stale_after_seconds: int = 120) -> int:
+        from datetime import timezone
+        cutoff = datetime.now(timezone.utc) - timedelta(seconds=stale_after_seconds)
+        stale = (
+            self._session.query(BackgroundJobORM)
+            .filter(
+                BackgroundJobORM.status == "running",
+                BackgroundJobORM.last_heartbeat_at < cutoff,
+            )
+            .all()
+        )
+        for orm in stale:
+            orm.status = "queued"
+            orm.updated_at = datetime.now(timezone.utc)
+        self._session.commit()
+        return len(stale)

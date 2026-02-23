@@ -1,24 +1,39 @@
 """FastAPI application factory."""
 from __future__ import annotations
 
+from contextlib import asynccontextmanager
 from typing import Optional
 
+import asyncio
 from fastapi import FastAPI
 
 from growth.app.container import Container
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    from growth.app.worker import worker_loop
+    task = asyncio.create_task(worker_loop(app.state.container))
+    yield
+    task.cancel()
+    try:
+        await task
+    except asyncio.CancelledError:
+        pass
 
 
 def create_app(container: Optional[Container] = None) -> FastAPI:
     """Create and configure the FastAPI application."""
     app = FastAPI(
         title="Bring The People — Growth API",
-        version="0.2.0",
+        version="0.3.0",
         description="API for managing growth experiments and decisions for live shows.",
+        lifespan=lifespan,
     )
 
     @app.get("/health")
     def health():
-        return {"status": "ok", "version": "0.2.0"}
+        return {"status": "ok", "version": "0.3.0"}
 
     # Store container in app state for dependency injection
     if container is None:
@@ -45,9 +60,25 @@ def create_app(container: Optional[Container] = None) -> FastAPI:
     app.include_router(creative_router, prefix="/api/creative", tags=["creative"])
 
     from growth.app.api.memo import router as memo_router
+    app.include_router(memo_router, prefix="/api/memos", tags=["memos"])
 
     from growth.app.api.cycles import router as cycles_router
     app.include_router(cycles_router, prefix="/api/shows", tags=["cycles"])
     app.include_router(cycles_router, prefix="/api", tags=["cycles"])
+
+    from growth.app.api.segments import router as segments_router
+    app.include_router(segments_router, prefix="/api/segments", tags=["segments"])
+
+    from growth.app.api.frames import router as frames_router
+    app.include_router(frames_router, prefix="/api/frames", tags=["frames"])
+
+    from growth.app.api.variants import router as variants_router
+    app.include_router(variants_router, prefix="/api/variants", tags=["variants"])
+
+    from growth.app.api.jobs import router as jobs_router
+    app.include_router(jobs_router, prefix="/api/jobs", tags=["jobs"])
+
+    from growth.app.api.events import router as events_router
+    app.include_router(events_router, prefix="/api/events", tags=["events"])
 
     return app
