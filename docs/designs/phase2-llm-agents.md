@@ -2,7 +2,13 @@
 
 ## Overview
 
-Phase 2 adds Claude-powered LLM agents to the growth system. The Strategy Agent is built first, establishing the shared agent infrastructure (tool-use loop runner, conversation logging, output parsing) that Creative and Memo agents will reuse.
+Phase 2 adds Claude-powered LLM agents to the growth system. Three agents share a common infrastructure (tool-use loop runner, conversation logging, output parsing) that enables deterministic, auditable automation:
+
+| Agent | Purpose | Max Turns |
+|-------|---------|-----------|
+| **Strategy Agent** | Analyzes show context and proposes audience segments with framing hypotheses | 10 |
+| **Creative Agent** | Generates 2-3 ad copy variants for a given frame | 8 |
+| **Memo Agent** | Summarizes completed experiment cycles into producer-friendly reports | 6 |
 
 The Strategy Agent analyzes a show's context — ticket data, budget status, past experiments, active experiments — and proposes 3-5 audience segments with framing hypotheses. Its output is auto-persisted as draft `AudienceSegment` and `CreativeFrame` records. The existing approval workflow on experiments gates any downstream spend.
 
@@ -288,9 +294,168 @@ Contents:
 - **Show budget field**: the `Show` model doesn't have a `total_paid_budget` field yet. The `get_budget_status` tool needs this. Options: add it to `Show`, or create a separate `ShowBudget` entity. Decide during implementation.
 - **Knowledge base query depth**: for a show with zero past experiments, `query_knowledge_base` returns empty. The agent should handle this gracefully (propose exploratory frames without evidence from past runs, citing show data instead).
 
+## Creative Agent
+
+The Creative Agent generates ad copy variants for a given [`CreativeFrame`](src/growth/domain/models.py:70).
+
+### Output Schema
+
+[`CreativeOutput`](src/growth/adapters/llm/schemas.py:104) and [`CreativeVariantDraft`](src/growth/adapters/llm/schemas.py:95):
+
+```python
+class CreativeVariantDraft(BaseModel):
+    hook: str                      # 5-80 chars
+    body: str                      # 10-500 chars
+    cta: str                       # 5-60 chars
+    reasoning: str                 # 10-280 chars, why this angle
+
+class CreativeOutput(BaseModel):
+    variants: list[CreativeVariantDraft] = Field(min_length=2, max_length=3)
+    reasoning_summary: str = Field(min_length=20, max_length=800)
+```
+
+### Tools
+
+[`creative_tools.py`](src/growth/adapters/llm/creative_tools.py):
+
+- **`get_frame_context(frame_id)`** — Returns frame + segment + show details as a single context dict
+- **`get_platform_constraints(channel)`** — Returns character limits and platform-specific guidance
+
+### Turn Cap
+
+8 turns (configurable per-call)
+
+### Service
+
+[`CreativeService`](src/growth/app/services/creative_service.py:61) orchestrates the run:
+
+1. Fetch frame by ID
+2. Create run directory: `data/runs/<uuid>/`
+3. Build tool dispatcher with repos
+4. Call `agent_runner.run()` with `max_turns=8`, `CreativeOutput` model
+5. Validate variants against platform constraints deterministically
+6. On success: persist `CreativeVariant` objects, write `creative_output.json`, emit `CreativeCompleted`
+7. On failure: emit `CreativeFailed`, raise `CreativeRunError`
+
+### API Endpoint
+
+`POST /api/creative/{frame_id}/run` in [`src/growth/app/api/creative.py`](src/growth/app/api/creative.py:13):
+
+- 200: returns variant IDs and reasoning summary
+- 404: frame not found
+- 422: constraint violation error with details
+- 502: agent failure
+
+---
+
+## Memo Agent
+
+The Memo Agent summarizes a completed experiment cycle into a producer-friendly report.
+
+### Output Schema
+
+[`MemoOutput`](src/growth/adapters/llm/schemas.py:113):
+
+```python
+class MemoOutput(BaseModel):
+    what_worked: str = Field(min_length=20, max_length=800)
+    what_failed: str = Field(min_length=20, max_length=800)
+    cost_per_seat_cents: int = Field(ge=0)
+    cost_per_seat_explanation: str = Field(min_length=10, max_length=400)
+    next_three_tests: list[str] = Field(min_length=1, max_length=3)
+    policy_exceptions: Optional[str] = Field(default=None, max_length=400)
+    markdown: str = Field(min_length=50)
+    reasoning_summary: str = Field(min_length=20, max_length=800)
+```
+
+### Tools
+
+[`memo_tools.py`](src/growth/adapters/llm/memo_tools.py):
+
+- **`get_show_details(show_id)`** — Reused from Strategy Agent
+- **`get_cycle_experiments(show_id, cycle_start, cycle_end)`** — New tool returning experiments + observations + decisions in the cycle window
+- **`get_budget_status(show_id)`** — Reused from Strategy Agent
+
+### Turn Cap
+
+6 turns (configurable per-call)
+
+### Service
+
+[`MemoService`](src/growth/app/services/memo_service.py:53) orchestrates the run:
+
+1. Fetch show by ID, validate cycle dates
+2. Create run directory: `data/runs/<uuid>/`
+3. Build tool dispatcher with repos
+4. Call `agent_runner.run()` with `max_turns=6`, `MemoOutput` model
+5. On success: persist `ProducerMemo`, write `memo.json` + `memo.md`, emit `MemoCompleted`
+6. On failure: emit `MemoFailed`, raise `MemoRunError`
+
+### API Endpoint
+
+`POST /api/memo/{show_id}/run` in [`src/growth/app/api/memo.py`](src/growth/app/api/memo.py:14):
+
+- Query params: `cycle_start`, `cycle_end` (required ISO timestamps)
+- 200: returns memo with structured fields and markdown
+- 404: show not found
+- 422: invalid dates or validation error
+- 502: agent failure
+
+---
+
+## Domain Events
+
+All three agents emit domain events for audit logging:
+
+| Event | Source | Fields |
+|-------|--------|--------|
+| `StrategyCompleted` | [`events.py`](src/growth/domain/events.py) | show_id, run_id, segment_ids, frame_ids, token usage |
+| `StrategyFailed` | [`events.py`](src/growth/domain/events.py) | show_id, run_id, error_type, error_message |
+| `CreativeCompleted` | [`events.py`](src/growth/domain/events.py) | frame_id, run_id, variant_ids, token usage |
+| `CreativeFailed` | [`events.py`](src/growth/domain/events.py) | frame_id, run_id, error_type, error_message |
+| `MemoCompleted` | [`events.py`](src/growth/domain/events.py) | show_id, memo_id, run_id, cycle dates, token usage |
+| `MemoFailed` | [`events.py`](src/growth/domain/events.py) | show_id, run_id, error_type, error_message |
+
+---
+
+## File Inventory (All Agents)
+
+### New files (Phase 2 complete)
+
+| File | Purpose |
+|------|---------|
+| `src/growth/adapters/llm/__init__.py` | LLM adapters package |
+| `src/growth/adapters/llm/client.py` | Thin wrapper around `anthropic.Anthropic()` |
+| `src/growth/adapters/llm/agent_runner.py` | Generic tool-use loop runner |
+| `src/growth/adapters/llm/schemas.py` | Pydantic models for all agent outputs |
+| `src/growth/adapters/llm/strategy_tools.py` | Strategy Agent tools |
+| `src/growth/adapters/llm/creative_tools.py` | Creative Agent tools |
+| `src/growth/adapters/llm/memo_tools.py` | Memo Agent tools |
+| `src/growth/adapters/llm/prompts/__init__.py` | Prompts package |
+| `src/growth/adapters/llm/prompts/strategy.py` | Strategy Agent system prompt |
+| `src/growth/adapters/llm/prompts/creative.py` | Creative Agent system prompt |
+| `src/growth/adapters/llm/prompts/memo.py` | Memo Agent system prompt |
+| `src/growth/app/services/strategy_service.py` | Strategy run orchestration |
+| `src/growth/app/services/creative_service.py` | Creative run orchestration |
+| `src/growth/app/services/memo_service.py` | Memo run orchestration |
+| `src/growth/app/api/strategy.py` | Strategy API endpoint |
+| `src/growth/app/api/creative.py` | Creative API endpoint |
+| `src/growth/app/api/memo.py` | Memo API endpoint |
+
+### All Three Agents Implemented
+
+Phase 2 is complete with three Claude-powered agents:
+
+| Agent | Purpose | Turn Cap | Output |
+|-------|---------|----------|--------|
+| **Strategy** | Propose segments and frames for a show | 10 | 3-5 FramePlans with evidence |
+| **Creative** | Generate ad copy variants for a frame | 8 | 2-3 CreativeVariants with hooks, body, CTA |
+| **Memo** | Summarize experiment cycle for producer | 6 | Structured memo with what worked/failed, next tests |
+
+---
+
 ## Deferred
 
-- Creative Agent and Memo Writer Agent (reuse runner infrastructure, build after Strategy Agent is stable)
 - `cycle_runner.py` orchestrating the full strategy -> creative -> approve flow
 - Token budget enforcement
 - Dashboard surfacing of agent runs
