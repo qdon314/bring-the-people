@@ -78,3 +78,27 @@ class ExperimentCompleted(DomainEvent):
     total_purchases: int
     total_revenue_cents: int
     event_type: str = field(default="experiment_completed", init=False)
+
+
+@dataclass(frozen=True)
+class StrategyCompleted(DomainEvent):
+    """Emitted when the Strategy Agent produces a successful plan."""
+    show_id: UUID
+    run_id: UUID
+    num_frame_plans: int
+    segment_ids: tuple[UUID, ...]
+    frame_ids: tuple[UUID, ...]
+    turns_used: int
+    total_input_tokens: int
+    total_output_tokens: int
+    event_type: str = field(default="strategy_completed", init=False)
+
+
+@dataclass(frozen=True)
+class StrategyFailed(DomainEvent):
+    """Emitted when the Strategy Agent fails."""
+    show_id: UUID
+    run_id: UUID
+    error_type: str
+    error_message: str
+    event_type: str = field(default="strategy_failed", init=False)

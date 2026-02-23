@@ -26,6 +26,7 @@ class Container:
         db_url: str = "sqlite:///growth.db",
         event_log_path: str | Path = "data/events.jsonl",
         policy_config_path: str | Path = "config/policy.toml",
+        runs_path: str | Path = "data/runs",
     ):
         self._engine = get_engine(db_url)
         create_tables(self._engine)
@@ -33,6 +34,7 @@ class Container:
         self._session = self._session_maker()
         self._event_log_path = Path(event_log_path)
         self._policy_config_path = Path(policy_config_path)
+        self._runs_path = Path(runs_path)
         self._policy = None
 
     def close(self) -> None:
@@ -64,4 +66,21 @@ class Container:
             experiment_repo=self.experiment_repo(),
             event_log=self.event_log(),
             policy=self.policy_config(),
+        )
+
+    def claude_client(self):
+        from growth.adapters.llm.client import ClaudeClient
+        return ClaudeClient()
+
+    def strategy_service(self):
+        from growth.app.services.strategy_service import StrategyService
+        return StrategyService(
+            claude_client=self.claude_client(),
+            show_repo=self.show_repo(),
+            exp_repo=self.experiment_repo(),
+            seg_repo=self.segment_repo(),
+            frame_repo=self.frame_repo(),
+            event_log=self.event_log(),
+            policy=self.policy_config(),
+            runs_path=self._runs_path,
         )

@@ -47,3 +47,7 @@ class TestContainer:
     def test_provides_decision_service(self, container):
         svc = container.decision_service()
         assert svc is not None
+
+    def test_provides_strategy_service(self, container):
+        svc = container.strategy_service()
+        assert svc is not None

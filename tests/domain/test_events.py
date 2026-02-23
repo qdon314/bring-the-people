@@ -92,3 +92,35 @@ class TestExperimentCompleted:
         assert event.event_type == "experiment_completed"
         assert event.final_action == DecisionAction.KILL
         assert event.total_spend_cents == 5000
+
+
+def test_strategy_completed_event():
+    from growth.domain.events import StrategyCompleted
+    event = StrategyCompleted(
+        event_id=uuid4(),
+        occurred_at=datetime.now(timezone.utc),
+        show_id=uuid4(),
+        run_id=uuid4(),
+        num_frame_plans=4,
+        segment_ids=tuple(uuid4() for _ in range(4)),
+        frame_ids=tuple(uuid4() for _ in range(4)),
+        turns_used=7,
+        total_input_tokens=3500,
+        total_output_tokens=1200,
+    )
+    assert event.event_type == "strategy_completed"
+    assert event.num_frame_plans == 4
+
+
+def test_strategy_failed_event():
+    from growth.domain.events import StrategyFailed
+    event = StrategyFailed(
+        event_id=uuid4(),
+        occurred_at=datetime.now(timezone.utc),
+        show_id=uuid4(),
+        run_id=uuid4(),
+        error_type="AgentTurnLimitError",
+        error_message="Agent exceeded maximum turns (10)",
+    )
+    assert event.event_type == "strategy_failed"
+    assert event.error_type == "AgentTurnLimitError"
