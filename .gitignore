@@ -206,3 +206,8 @@ marimo/_static/
 marimo/_lsp/
 __marimo__/
 growth.db
+
+# Frontend
+frontend/.next/
+frontend/node_modules/
+frontend/.env.local
