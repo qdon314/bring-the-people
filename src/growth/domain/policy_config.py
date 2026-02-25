@@ -1,7 +1,11 @@
 """Policy configuration loaded from TOML."""
 from __future__ import annotations
 
-import tomli as tomllib
+try:
+    import tomllib  # Python 3.11+
+except ImportError:
+    import tomli as tomllib  # type: ignore # Python < 3.11
+
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
