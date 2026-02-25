@@ -21,7 +21,7 @@ export function SegmentCard({ segment, onReviewed }: SegmentCardProps) {
   })
 
   const def = segment.definition_json as Record<string, unknown>
-  const geo = def.geo as string | undefined
+  const geo = def.geo as { city?: string; radius_miles?: number } | undefined
   const ageRange = def.age_range as string | undefined
   const interests = def.interests as string[] | undefined
 
@@ -48,7 +48,12 @@ export function SegmentCard({ segment, onReviewed }: SegmentCardProps) {
 
       {/* Definition summary */}
       <div className="text-sm text-text-muted space-y-1 mb-4">
-        {geo && <p>📍 {geo}</p>}
+        {geo && geo.city && (
+          <p>
+            📍 {geo.city}
+            {geo.radius_miles !== undefined && ` (${geo.radius_miles} mi)`}
+          </p>
+        )}
         {ageRange && <p>👥 Age {ageRange}</p>}
         {interests && Array.isArray(interests) && (
           <p>🎯 {interests.slice(0, 3).join(', ')}</p>
