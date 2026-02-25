@@ -500,7 +500,12 @@ class SQLAlchemyCycleRepository(CycleRepository):
         self._session.commit()
 
     def get_by_show(self, show_id: UUID) -> list[Cycle]:
-        orms = self._session.query(CycleORM).filter_by(show_id=str(show_id)).all()
+        orms = (
+            self._session.query(CycleORM)
+            .filter_by(show_id=str(show_id))
+            .order_by(CycleORM.started_at.desc())
+            .all()
+        )
         return [_cycle_to_domain(orm) for orm in orms]
 
 
