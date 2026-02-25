@@ -13,11 +13,20 @@ logger = logging.getLogger(__name__)
 async def worker_loop(container: Container) -> None:
     """Poll the jobs table for queued jobs and run them. Runs forever."""
     logger.info("Background worker started")
-    container.job_repo().reset_stale_running_jobs()   # clean up on startup
+    sc = container.session_container()
+    try:
+        sc.job_repo().reset_stale_running_jobs()
+    finally:
+        sc.close()
 
     while True:
         try:
-            job = container.job_repo().claim_next_queued()
+            sc = container.session_container()
+            try:
+                job = sc.job_repo().claim_next_queued()
+            finally:
+                sc.close()
+
             if job is not None:
                 await _run_job(job, container)
             else:
@@ -28,29 +37,33 @@ async def worker_loop(container: Container) -> None:
 
 
 async def _run_job(job, container: Container) -> None:
-    job_repo = container.job_repo()
-
-    async def heartbeat(job_id, interval: int = 10):
-        while True:
-            await asyncio.sleep(interval)
-            _update_heartbeat(job_repo, job_id)
-
-    hb_task = asyncio.create_task(heartbeat(job.job_id))
+    sc = container.session_container()
     try:
-        result = await _dispatch(job, container)
-        _mark_completed(job_repo, job.job_id, result)
-    except Exception as e:
-        logger.exception(f"Job {job.job_id} failed")
-        _mark_failed(job_repo, job.job_id, str(e))
+        job_repo = sc.job_repo()
+
+        async def heartbeat(job_id, interval: int = 10):
+            while True:
+                await asyncio.sleep(interval)
+                _update_heartbeat(job_repo, job_id)
+
+        hb_task = asyncio.create_task(heartbeat(job.job_id))
+        try:
+            result = await _dispatch(job, sc)
+            _mark_completed(job_repo, job.job_id, result)
+        except Exception as e:
+            logger.exception(f"Job {job.job_id} failed")
+            _mark_failed(job_repo, job.job_id, str(e))
+        finally:
+            hb_task.cancel()
     finally:
-        hb_task.cancel()
+        sc.close()
 
 
-async def _dispatch(job, container: Container) -> dict:
+async def _dispatch(job, sc) -> dict:
     """Route job to the appropriate service and run it. Returns result_json dict."""
     from uuid import UUID
     if job.job_type.value == "strategy":
-        service = container.strategy_service()
+        service = sc.strategy_service()
         result = service.run(UUID(job.input_json["show_id"]))
         return {
             "run_id": str(result.run_id),
@@ -61,7 +74,7 @@ async def _dispatch(job, container: Container) -> dict:
             "turns_used": result.turns_used,
         }
     elif job.job_type.value == "creative":
-        service = container.creative_service()
+        service = sc.creative_service()
         result = service.run(UUID(job.input_json["frame_id"]))
         return {
             "run_id": str(result.run_id),
@@ -70,8 +83,7 @@ async def _dispatch(job, container: Container) -> dict:
             "turns_used": result.turns_used,
         }
     elif job.job_type.value == "memo":
-        service = container.memo_service()
-        # memo_service.run() is synchronous; wrap in executor for safety
+        service = sc.memo_service()
         loop = asyncio.get_event_loop()
         result = await loop.run_in_executor(
             None, service.run,

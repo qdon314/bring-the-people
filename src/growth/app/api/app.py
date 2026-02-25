@@ -5,10 +5,25 @@ from contextlib import asynccontextmanager
 from typing import Optional
 
 import asyncio
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from starlette.middleware.base import BaseHTTPMiddleware
 
 from growth.app.container import Container
+
+
+class SessionMiddleware(BaseHTTPMiddleware):
+    """Create a fresh SessionContainer per request and close it when done."""
+
+    async def dispatch(self, request: Request, call_next):
+        container: Container = request.app.state.container
+        sc = container.session_container()
+        request.state.container = sc
+        try:
+            response = await call_next(request)
+            return response
+        finally:
+            sc.close()
 
 
 @asynccontextmanager
@@ -31,6 +46,9 @@ def create_app(container: Optional[Container] = None) -> FastAPI:
         description="API for managing growth experiments and decisions for live shows.",
         lifespan=lifespan,
     )
+
+    # Session-per-request middleware (must be added before CORS)
+    app.add_middleware(SessionMiddleware)
 
     # Configure CORS for frontend communication
     app.add_middleware(
