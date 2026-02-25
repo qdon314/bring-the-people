@@ -3,6 +3,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from sqlalchemy.orm import Session
+
 from growth.adapters.event_log import JSONLEventLog
 from growth.adapters.orm import create_tables, get_engine, get_session_maker
 from growth.adapters.repositories import (
@@ -17,8 +19,9 @@ from growth.domain.policy_config import load_policy_config
 class Container:
     """Application-level dependency container.
 
-    Creates and owns the database engine, session, and all adapters.
-    Call close() when done to release the DB session.
+    Owns the database engine, session factory, and configuration.
+    Use session_container() to create a short-lived SessionContainer
+    scoped to a single request or background job.
     """
 
     def __init__(
@@ -31,14 +34,36 @@ class Container:
         self._engine = get_engine(db_url)
         create_tables(self._engine)
         self._session_maker = get_session_maker(self._engine)
-        self._session = self._session_maker()
         self._event_log_path = Path(event_log_path)
         self._policy_config_path = Path(policy_config_path)
         self._runs_path = Path(runs_path)
         self._policy = None
 
+    def session_container(self) -> SessionContainer:
+        """Create a new SessionContainer with its own DB session."""
+        session = self._session_maker()
+        return SessionContainer(session, self)
+
+    def event_log(self) -> JSONLEventLog:
+        return JSONLEventLog(self._event_log_path)
+
+    def policy_config(self):
+        if self._policy is None:
+            self._policy = load_policy_config(self._policy_config_path)
+        return self._policy
+
+
+class SessionContainer:
+    """Short-lived container scoped to one request or job. Owns a DB session."""
+
+    def __init__(self, session: Session, parent: Container):
+        self._session = session
+        self._parent = parent
+
     def close(self) -> None:
         self._session.close()
+
+    # --- Repositories (each uses this container's session) ---
 
     def show_repo(self) -> SQLAlchemyShowRepository:
         return SQLAlchemyShowRepository(self._session)
@@ -68,13 +93,19 @@ class Container:
         from growth.adapters.repositories import SQLAlchemyJobRepository
         return SQLAlchemyJobRepository(self._session)
 
+    # --- Non-session deps (delegate to parent) ---
+
     def event_log(self) -> JSONLEventLog:
-        return JSONLEventLog(self._event_log_path)
+        return self._parent.event_log()
 
     def policy_config(self):
-        if self._policy is None:
-            self._policy = load_policy_config(self._policy_config_path)
-        return self._policy
+        return self._parent.policy_config()
+
+    def claude_client(self):
+        from growth.adapters.llm.client import ClaudeClient
+        return ClaudeClient()
+
+    # --- Services ---
 
     def decision_service(self):
         from growth.app.services.decision_service import DecisionService
@@ -83,10 +114,6 @@ class Container:
             event_log=self.event_log(),
             policy=self.policy_config(),
         )
-
-    def claude_client(self):
-        from growth.adapters.llm.client import ClaudeClient
-        return ClaudeClient()
 
     def strategy_service(self):
         from growth.app.services.strategy_service import StrategyService
@@ -99,7 +126,7 @@ class Container:
             cycle_repo=self.cycle_repo(),
             event_log=self.event_log(),
             policy=self.policy_config(),
-            runs_path=self._runs_path,
+            runs_path=self._parent._runs_path,
         )
 
     def creative_service(self):
@@ -111,7 +138,7 @@ class Container:
             show_repo=self.show_repo(),
             variant_repo=self.variant_repo(),
             event_log=self.event_log(),
-            runs_path=self._runs_path,
+            runs_path=self._parent._runs_path,
         )
 
     def memo_service(self):
@@ -125,5 +152,5 @@ class Container:
             memo_repo=self.memo_repo(),
             event_log=self.event_log(),
             policy=self.policy_config(),
-            runs_path=self._runs_path,
+            runs_path=self._parent._runs_path,
         )
