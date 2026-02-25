@@ -16,7 +16,8 @@ export function useJobPoller(jobId: string | null) {
     queryKey: ['jobs', jobId],
     queryFn: () => jobsApi.get(jobId!),
     enabled: !!jobId,
-    refetchInterval: (data) => {
+    refetchInterval: (query) => {
+      const data = query.state.data
       if (!data || data.status === 'queued' || data.status === 'running') {
         return getInterval(Date.now() - startTime)
       }

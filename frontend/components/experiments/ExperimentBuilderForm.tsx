@@ -69,7 +69,7 @@ export function ExperimentBuilderForm({ showId, cycleId, onCreated }: Props) {
         channel: data.channel,
         objective: data.objective,
         budget_cap_cents: Math.round(data.budget_usd * 100),
-        baseline_snapshot: {},
+        baseline_snapshot: { selected_variant_id: data.variant_id },
       })
       // Auto-submit and auto-approve (solo producer flow)
       await experimentsApi.submit(exp.experiment_id)
@@ -85,8 +85,12 @@ export function ExperimentBuilderForm({ showId, cycleId, onCreated }: Props) {
 
       <form onSubmit={form.handleSubmit(d => createMutation.mutate(d))} className="space-y-4">
         {/* Segment */}
-        <FormField label="Audience Segment">
-          <select {...form.register('segment_id')} className="select w-full">
+        <FormField
+          label="Audience Segment"
+          fieldId="segment_id"
+          error={form.formState.errors.segment_id?.message}
+        >
+          <select id="segment_id" {...form.register('segment_id')} className="select w-full">
             <option value="">Select segment…</option>
             {(segments ?? [])
               .filter(s => s.review_status === 'approved')
@@ -96,8 +100,12 @@ export function ExperimentBuilderForm({ showId, cycleId, onCreated }: Props) {
 
         {/* Frame (filtered by selected segment) */}
         {selectedSegmentId && (
-          <FormField label="Creative Frame">
-            <select {...form.register('frame_id')} className="select w-full">
+          <FormField
+            label="Creative Frame"
+            fieldId="frame_id"
+            error={form.formState.errors.frame_id?.message}
+          >
+            <select id="frame_id" {...form.register('frame_id')} className="select w-full">
               <option value="">Select frame…</option>
               {segmentFrames.map(f => (
                 <option key={f.frame_id} value={f.frame_id}>
@@ -113,12 +121,16 @@ export function ExperimentBuilderForm({ showId, cycleId, onCreated }: Props) {
 
         {/* Variant (filtered by selected frame) */}
         {selectedFrameId && (
-          <FormField label="Creative Variant">
-            <select {...form.register('variant_id')} className="select w-full">
+          <FormField
+            label="Creative Variant"
+            fieldId="variant_id"
+            error={form.formState.errors.variant_id?.message}
+          >
+            <select id="variant_id" {...form.register('variant_id')} className="select w-full">
               <option value="">Select variant…</option>
               {approvedVariants.map(v => (
                 <option key={v.variant_id} value={v.variant_id}>
-                  {v.hook.slice(0, 60)}…
+                  {v.hook.slice(0, 60)}{v.hook.length > 60 ? '…' : ''}
                 </option>
               ))}
             </select>
@@ -129,8 +141,12 @@ export function ExperimentBuilderForm({ showId, cycleId, onCreated }: Props) {
         )}
 
         {/* Channel */}
-        <FormField label="Platform / Channel">
-          <select {...form.register('channel')} className="select w-full">
+        <FormField
+          label="Platform / Channel"
+          fieldId="channel"
+          error={form.formState.errors.channel?.message}
+        >
+          <select id="channel" {...form.register('channel')} className="select w-full">
             <option value="">Select…</option>
             {['meta', 'instagram', 'tiktok', 'reddit', 'email', 'youtube'].map(c => (
               <option key={c} value={c}>{c.charAt(0).toUpperCase() + c.slice(1)}</option>
@@ -139,8 +155,12 @@ export function ExperimentBuilderForm({ showId, cycleId, onCreated }: Props) {
         </FormField>
 
         {/* Budget */}
-        <FormField label="Budget cap (USD)">
-          <input {...form.register('budget_usd')} type="number" step="1" className="input w-full"
+        <FormField
+          label="Budget cap (USD)"
+          fieldId="budget_usd"
+          error={form.formState.errors.budget_usd?.message}
+        >
+          <input id="budget_usd" {...form.register('budget_usd')} type="number" step="1" className="input w-full"
             placeholder="e.g. 400" />
         </FormField>
 

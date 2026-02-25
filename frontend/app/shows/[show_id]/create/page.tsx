@@ -1,10 +1,12 @@
 'use client'
 import { useParams, useSearchParams } from 'next/navigation'
-import { useState } from 'react'
-import { useQueryClient } from '@tanstack/react-query'
+import Link from 'next/link'
+import { useMemo, useState } from 'react'
+import { useQueries, useQueryClient } from '@tanstack/react-query'
 import { useFrames } from '@/lib/hooks/useFrames'
 import { useCycles } from '@/lib/hooks/useCycles'
 import { creativeApi } from '@/lib/api/creative'
+import { variantsApi } from '@/lib/api/variants'
 import { FramePickerPanel } from '@/components/creative/FramePickerPanel'
 import { CreativeReviewPanel } from '@/components/creative/CreativeReviewPanel'
 
@@ -17,7 +19,7 @@ export default function CreatePage() {
   const { data: cycles } = useCycles(show_id)
   const currentCycleId = cycles?.[0]?.cycle_id
 
-  const { data: frames } = useFrames(show_id, currentCycleId)
+  const { data: frames, isLoading: framesLoading } = useFrames(show_id, currentCycleId)
 
   // Frame selection state — default to preselected if coming from Plan tab
   const [selectedFrameIds, setSelectedFrameIds] = useState<Set<string>>(
@@ -26,25 +28,68 @@ export default function CreatePage() {
 
   // Track active jobs per frame
   const [frameJobs, setFrameJobs] = useState<Record<string, string>>({})  // frameId → jobId
+  const [isGenerating, setIsGenerating] = useState(false)
+  const [generationError, setGenerationError] = useState<string | null>(null)
+
+  const variantQueries = useQueries({
+    queries: (frames ?? []).map((frame) => ({
+      queryKey: ['variants', frame.frame_id],
+      queryFn: () => variantsApi.list(frame.frame_id),
+      enabled: !!frame.frame_id,
+    })),
+  })
+
+  const variantsCountByFrameId = useMemo(() => {
+    const map = new Map<string, number>()
+    ;(frames ?? []).forEach((frame, idx) => {
+      map.set(frame.frame_id, variantQueries[idx]?.data?.length ?? 0)
+    })
+    return map
+  }, [frames, variantQueries])
+
+  const framesWithVariants = useMemo(
+    () => (frames ?? []).filter((frame) => (variantsCountByFrameId.get(frame.frame_id) ?? 0) > 0),
+    [frames, variantsCountByFrameId]
+  )
+
+  const reviewFrameIds = useMemo(() => {
+    const ids = new Set<string>(Array.from(selectedFrameIds))
+    Object.keys(frameJobs).forEach((id) => ids.add(id))
+    framesWithVariants.forEach((frame) => ids.add(frame.frame_id))
+    return ids
+  }, [selectedFrameIds, frameJobs, framesWithVariants])
 
   async function generateForSelected() {
     const selectedIds = Array.from(selectedFrameIds)
+    if (selectedIds.length === 0) return
+    setIsGenerating(true)
+    setGenerationError(null)
     const results = await Promise.allSettled(
       selectedIds.map(async (frameId) => {
         const { job_id } = await creativeApi.run(frameId)
         setFrameJobs(prev => ({ ...prev, [frameId]: job_id }))
       })
     )
-    // Log any failures
-    results.forEach((result, index) => {
-      if (result.status === 'rejected') {
-        console.error(`Failed to generate for frame ${selectedIds[index]}:`, result.reason)
-      }
-    })
+    const failed = results
+      .map((result, index) => ({ result, frameId: selectedIds[index] }))
+      .filter((entry) => entry.result.status === 'rejected')
+      .map((entry) => entry.frameId.slice(0, 8))
+    if (failed.length > 0) {
+      setGenerationError(`Could not start generation for ${failed.length} frame(s): ${failed.join(', ')}`)
+    }
+    setIsGenerating(false)
   }
 
   function onVariantsGenerated(frameId: string) {
     qc.invalidateQueries({ queryKey: ['variants', frameId] })
+  }
+
+  if (framesLoading) {
+    return (
+      <div className="max-w-6xl mx-auto px-8 py-16 text-center text-text-muted">
+        <p className="text-lg font-medium mb-2">Loading frames…</p>
+      </div>
+    )
   }
 
   if (!frames?.length) {
@@ -65,17 +110,33 @@ export default function CreatePage() {
           <div className="flex items-start justify-between mb-4">
             <div>
               <h2 id="frame-picker-heading" className="font-semibold text-lg">Generate Creative</h2>
-              <p className="text-sm text-text-muted">Select frames to generate ad copy variants.</p>
+              <p className="text-sm text-text-muted">
+                Select frames to generate ad copy variants. Existing variants are loaded automatically.
+              </p>
             </div>
-            {selectedFrameIds.size > 0 && (
-              <button
-                onClick={generateForSelected}
-                className="btn-primary"
-              >
-                Generate Creative ({selectedFrameIds.size} frame{selectedFrameIds.size !== 1 ? 's' : ''})
-              </button>
-            )}
+            <button
+              onClick={generateForSelected}
+              disabled={selectedFrameIds.size === 0 || isGenerating}
+              className="btn-primary"
+            >
+              {isGenerating
+                ? 'Starting…'
+                : `Generate Creative (${selectedFrameIds.size} frame${selectedFrameIds.size !== 1 ? 's' : ''})`}
+            </button>
           </div>
+          {generationError && (
+            <p className="text-sm text-danger mb-4">{generationError}</p>
+          )}
+          {framesWithVariants.length > 0 && (
+            <div className="mb-4 flex items-center justify-between rounded-lg bg-success-light px-3 py-2">
+              <p className="text-sm text-success">
+                Variants ready on {framesWithVariants.length} frame{framesWithVariants.length !== 1 ? 's' : ''}.
+              </p>
+              <Link href={`/shows/${show_id}/run`} className="text-sm font-medium text-success hover:underline">
+                Continue to Run →
+              </Link>
+            </div>
+          )}
           <FramePickerPanel
             frames={frames}
             selected={selectedFrameIds}
@@ -85,13 +146,14 @@ export default function CreatePage() {
               return next
             })}
             frameJobs={frameJobs}
+            disabled={isGenerating}
           />
         </div>
       </section>
 
-      {/* Creative review — show frames that have a running job or existing variants */}
+      {/* Creative review — show selected, active, and previously generated frames */}
       {frames
-        .filter(frame => frameJobs[frame.frame_id])
+        .filter((frame) => reviewFrameIds.has(frame.frame_id))
         .map(frame => (
           <CreativeReviewPanel
             key={frame.frame_id}

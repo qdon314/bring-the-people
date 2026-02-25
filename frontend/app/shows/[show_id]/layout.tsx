@@ -1,11 +1,14 @@
 'use client'
 import { useParams } from 'next/navigation'
+import { useQueries } from '@tanstack/react-query'
 import { useShow } from '@/lib/hooks/useShow'
 import { useSegments } from '@/lib/hooks/useSegments'
 import { useFrames } from '@/lib/hooks/useFrames'
 import { useExperiments } from '@/lib/hooks/useExperiments'
 import { useMemos } from '@/lib/hooks/useMemos'
 import { useCycles } from '@/lib/hooks/useCycles'
+import { variantsApi } from '@/lib/api/variants'
+import { experimentsApi } from '@/lib/api/experiments'
 import { ShowHeader } from '@/components/layout/ShowHeader'
 import { CycleStepper } from '@/components/layout/CycleStepper'
 
@@ -23,14 +26,37 @@ export default function ShowLayout({ children }: { children: React.ReactNode }) 
   const { data: frames } = useFrames(show_id, currentCycle?.cycle_id)
   const { data: experiments } = useExperiments(show_id)
   const { data: memos } = useMemos(show_id)
+  const cycleExperiments = (experiments ?? []).filter((exp) => exp.cycle_id === currentCycle?.cycle_id)
+
+  const variantQueries = useQueries({
+    queries: (frames ?? []).map((frame) => ({
+      queryKey: ['variants', frame.frame_id],
+      queryFn: () => variantsApi.list(frame.frame_id),
+      enabled: !!frame.frame_id,
+    })),
+  })
+
+  const experimentMetricsQueries = useQueries({
+    queries: cycleExperiments.map((exp) => ({
+      queryKey: ['experiments', exp.experiment_id, 'metrics'],
+      queryFn: () => experimentsApi.metrics(exp.experiment_id),
+      enabled: !!exp.experiment_id,
+    })),
+  })
+
+  const totalVariants = variantQueries.reduce((acc, query) => acc + (query.data?.length ?? 0), 0)
+  const hasResults = experimentMetricsQueries.some((query) => (query.data?.windows_count ?? 0) > 0)
+  const hasMemo = currentCycle
+    ? (memos ?? []).some((memo) => memo.cycle_id === currentCycle.cycle_id || memo.cycle_id === null)
+    : (memos?.length ?? 0) > 0
 
   // Stepper completion logic (current cycle only)
   const stepperState = {
     plan: (segments?.length ?? 0) > 0,
-    create: (frames?.some(f => false)) ?? false,  // TODO: need variant counts
-    run: experiments?.some(e => e.cycle_id === currentCycle?.cycle_id) ?? false,
-    results: false,   // TODO: check observations
-    memo: (memos?.length ?? 0) > 0,
+    create: totalVariants > 0,
+    run: cycleExperiments.length > 0,
+    results: hasResults,
+    memo: hasMemo,
   }
 
   if (!show) return <ShowLayoutSkeleton />

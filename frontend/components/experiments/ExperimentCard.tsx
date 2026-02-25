@@ -19,11 +19,15 @@ export function ExperimentCard({ experiment, showId, onUpdated }: Props) {
   const [expanded, setExpanded] = useState(false)
   const { data: show } = useShow(showId)
   const { data: metrics } = useExperimentMetrics(experiment.experiment_id)
+  const selectedVariantId =
+    typeof experiment.baseline_snapshot?.selected_variant_id === 'string'
+      ? experiment.baseline_snapshot.selected_variant_id
+      : experiment.frame_id
 
   const utmBundle = show ? buildUTM({
     show,
     experimentId: experiment.experiment_id,
-    variantId: experiment.frame_id,
+    variantId: selectedVariantId,
     platform: experiment.channel,
     segmentId: experiment.segment_id,
   }) : null
@@ -59,7 +63,7 @@ export function ExperimentCard({ experiment, showId, onUpdated }: Props) {
         {metrics && (
           <div className="flex items-center gap-6 text-xs text-text-muted mb-3">
             <span>Budget: <span className="font-medium text-text">${(experiment.budget_cap_cents / 100).toFixed(0)}</span></span>
-            <span>Spend: <span className="font-medium text-text">${metrics.total_spend_cents / 100}</span></span>
+            <span>Spend: <span className="font-medium text-text">${(metrics.total_spend_cents / 100).toFixed(2)}</span></span>
             <span>Clicks: <span className="font-medium text-text">{metrics.total_clicks}</span></span>
             <span>Purchases: <span className="font-medium text-text">{metrics.total_purchases}</span></span>
             {metrics.cpa_cents && <span>CPA: <span className="font-medium text-text">${(metrics.cpa_cents / 100).toFixed(2)}</span></span>}
@@ -74,7 +78,7 @@ export function ExperimentCard({ experiment, showId, onUpdated }: Props) {
               disabled={startMutation.isPending}
               className="btn-success text-xs py-1 px-3"
             >
-              Mark Launched
+              {startMutation.isPending ? 'Launching…' : 'Mark Launched'}
             </button>
           )}
           {experiment.status === 'running' && (
@@ -83,7 +87,7 @@ export function ExperimentCard({ experiment, showId, onUpdated }: Props) {
               disabled={stopMutation.isPending}
               className="btn-ghost text-xs py-1 px-3"
             >
-              Stop
+              {stopMutation.isPending ? 'Stopping…' : 'Stop'}
             </button>
           )}
           <button

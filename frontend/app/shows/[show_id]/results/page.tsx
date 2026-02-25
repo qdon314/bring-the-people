@@ -1,14 +1,14 @@
 'use client'
 import { useParams } from 'next/navigation'
-import { useState } from 'react'
-import { useQueryClient } from '@tanstack/react-query'
-import { useExperiments, useExperimentMetrics } from '@/lib/hooks/useExperiments'
+import { useMemo, useState } from 'react'
+import { useMutation, useQueries, useQueryClient } from '@tanstack/react-query'
+import { useExperiments } from '@/lib/hooks/useExperiments'
 import { useDecisions } from '@/lib/hooks/useDecisions'
 import { useCycles } from '@/lib/hooks/useCycles'
 import { ResultsEntryForm } from '@/components/results/ResultsEntryForm'
 import { DecisionBadge } from '@/components/results/DecisionBadge'
 import { decisionsApi } from '@/lib/api/decisions'
-import { useMutation } from '@tanstack/react-query'
+import { experimentsApi } from '@/lib/api/experiments'
 import type { Experiment, ExperimentMetrics } from '@/lib/types'
 
 export default function ResultsPage() {
@@ -16,12 +16,57 @@ export default function ResultsPage() {
   const qc = useQueryClient()
   const { data: cycles } = useCycles(show_id)
   const currentCycleId = cycles?.[0]?.cycle_id
-  const { data: experiments } = useExperiments(show_id)
+  const { data: experiments, isLoading: experimentsLoading } = useExperiments(show_id)
   const cycleExperiments = experiments?.filter(e =>
     e.cycle_id === currentCycleId && ['running', 'completed'].includes(e.status)
   ) ?? []
 
   const [sortKey, setSortKey] = useState<'cpa' | 'purchases' | 'ctr'>('cpa')
+  const metricsQueries = useQueries({
+    queries: cycleExperiments.map((exp) => ({
+      queryKey: ['experiments', exp.experiment_id, 'metrics'],
+      queryFn: () => experimentsApi.metrics(exp.experiment_id),
+      enabled: !!exp.experiment_id,
+    })),
+  })
+
+  const metricsByExperimentId = useMemo(() => {
+    const map = new Map<string, ExperimentMetrics>()
+    cycleExperiments.forEach((exp, idx) => {
+      const metrics = metricsQueries[idx]?.data
+      if (metrics) map.set(exp.experiment_id, metrics)
+    })
+    return map
+  }, [cycleExperiments, metricsQueries])
+
+  const sortedExperiments = useMemo(() => {
+    const withIndex = cycleExperiments.map((exp, index) => ({ exp, index }))
+    withIndex.sort((a, b) => {
+      const metricsA = metricsByExperimentId.get(a.exp.experiment_id)
+      const metricsB = metricsByExperimentId.get(b.exp.experiment_id)
+      if (!metricsA && !metricsB) return a.index - b.index
+      if (!metricsA) return 1
+      if (!metricsB) return -1
+      if (sortKey === 'purchases') {
+        return metricsB.total_purchases - metricsA.total_purchases
+      }
+      if (sortKey === 'ctr') {
+        return (metricsB.ctr ?? -1) - (metricsA.ctr ?? -1)
+      }
+      const cpaA = metricsA.cpa_cents ?? Number.POSITIVE_INFINITY
+      const cpaB = metricsB.cpa_cents ?? Number.POSITIVE_INFINITY
+      return cpaA - cpaB
+    })
+    return withIndex.map((entry) => entry.exp)
+  }, [cycleExperiments, metricsByExperimentId, sortKey])
+
+  if (experimentsLoading) {
+    return (
+      <div className="max-w-6xl mx-auto px-8 py-16 text-center text-text-muted">
+        <p className="text-lg font-medium mb-2">Loading experiments…</p>
+      </div>
+    )
+  }
 
   if (cycleExperiments.length === 0) {
     return (
@@ -47,13 +92,14 @@ export default function ResultsPage() {
       </div>
 
       {/* Per-experiment results entry + decision */}
-      {cycleExperiments.map(exp => (
+      {sortedExperiments.map(exp => (
         <ExperimentResultsRow
           key={exp.experiment_id}
           experiment={exp}
-          showId={show_id}
+          metrics={metricsByExperimentId.get(exp.experiment_id)}
           onUpdated={() => {
             qc.invalidateQueries({ queryKey: ['experiments', show_id] })
+            qc.invalidateQueries({ queryKey: ['experiments', exp.experiment_id, 'metrics'] })
             qc.invalidateQueries({ queryKey: ['decisions', exp.experiment_id] })
           }}
         />
@@ -65,12 +111,11 @@ export default function ResultsPage() {
 
 interface ExperimentResultsRowProps {
   experiment: Experiment
-  showId: string
+  metrics?: ExperimentMetrics
   onUpdated: () => void
 }
 
-function ExperimentResultsRow({ experiment, showId, onUpdated }: ExperimentResultsRowProps) {
-  const { data: metrics } = useExperimentMetrics(experiment.experiment_id)
+function ExperimentResultsRow({ experiment, metrics, onUpdated }: ExperimentResultsRowProps) {
   const { data: decisions } = useDecisions(experiment.experiment_id)
   const latestDecision = decisions?.[decisions.length - 1]
 

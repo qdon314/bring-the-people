@@ -11,10 +11,18 @@ export default function RunPage() {
   const { show_id } = useParams<{ show_id: string }>()
   const qc = useQueryClient()
   const [showBuilder, setShowBuilder] = useState(false)
-  const { data: cycles } = useCycles(show_id)
+  const { data: cycles, isLoading: cyclesLoading } = useCycles(show_id)
   const currentCycleId = cycles?.[0]?.cycle_id
-  const { data: experiments } = useExperiments(show_id)
+  const { data: experiments, isLoading: experimentsLoading } = useExperiments(show_id)
   const cycleExperiments = experiments?.filter(e => e.cycle_id === currentCycleId) ?? []
+
+  if (cyclesLoading || experimentsLoading) {
+    return (
+      <div className="max-w-6xl mx-auto px-8 py-16 text-center text-text-muted">
+        <p className="text-lg font-medium mb-2">Loading experiments…</p>
+      </div>
+    )
+  }
 
   return (
     <div className="max-w-6xl mx-auto px-8 py-8 space-y-6">

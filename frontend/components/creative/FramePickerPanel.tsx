@@ -10,9 +10,10 @@ interface Props {
   selected: Set<string>
   onToggle: (id: string) => void
   frameJobs: Record<string, string>
+  disabled?: boolean
 }
 
-export function FramePickerPanel({ frames, selected, onToggle, frameJobs }: Props) {
+export function FramePickerPanel({ frames, selected, onToggle, frameJobs, disabled }: Props) {
   const [channelFilter, setChannelFilter] = useState<string>('all')
   const [statusFilter, setStatusFilter] = useState<string>('all')
 
@@ -32,6 +33,7 @@ export function FramePickerPanel({ frames, selected, onToggle, frameJobs }: Prop
         <select
           value={channelFilter}
           onChange={e => setChannelFilter(e.target.value)}
+          disabled={disabled}
           className="px-3 py-2 bg-surface border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
         >
           <option value="all">All channels</option>
@@ -40,6 +42,7 @@ export function FramePickerPanel({ frames, selected, onToggle, frameJobs }: Prop
         <select
           value={statusFilter}
           onChange={e => setStatusFilter(e.target.value)}
+          disabled={disabled}
           className="px-3 py-2 bg-surface border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
         >
           <option value="all">All statuses</option>
@@ -50,6 +53,9 @@ export function FramePickerPanel({ frames, selected, onToggle, frameJobs }: Prop
 
       {/* Frame checkboxes */}
       <div className="space-y-2">
+        {filtered.length === 0 && (
+          <p className="text-sm text-text-muted py-3">No frames match these filters.</p>
+        )}
         {filtered.map(frame => {
           const jobId = frameJobs[frame.frame_id]
           return (
@@ -60,6 +66,7 @@ export function FramePickerPanel({ frames, selected, onToggle, frameJobs }: Prop
                 type="checkbox"
                 checked={selected.has(frame.frame_id)}
                 onChange={() => onToggle(frame.frame_id)}
+                disabled={disabled}
                 className="mt-0.5 accent-primary"
               />
               <div className="flex-1 min-w-0">
