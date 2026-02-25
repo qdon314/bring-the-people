@@ -6,6 +6,7 @@ from typing import Optional
 
 import asyncio
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 from growth.app.container import Container
 
@@ -29,6 +30,15 @@ def create_app(container: Optional[Container] = None) -> FastAPI:
         version="0.3.0",
         description="API for managing growth experiments and decisions for live shows.",
         lifespan=lifespan,
+    )
+
+    # Configure CORS for frontend communication
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["http://localhost:3000"],
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
     )
 
     @app.get("/health")
