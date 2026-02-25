@@ -551,63 +551,47 @@ class SQLAlchemyJobRepository(JobRepository):
         self._session = session
 
     def get_by_id(self, job_id: UUID) -> BackgroundJob | None:
-        try:
-            orm = self._session.get(BackgroundJobORM, str(job_id))
-        except Exception:
-            self._session.rollback()
-            raise
+        orm = self._session.get(BackgroundJobORM, str(job_id))
         if orm is None:
             return None
         return _job_to_domain(orm)
 
     def save(self, job: BackgroundJob) -> None:
         orm = _job_to_orm(job)
-        try:
-            self._session.merge(orm)
-            self._session.commit()
-        except Exception:
-            self._session.rollback()
-            raise
+        self._session.merge(orm)
+        self._session.commit()
 
     def claim_next_queued(self) -> BackgroundJob | None:
         from datetime import timezone
         now = datetime.now(timezone.utc)
-        try:
-            orm = (
-                self._session.query(BackgroundJobORM)
-                .filter(BackgroundJobORM.status == "queued")
-                .order_by(BackgroundJobORM.created_at)
-                .first()
-            )
-            if orm is None:
-                return None
-            orm.status = "running"
-            orm.attempt_count += 1
-            orm.last_heartbeat_at = now
-            orm.updated_at = now
-            self._session.commit()
-        except Exception:
-            self._session.rollback()
-            raise
+        orm = (
+            self._session.query(BackgroundJobORM)
+            .filter(BackgroundJobORM.status == "queued")
+            .order_by(BackgroundJobORM.created_at)
+            .first()
+        )
+        if orm is None:
+            return None
+        orm.status = "running"
+        orm.attempt_count += 1
+        orm.last_heartbeat_at = now
+        orm.updated_at = now
+        self._session.commit()
         return _job_to_domain(orm)
 
     def reset_stale_running_jobs(self, stale_after_seconds: int = 120) -> int:
         from datetime import timezone
         cutoff = datetime.now(timezone.utc) - timedelta(seconds=stale_after_seconds)
-        try:
-            stale = (
-                self._session.query(BackgroundJobORM)
-                .filter(
-                    BackgroundJobORM.status == "running",
-                    BackgroundJobORM.last_heartbeat_at < cutoff,
-                )
-                .all()
+        stale = (
+            self._session.query(BackgroundJobORM)
+            .filter(
+                BackgroundJobORM.status == "running",
+                BackgroundJobORM.last_heartbeat_at < cutoff,
             )
-            for orm in stale:
-                orm.status = "queued"
-                orm.updated_at = datetime.now(timezone.utc)
-            self._session.commit()
-        except Exception:
-            self._session.rollback()
-            raise
+            .all()
+        )
+        for orm in stale:
+            orm.status = "queued"
+            orm.updated_at = datetime.now(timezone.utc)
+        self._session.commit()
         return len(stale)
