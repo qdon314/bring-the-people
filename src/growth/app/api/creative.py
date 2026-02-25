@@ -1,6 +1,7 @@
 """Creative Agent API endpoint."""
 from __future__ import annotations
 
+import logging
 from datetime import datetime, timezone
 from uuid import UUID, uuid4
 
@@ -8,6 +9,7 @@ from fastapi import APIRouter, HTTPException, Request
 
 from growth.domain.models import BackgroundJob, JobStatus, JobType
 
+logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
@@ -15,7 +17,7 @@ router = APIRouter()
 def run_creative(frame_id: UUID, request: Request):
     """Run the Creative Agent for a frame (enqueues a job)."""
     container = request.app.state.container
-    
+
     # Validate frame exists
     frame = container.frame_repo().get_by_id(frame_id)
     if frame is None:

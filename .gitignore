@@ -211,6 +211,7 @@ growth.db
 frontend/.next/
 frontend/node_modules/
 frontend/.env.local
+!frontend/lib/
 
 # Artifacts
 data/
@@ -218,3 +219,4 @@ data/
 # Local configuration files
 launch.json
 settings.json
+frontend/tsconfig.tsbuildinfo
