@@ -18,7 +18,7 @@ def list_frames(
     segment_id: UUID | None = None,
     request: Request = ...,
 ):
-    repo = request.app.state.container.frame_repo()
+    repo = request.state.container.frame_repo()
     frames = repo.get_by_show(show_id)
     if cycle_id:
         frames = [f for f in frames if f.cycle_id == cycle_id]
@@ -29,7 +29,7 @@ def list_frames(
 
 @router.get("/{frame_id}", response_model=FrameResponse)
 def get_frame(frame_id: UUID, request: Request):
-    repo = request.app.state.container.frame_repo()
+    repo = request.state.container.frame_repo()
     frame = repo.get_by_id(frame_id)
     if frame is None:
         raise HTTPException(404, "Frame not found")
@@ -38,7 +38,7 @@ def get_frame(frame_id: UUID, request: Request):
 
 @router.post("/{frame_id}/review", response_model=FrameResponse)
 def review_frame(frame_id: UUID, body: ReviewRequest, request: Request):
-    repo = request.app.state.container.frame_repo()
+    repo = request.state.container.frame_repo()
     frame = repo.get_by_id(frame_id)
     if frame is None:
         raise HTTPException(404, "Frame not found")

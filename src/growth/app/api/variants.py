@@ -13,14 +13,14 @@ router = APIRouter()
 
 @router.get("", response_model=list[VariantResponse])
 def list_variants(frame_id: UUID, request: Request):
-    repo = request.app.state.container.variant_repo()
+    repo = request.state.container.variant_repo()
     variants = repo.get_by_frame(frame_id)
     return [VariantResponse.from_domain(v) for v in variants]
 
 
 @router.get("/{variant_id}", response_model=VariantResponse)
 def get_variant(variant_id: UUID, request: Request):
-    repo = request.app.state.container.variant_repo()
+    repo = request.state.container.variant_repo()
     variant = repo.get_by_id(variant_id)
     if variant is None:
         raise HTTPException(404, "Variant not found")
@@ -29,7 +29,7 @@ def get_variant(variant_id: UUID, request: Request):
 
 @router.post("/{variant_id}/review", response_model=VariantResponse)
 def review_variant(variant_id: UUID, body: ReviewRequest, request: Request):
-    repo = request.app.state.container.variant_repo()
+    repo = request.state.container.variant_repo()
     variant = repo.get_by_id(variant_id)
     if variant is None:
         raise HTTPException(404, "Variant not found")

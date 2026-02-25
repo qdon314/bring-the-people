@@ -15,7 +15,7 @@ router = APIRouter()
 @router.post("/{show_id}/run", status_code=202)
 def run_strategy(show_id: UUID, request: Request):
     """Run the Strategy Agent for a show (enqueues a job)."""
-    container = request.app.state.container
+    container = request.state.container
     # Validate show exists
     show = container.show_repo().get_by_id(show_id)
     if show is None:

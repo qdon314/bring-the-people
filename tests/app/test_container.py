@@ -15,25 +15,37 @@ def container(tmp_path):
         policy_config_path=config_path,
     )
     yield c
-    c.close()
 
 
 class TestContainer:
+    def test_provides_session_container(self, container):
+        sc = container.session_container()
+        assert sc is not None
+        sc.close()
+
     def test_provides_show_repo(self, container):
-        repo = container.show_repo()
+        sc = container.session_container()
+        repo = sc.show_repo()
         assert repo is not None
+        sc.close()
 
     def test_provides_experiment_repo(self, container):
-        repo = container.experiment_repo()
+        sc = container.session_container()
+        repo = sc.experiment_repo()
         assert repo is not None
+        sc.close()
 
     def test_provides_segment_repo(self, container):
-        repo = container.segment_repo()
+        sc = container.session_container()
+        repo = sc.segment_repo()
         assert repo is not None
+        sc.close()
 
     def test_provides_frame_repo(self, container):
-        repo = container.frame_repo()
+        sc = container.session_container()
+        repo = sc.frame_repo()
         assert repo is not None
+        sc.close()
 
     def test_provides_event_log(self, container):
         log = container.event_log()
@@ -45,9 +57,13 @@ class TestContainer:
         assert config.min_windows == 2
 
     def test_provides_decision_service(self, container):
-        svc = container.decision_service()
+        sc = container.session_container()
+        svc = sc.decision_service()
         assert svc is not None
+        sc.close()
 
     def test_provides_strategy_service(self, container):
-        svc = container.strategy_service()
+        sc = container.session_container()
+        svc = sc.strategy_service()
         assert svc is not None
+        sc.close()

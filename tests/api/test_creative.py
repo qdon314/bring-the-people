@@ -44,7 +44,6 @@ def client(tmp_path):
     )
     app = create_app(container)
     yield TestClient(app)
-    container.close()
 
 
 def _create_show_and_frame(client) -> tuple[str, str]:

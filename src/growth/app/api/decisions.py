@@ -11,11 +11,11 @@ router = APIRouter()
 
 
 def _get_exp_repo(request: Request):
-    return request.app.state.container.experiment_repo()
+    return request.state.container.experiment_repo()
 
 
 def _get_decision_service(request: Request):
-    return request.app.state.container.decision_service()
+    return request.state.container.decision_service()
 
 
 @router.post("/evaluate/{experiment_id}", response_model=DecisionResponse)

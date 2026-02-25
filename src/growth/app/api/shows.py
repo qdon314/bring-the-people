@@ -12,7 +12,7 @@ router = APIRouter()
 
 
 def _get_show_repo(request: Request):
-    return request.app.state.container.show_repo()
+    return request.state.container.show_repo()
 
 
 @router.post("", status_code=201, response_model=ShowResponse)

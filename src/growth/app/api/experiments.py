@@ -13,7 +13,7 @@ router = APIRouter()
 
 
 def _get_exp_repo(request: Request):
-    return request.app.state.container.experiment_repo()
+    return request.state.container.experiment_repo()
 
 
 @router.post("", status_code=201, response_model=ExperimentResponse)
@@ -192,7 +192,7 @@ def stop_experiment(experiment_id: UUID, request: Request):
 @router.get("/{experiment_id}/metrics", response_model=ExperimentMetrics)
 def get_experiment_metrics(experiment_id: UUID, request: Request):
     from growth.app.schemas import ExperimentMetrics as MetricsSchema
-    container = request.app.state.container
+    container = request.state.container
     exp = container.experiment_repo().get_by_id(experiment_id)
     if exp is None:
         raise HTTPException(404, "Experiment not found")

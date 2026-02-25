@@ -67,7 +67,7 @@ def list_events(
     limit: int = 50,
     request: Request = ...,
 ):
-    event_log = request.app.state.container.event_log()
+    event_log = request.state.container.event_log()
     events = event_log.read_by_show(show_id)
     if cycle_id:
         events = [e for e in events if e.get("cycle_id") == cycle_id]

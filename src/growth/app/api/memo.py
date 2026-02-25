@@ -15,7 +15,7 @@ router = APIRouter()
 @router.get("", response_model=list[MemoResponse])
 def list_memos(show_id: UUID, request: Request):
     """List all memos for a show."""
-    repo = request.app.state.container.memo_repo()
+    repo = request.state.container.memo_repo()
     memos = repo.get_by_show(show_id)
     return [MemoResponse.from_domain(m) for m in memos]
 
@@ -23,7 +23,7 @@ def list_memos(show_id: UUID, request: Request):
 @router.get("/{memo_id}", response_model=MemoResponse)
 def get_memo(memo_id: UUID, request: Request):
     """Get a memo by ID."""
-    repo = request.app.state.container.memo_repo()
+    repo = request.state.container.memo_repo()
     memo = repo.get_by_id(memo_id)
     if memo is None:
         raise HTTPException(404, "Memo not found")
@@ -41,7 +41,7 @@ def run_memo(
     if cycle_start >= cycle_end:
         raise HTTPException(status_code=422, detail="cycle_start must be before cycle_end")
 
-    container = request.app.state.container
+    container = request.state.container
     
     # Validate show exists
     show = container.show_repo().get_by_id(show_id)

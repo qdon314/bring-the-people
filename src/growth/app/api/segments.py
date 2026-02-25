@@ -17,7 +17,7 @@ def list_segments(
     cycle_id: UUID | None = None,
     request: Request = ...,
 ):
-    repo = request.app.state.container.segment_repo()
+    repo = request.state.container.segment_repo()
     segments = repo.get_by_show(show_id)
     if cycle_id:
         segments = [s for s in segments if s.cycle_id == cycle_id]
@@ -26,7 +26,7 @@ def list_segments(
 
 @router.get("/{segment_id}", response_model=SegmentResponse)
 def get_segment(segment_id: UUID, request: Request):
-    repo = request.app.state.container.segment_repo()
+    repo = request.state.container.segment_repo()
     segment = repo.get_by_id(segment_id)
     if segment is None:
         raise HTTPException(404, "Segment not found")
@@ -35,7 +35,7 @@ def get_segment(segment_id: UUID, request: Request):
 
 @router.post("/{segment_id}/review", response_model=SegmentResponse)
 def review_segment(segment_id: UUID, body: ReviewRequest, request: Request):
-    repo = request.app.state.container.segment_repo()
+    repo = request.state.container.segment_repo()
     segment = repo.get_by_id(segment_id)
     if segment is None:
         raise HTTPException(404, "Segment not found")

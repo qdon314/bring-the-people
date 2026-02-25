@@ -17,7 +17,6 @@ def container(tmp_path):
         policy_config_path=config_path,
     )
     yield c
-    c.close()
 
 
 @pytest.fixture

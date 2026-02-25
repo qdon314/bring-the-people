@@ -16,7 +16,7 @@ router = APIRouter()
 @router.post("/{frame_id}/run", status_code=202)
 def run_creative(frame_id: UUID, request: Request):
     """Run the Creative Agent for a frame (enqueues a job)."""
-    container = request.app.state.container
+    container = request.state.container
 
     # Validate frame exists
     frame = container.frame_repo().get_by_id(frame_id)

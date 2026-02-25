@@ -12,7 +12,7 @@ router = APIRouter()
 
 @router.get("/{job_id}", response_model=JobResponse)
 def get_job(job_id: UUID, request: Request):
-    repo = request.app.state.container.job_repo()
+    repo = request.state.container.job_repo()
     job = repo.get_by_id(job_id)
     if job is None:
         raise HTTPException(404, "Job not found")

@@ -12,7 +12,7 @@ router = APIRouter()
 
 
 def _get_exp_repo(request: Request):
-    return request.app.state.container.experiment_repo()
+    return request.state.container.experiment_repo()
 
 
 @router.post("", status_code=201, response_model=ObservationResponse)
