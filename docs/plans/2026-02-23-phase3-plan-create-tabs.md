@@ -16,8 +16,10 @@ This is the shared foundation for all three agent triggers. Build it first befor
 
 ```tsx
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useJobPoller } from '@/lib/hooks/useJobPoller'
+import { SpinnerIcon } from '@/components/shared/SpinnerIcon'
+import { timeSince } from '@/lib/utils/dates'
 import type { BackgroundJob } from '@/lib/types'
 
 interface AgentRunButtonProps {
@@ -41,7 +43,8 @@ export function AgentRunButton({
   const { data: job } = useJobPoller(state === 'polling' ? jobId : null)
 
   // React to job status changes
-  if (job && state === 'polling') {
+  useEffect(() => {
+    if (!job || state !== 'polling') return
     if (job.status === 'completed') {
       setState('done')
       onComplete?.(job)
@@ -49,7 +52,7 @@ export function AgentRunButton({
       setState('error')
       setErrorMsg(job.error_message ?? 'Agent run failed')
     }
-  }
+  }, [job, state, onComplete])
 
   async function handleRun() {
     setState('starting')
@@ -72,9 +75,9 @@ export function AgentRunButton({
       <button
         onClick={handleRun}
         disabled={disabled || isRunning}
-        className="btn-primary inline-flex items-center gap-2"
+        className="btn-primary inline-flex items-center gap-2 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
       >
-        {isRunning && <SpinnerIcon className="w-4 h-4 animate-spin" />}
+        {isRunning && <SpinnerIcon className="w-4 h-4 animate-spin motion-reduce:animate-none" />}
         {state === 'starting' ? 'Starting…' :
          state === 'polling' ? `Running… (attempt ${job?.attempt_count ?? 1})` :
          label}
@@ -91,7 +94,10 @@ export function AgentRunButton({
       {state === 'error' && errorMsg && (
         <div className="rounded-lg bg-danger-light p-3 flex items-center justify-between">
           <p className="text-sm text-danger">{errorMsg}</p>
-          <button onClick={handleRun} className="text-sm font-medium text-danger underline">
+          <button
+            onClick={handleRun}
+            className="text-sm font-medium text-danger underline focus-visible:ring-2 focus-visible:ring-danger focus-visible:ring-offset-2 rounded"
+          >
             Retry
           </button>
         </div>
@@ -100,7 +106,7 @@ export function AgentRunButton({
       {/* Success summary */}
       {state === 'done' && job?.result_json && (
         <details className="rounded-lg bg-success-light p-3">
-          <summary className="text-sm font-medium text-success cursor-pointer">
+          <summary className="text-sm font-medium text-success cursor-pointer focus-visible:ring-2 focus-visible:ring-success focus-visible:ring-offset-2 rounded">
             ✓ Complete — {job.result_json.reasoning_summary?.toString().slice(0, 80)}…
           </summary>
           <div className="mt-2 text-xs text-text-muted space-y-1">
@@ -130,6 +136,64 @@ export function timeSince(iso: string): string {
   return `${Math.floor(seconds / 3600)}h ago`
 }
 ```
+
+**Shared SpinnerIcon** in [`frontend/components/shared/SpinnerIcon.tsx`](../../frontend/components/shared/SpinnerIcon.tsx):
+```tsx
+export function SpinnerIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" aria-hidden="true">
+      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+    </svg>
+  )
+}
+```
+
+**Shared ChannelBadge** in [`frontend/components/shared/ChannelBadge.tsx`](../../frontend/components/shared/ChannelBadge.tsx):
+```tsx
+const CHANNEL_COLORS: Record<string, string> = {
+  meta: 'bg-accent-light text-accent',
+  instagram: 'bg-primary-light text-primary',
+  tiktok: 'bg-bg text-text-muted',
+  reddit: 'bg-warning-light text-warning',
+  email: 'bg-success-light text-success',
+}
+
+export function ChannelBadge({ channel }: { channel: string }) {
+  return (
+    <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${CHANNEL_COLORS[channel] ?? 'bg-bg text-text-muted'}`}>
+      {channel.charAt(0).toUpperCase() + channel.slice(1)}
+    </span>
+  )
+}
+```
+
+**Shared StatusBadge** in [`frontend/components/shared/StatusBadge.tsx`](../../frontend/components/shared/StatusBadge.tsx):
+```tsx
+import type { ReviewStatus } from '@/lib/types'
+
+const STATUS_STYLES: Record<ReviewStatus, string> = {
+  pending: 'bg-border text-text-muted',
+  approved: 'bg-success/10 text-success',
+  rejected: 'bg-danger/10 text-danger',
+}
+
+const STATUS_LABELS: Record<ReviewStatus, string> = {
+  pending: 'Pending',
+  approved: 'Approved',
+  rejected: 'Rejected',
+}
+
+export function StatusBadge({ status }: { status: ReviewStatus }) {
+  return (
+    <span className={`px-2 py-0.5 rounded text-xs font-medium ${STATUS_STYLES[status] ?? STATUS_STYLES.pending}`}>
+      {STATUS_LABELS[status] ?? status}
+    </span>
+  )
+}
+```
+
+> **Note**: Add `export type ReviewStatus = 'pending' | 'approved' | 'rejected'` to [`frontend/lib/types.ts`](../../frontend/lib/types.ts). This eliminates the `as any` casts throughout the codebase.
 
 ---
 
@@ -178,7 +242,7 @@ export default function PlanPage() {
       {/* Strategy Run Panel */}
       <section aria-labelledby="strategy-heading">
         <div className="bg-surface border border-border rounded-lg p-6">
-          <h3 id="strategy-heading" className="font-semibold text-lg mb-1">Strategy Agent</h3>
+          <h2 id="strategy-heading" className="font-semibold text-lg mb-1">Strategy Agent</h2>
           <p className="text-sm text-text-muted mb-4">
             Analyzes the show and proposes 3–5 audience segments and framing hypotheses.
           </p>
@@ -194,7 +258,7 @@ export default function PlanPage() {
       {(segLoading || (segments && segments.length > 0)) && (
         <section aria-labelledby="segments-heading">
           <div className="flex items-center justify-between mb-4">
-            <h3 id="segments-heading" className="font-semibold text-lg">Audience Segments</h3>
+            <h2 id="segments-heading" className="font-semibold text-lg">Audience Segments</h2>
             <span className="text-sm text-text-muted">
               {segments?.filter(s => s.review_status === 'approved').length ?? 0} approved
             </span>
@@ -219,7 +283,7 @@ export default function PlanPage() {
       {(frameLoading || (frames && frames.length > 0)) && (
         <section aria-labelledby="frames-heading">
           <div className="flex items-center justify-between mb-4">
-            <h3 id="frames-heading" className="font-semibold text-lg">Creative Frames</h3>
+            <h2 id="frames-heading" className="font-semibold text-lg">Creative Frames</h2>
             <span className="text-sm text-text-muted">
               {frames?.filter(f => f.review_status === 'approved').length ?? 0} approved
             </span>
@@ -230,7 +294,7 @@ export default function PlanPage() {
             <div className="space-y-6">
               {(segments ?? []).map(segment => (
                 <div key={segment.segment_id}>
-                  <h4 className="text-sm font-semibold text-text-muted uppercase tracking-wider mb-3">
+                  <h3 className="text-sm font-semibold text-text-muted uppercase tracking-wider mb-3">
                     {segment.name}
                   </h4>
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -303,12 +367,12 @@ export function SegmentCard({ segment, onReviewed }: SegmentCardProps) {
             <span className="text-xs px-2 py-0.5 rounded bg-bg text-text-muted font-medium">
               {segment.created_by === 'agent' ? '🤖 Agent' : '✏️ Human'}
             </span>
-            <StatusBadge status={segment.review_status as any} />
+            <StatusBadge status={segment.review_status} />
           </div>
         </div>
         <button
           onClick={() => setEditOpen(true)}
-          className="text-xs text-primary hover:underline"
+          className="text-xs text-primary hover:underline focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded"
         >
           Edit
         </button>
@@ -332,14 +396,14 @@ export function SegmentCard({ segment, onReviewed }: SegmentCardProps) {
           <button
             onClick={() => reviewMutation.mutate('approve')}
             disabled={reviewMutation.isPending}
-            className="flex-1 btn-success text-sm py-1.5"
+            className="flex-1 btn-success text-sm py-1.5 focus-visible:ring-2 focus-visible:ring-success focus-visible:ring-offset-2"
           >
             Approve
           </button>
           <button
             onClick={() => reviewMutation.mutate('reject')}
             disabled={reviewMutation.isPending}
-            className="flex-1 btn-ghost text-sm py-1.5"
+            className="flex-1 btn-ghost text-sm py-1.5 focus-visible:ring-2 focus-visible:ring-border focus-visible:ring-offset-2"
           >
             Reject
           </button>
@@ -348,7 +412,7 @@ export function SegmentCard({ segment, onReviewed }: SegmentCardProps) {
       {segment.review_status === 'approved' && (
         <button
           onClick={() => reviewMutation.mutate('reject')}
-          className="text-xs text-text-muted hover:text-danger"
+          className="text-xs text-text-muted hover:text-danger focus-visible:ring-2 focus-visible:ring-danger focus-visible:ring-offset-2 rounded"
         >
           Undo approval
         </button>
@@ -358,7 +422,9 @@ export function SegmentCard({ segment, onReviewed }: SegmentCardProps) {
         <p className="text-xs text-danger mt-2">{reviewMutation.error.message}</p>
       )}
 
+      {/* key forces state reset when segment changes */}
       <SegmentEditorModal
+        key={segment.segment_id}
         segment={segment}
         open={editOpen}
         onClose={() => setEditOpen(false)}
@@ -383,6 +449,7 @@ import Link from 'next/link'
 import { useParams } from 'next/navigation'
 import { framesApi } from '@/lib/api/frames'
 import { StatusBadge } from '@/components/shared/StatusBadge'
+import { ChannelBadge } from '@/components/shared/ChannelBadge'
 import { FrameEditorModal } from './FrameEditorModal'
 import type { Frame } from '@/lib/types'
 
@@ -409,11 +476,14 @@ export function FrameCard({ frame, onReviewed }: FrameCardProps) {
         <div className="flex-1 mr-3">
           <div className="flex items-center gap-2 mb-1">
             <ChannelBadge channel={frame.channel} />
-            <StatusBadge status={frame.review_status as any} />
+            <StatusBadge status={frame.review_status} />
           </div>
           <p className="font-semibold text-sm leading-snug">{frame.hypothesis}</p>
         </div>
-        <button onClick={() => setEditOpen(true)} className="text-xs text-primary hover:underline shrink-0">
+        <button
+          onClick={() => setEditOpen(true)}
+          className="text-xs text-primary hover:underline shrink-0 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded"
+        >
           Edit
         </button>
       </div>
@@ -428,7 +498,7 @@ export function FrameCard({ frame, onReviewed }: FrameCardProps) {
         <div className="mb-3">
           <button
             onClick={() => setShowEvidence(v => !v)}
-            className="text-xs text-text-muted hover:text-text"
+            className="text-xs text-text-muted hover:text-text focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded"
           >
             {showEvidence ? '▾' : '▸'} {frame.evidence_refs.length} evidence ref{frame.evidence_refs.length !== 1 ? 's' : ''}
           </button>
@@ -456,55 +526,42 @@ export function FrameCard({ frame, onReviewed }: FrameCardProps) {
             <button
               onClick={() => reviewMutation.mutate('approve')}
               disabled={reviewMutation.isPending}
-              className="btn-success text-xs py-1 px-3"
+              className="btn-success text-xs py-1 px-3 focus-visible:ring-2 focus-visible:ring-success focus-visible:ring-offset-2"
             >
               Approve
             </button>
             <button
               onClick={() => reviewMutation.mutate('reject')}
               disabled={reviewMutation.isPending}
-              className="btn-ghost text-xs py-1 px-3"
+              className="btn-ghost text-xs py-1 px-3 focus-visible:ring-2 focus-visible:ring-border focus-visible:ring-offset-2"
             >
               Reject
             </button>
           </>
         ) : (
-          <button onClick={() => reviewMutation.mutate('reject')} className="text-xs text-text-muted hover:text-danger">
+          <button
+            onClick={() => reviewMutation.mutate('reject')}
+            className="text-xs text-text-muted hover:text-danger focus-visible:ring-2 focus-visible:ring-danger focus-visible:ring-offset-2 rounded"
+          >
             Undo approval
           </button>
         )}
         <Link
           href={`/shows/${show_id}/create?frame_id=${frame.frame_id}`}
-          className="ml-auto text-xs text-primary font-medium hover:underline"
+          className="ml-auto text-xs text-primary font-medium hover:underline focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded"
         >
           Generate Creative →
         </Link>
       </div>
 
-      <FrameEditorModal frame={frame} open={editOpen} onClose={() => setEditOpen(false)} onSaved={onReviewed} />
+      {/* key forces state reset when frame changes */}
+      <FrameEditorModal key={frame.frame_id} frame={frame} open={editOpen} onClose={() => setEditOpen(false)} onSaved={onReviewed} />
     </div>
   )
 }
 ```
 
-`ChannelBadge`:
-```tsx
-const CHANNEL_COLORS: Record<string, string> = {
-  meta: 'bg-accent-light text-accent',
-  instagram: 'bg-primary-light text-primary',
-  tiktok: 'bg-bg text-text-muted',
-  reddit: 'bg-warning-light text-warning',
-  email: 'bg-success-light text-success',
-}
-
-function ChannelBadge({ channel }: { channel: string }) {
-  return (
-    <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${CHANNEL_COLORS[channel] ?? 'bg-bg text-text-muted'}`}>
-      {channel.charAt(0).toUpperCase() + channel.slice(1)}
-    </span>
-  )
-}
-```
+> **Note**: `ChannelBadge` is now a shared component (see Task 15 above). Import it from `@/components/shared/ChannelBadge` in all files that use it.
 
 ---
 
@@ -633,10 +690,12 @@ export default function CreatePage() {
   const [frameJobs, setFrameJobs] = useState<Record<string, string>>({})  // frameId → jobId
 
   async function generateForSelected() {
-    for (const frameId of selectedFrameIds) {
-      const { job_id } = await creativeApi.run(frameId)
-      setFrameJobs(prev => ({ ...prev, [frameId]: job_id }))
-    }
+    const results = await Promise.allSettled(
+      [...selectedFrameIds].map(async (frameId) => {
+        const { job_id } = await creativeApi.run(frameId)
+        setFrameJobs(prev => ({ ...prev, [frameId]: job_id }))
+      })
+    )
   }
 
   function onVariantsGenerated(frameId: string) {
@@ -660,7 +719,7 @@ export default function CreatePage() {
         <div className="bg-surface border border-border rounded-lg p-6">
           <div className="flex items-start justify-between mb-4">
             <div>
-              <h3 id="frame-picker-heading" className="font-semibold text-lg">Generate Creative</h3>
+              <h2 id="frame-picker-heading" className="font-semibold text-lg">Generate Creative</h2>
               <p className="text-sm text-text-muted">Select frames to generate ad copy variants.</p>
             </div>
             {selectedFrameIds.size > 0 && (
@@ -685,10 +744,10 @@ export default function CreatePage() {
         </div>
       </section>
 
-      {/* Creative review (shown per frame that has variants or a running job) */}
-      {frames.map(frame => {
-        const hasJobOrVariants = frameJobs[frame.frame_id] || true  // show all frames with variants
-        return hasJobOrVariants ? (
+      {/* Creative review — show frames that have a running job or existing variants */}
+      {frames
+        .filter(frame => frameJobs[frame.frame_id])
+        .map(frame => (
           <CreativeReviewPanel
             key={frame.frame_id}
             frame={frame}
@@ -696,8 +755,7 @@ export default function CreatePage() {
             onComplete={() => onVariantsGenerated(frame.frame_id)}
             onReviewed={() => qc.invalidateQueries({ queryKey: ['variants', frame.frame_id] })}
           />
-        ) : null
-      })}
+        ))}
 
     </div>
   )
@@ -713,6 +771,11 @@ export default function CreatePage() {
 A filterable list of frames as checkboxes:
 
 ```tsx
+'use client'
+import { useState } from 'react'
+import { ChannelBadge } from '@/components/shared/ChannelBadge'
+import { StatusBadge } from '@/components/shared/StatusBadge'
+import { useJobPoller } from '@/lib/hooks/useJobPoller'
 import type { Frame } from '@/lib/types'
 
 interface Props {
@@ -739,11 +802,19 @@ export function FramePickerPanel({ frames, selected, onToggle, frameJobs }: Prop
     <div>
       {/* Filters */}
       <div className="flex gap-3 mb-4">
-        <select value={channelFilter} onChange={e => setChannelFilter(e.target.value)} className="select text-sm">
+        <select
+          value={channelFilter}
+          onChange={e => setChannelFilter(e.target.value)}
+          className="select text-sm focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+        >
           <option value="all">All channels</option>
           {channels.map(c => <option key={c} value={c}>{c}</option>)}
         </select>
-        <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)} className="select text-sm">
+        <select
+          value={statusFilter}
+          onChange={e => setStatusFilter(e.target.value)}
+          className="select text-sm focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+        >
           <option value="all">All statuses</option>
           <option value="approved">Approved only</option>
           <option value="unapproved">Unapproved</option>
@@ -755,7 +826,7 @@ export function FramePickerPanel({ frames, selected, onToggle, frameJobs }: Prop
         {filtered.map(frame => {
           const jobId = frameJobs[frame.frame_id]
           return (
-            <label key={frame.frame_id} className={`flex items-start gap-3 p-3 rounded-lg border cursor-pointer ${
+            <label key={frame.frame_id} className={`flex items-start gap-3 p-3 rounded-lg border cursor-pointer focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2 ${
               selected.has(frame.frame_id) ? 'border-primary bg-primary-light' : 'border-border hover:bg-bg'
             }`}>
               <input
@@ -767,7 +838,7 @@ export function FramePickerPanel({ frames, selected, onToggle, frameJobs }: Prop
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
                   <ChannelBadge channel={frame.channel} />
-                  <StatusBadge status={frame.review_status as any} />
+                  <StatusBadge status={frame.review_status} />
                   {jobId && <JobStatusPill jobId={jobId} />}
                 </div>
                 <p className="text-sm font-medium mt-1 truncate">{frame.hypothesis}</p>
@@ -779,10 +850,7 @@ export function FramePickerPanel({ frames, selected, onToggle, frameJobs }: Prop
     </div>
   )
 }
-```
 
-`JobStatusPill` shows the live job status using `useJobPoller(jobId)`:
-```tsx
 function JobStatusPill({ jobId }: { jobId: string }) {
   const { data: job } = useJobPoller(jobId)
   if (!job) return null
@@ -802,8 +870,11 @@ function JobStatusPill({ jobId }: { jobId: string }) {
 
 ```tsx
 'use client'
+import { useEffect } from 'react'
 import { useJobPoller } from '@/lib/hooks/useJobPoller'
 import { useVariants } from '@/lib/hooks/useVariants'
+import { ChannelBadge } from '@/components/shared/ChannelBadge'
+import { SpinnerIcon } from '@/components/shared/SpinnerIcon'
 import { VariantCard } from './VariantCard'
 import type { Frame } from '@/lib/types'
 
@@ -821,7 +892,7 @@ export function CreativeReviewPanel({ frame, jobId, onComplete, onReviewed }: Pr
   // Trigger parent refresh when job completes
   useEffect(() => {
     if (job?.status === 'completed') onComplete()
-  }, [job?.status])
+  }, [job?.status, onComplete])
 
   const isGenerating = job && (job.status === 'queued' || job.status === 'running')
 
@@ -832,9 +903,9 @@ export function CreativeReviewPanel({ frame, jobId, onComplete, onReviewed }: Pr
         <div className="p-5 border-b border-border">
           <div className="flex items-center gap-2">
             <ChannelBadge channel={frame.channel} />
-            <h3 id={`frame-${frame.frame_id}-heading`} className="font-semibold">
+            <h2 id={`frame-${frame.frame_id}-heading`} className="font-semibold">
               {frame.hypothesis.slice(0, 80)}{frame.hypothesis.length > 80 ? '…' : ''}
-            </h3>
+            </h2>
           </div>
           <p className="text-sm text-text-muted mt-1">"{frame.promise}"</p>
         </div>
@@ -842,14 +913,14 @@ export function CreativeReviewPanel({ frame, jobId, onComplete, onReviewed }: Pr
         {/* Generation status */}
         {isGenerating && (
           <div className="p-4 flex items-center gap-3 text-sm text-accent bg-accent-light/30">
-            <SpinnerIcon className="w-4 h-4 animate-spin" />
+            <SpinnerIcon className="w-4 h-4 animate-spin motion-reduce:animate-none" />
             Generating variants… {job.status === 'running' ? '(running)' : '(queued)'}
           </div>
         )}
 
         {/* Error */}
         {job?.status === 'failed' && (
-          <div className="p-4 bg-danger-light text-danger text-sm">
+          <div className="p-4 bg-danger-light text-danger text-sm" role="alert">
             Generation failed: {job.error_message}
           </div>
         )}
@@ -916,12 +987,15 @@ export function VariantCard({ variant, onReviewed }: { variant: Variant; onRevie
           <span className="text-xs font-mono bg-bg px-1.5 py-0.5 rounded text-text-muted">
             {variant.variant_id.slice(0, 8)}
           </span>
-          <StatusBadge status={variant.review_status as any} />
+          <StatusBadge status={variant.review_status} />
           {!variant.constraints_passed && (
             <span className="text-xs text-danger">⚠ Constraints</span>
           )}
         </div>
-        <button onClick={() => setEditOpen(true)} className="text-xs text-primary hover:underline">
+        <button
+          onClick={() => setEditOpen(true)}
+          className="text-xs text-primary hover:underline focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded"
+        >
           Edit
         </button>
       </div>
@@ -943,20 +1017,23 @@ export function VariantCard({ variant, onReviewed }: { variant: Variant; onRevie
             <button
               onClick={() => reviewMutation.mutate('approve')}
               disabled={reviewMutation.isPending}
-              className="btn-success text-xs py-1 px-3"
+              className="btn-success text-xs py-1 px-3 focus-visible:ring-2 focus-visible:ring-success focus-visible:ring-offset-2"
             >
               Approve
             </button>
             <button
               onClick={() => reviewMutation.mutate('reject')}
               disabled={reviewMutation.isPending}
-              className="btn-ghost text-xs py-1 px-3"
+              className="btn-ghost text-xs py-1 px-3 focus-visible:ring-2 focus-visible:ring-border focus-visible:ring-offset-2"
             >
               Reject
             </button>
           </>
         ) : (
-          <button onClick={() => reviewMutation.mutate('reject')} className="text-xs text-text-muted hover:text-danger">
+          <button
+            onClick={() => reviewMutation.mutate('reject')}
+            className="text-xs text-text-muted hover:text-danger focus-visible:ring-2 focus-visible:ring-danger focus-visible:ring-offset-2 rounded"
+          >
             Undo approval
           </button>
         )}
@@ -1025,6 +1102,9 @@ Same pattern as `SegmentEditorModal`. Editable fields: `hook`, `body`, `cta`. Sh
 | File | Purpose |
 |------|---------|
 | `frontend/components/shared/AgentRunButton.tsx` | Shared async agent trigger + job poller UI |
+| `frontend/components/shared/SpinnerIcon.tsx` | Shared loading spinner SVG |
+| `frontend/components/shared/ChannelBadge.tsx` | Shared channel label badge (meta, instagram, etc.) |
+| `frontend/components/shared/StatusBadge.tsx` | Shared review status badge (pending/approved/rejected) |
 | `frontend/app/shows/[show_id]/plan/page.tsx` | Plan tab page |
 | `frontend/components/strategy/SegmentCard.tsx` | Segment display + review |
 | `frontend/components/strategy/FrameCard.tsx` | Frame display + review |
@@ -1035,6 +1115,11 @@ Same pattern as `SegmentEditorModal`. Editable fields: `hook`, `body`, `cta`. Sh
 | `frontend/components/creative/CreativeReviewPanel.tsx` | Per-frame variant review section |
 | `frontend/components/creative/VariantCard.tsx` | Variant display with char counts + review |
 | `frontend/components/creative/VariantEditorModal.tsx` | Variant editing modal |
+
+### Type additions needed
+| File | Change |
+|------|--------|
+| `frontend/lib/types.ts` | Add `export type ReviewStatus = 'pending' \| 'approved' \| 'rejected'` |
 
 ### Additional backend endpoints needed
 | Endpoint | File | Note |
