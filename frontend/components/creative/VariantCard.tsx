@@ -16,12 +16,14 @@ const PLATFORM_LIMITS: Record<string, { hook: number; body: number; cta: number 
 
 export function VariantCard({ variant, onReviewed }: { variant: Variant; onReviewed: () => void }) {
   const [editOpen, setEditOpen] = useState(false)
+  const [pendingAction, setPendingAction] = useState<'approve' | 'reject' | null>(null)
   const limits = PLATFORM_LIMITS[variant.platform] ?? PLATFORM_LIMITS.meta
 
   const reviewMutation = useMutation({
     mutationFn: (action: 'approve' | 'reject') =>
       variantsApi.review(variant.variant_id, { action, reviewed_by: 'producer' }),
     onSuccess: onReviewed,
+    onSettled: () => setPendingAction(null),
   })
 
   return (
@@ -81,26 +83,36 @@ export function VariantCard({ variant, onReviewed }: { variant: Variant; onRevie
         {variant.review_status !== 'approved' ? (
           <>
             <button
-              onClick={() => reviewMutation.mutate('approve')}
+              onClick={() => {
+                setPendingAction('approve')
+                reviewMutation.mutate('approve')
+              }}
               disabled={reviewMutation.isPending}
               className="bg-success text-white text-xs py-1 px-3 rounded font-medium hover:bg-success/90 transition-colors disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-success focus-visible:ring-offset-2"
             >
-              Approve
+              {pendingAction === 'approve' ? 'Approving…' : 'Approve'}
             </button>
             <button
-              onClick={() => reviewMutation.mutate('reject')}
+              onClick={() => {
+                setPendingAction('reject')
+                reviewMutation.mutate('reject')
+              }}
               disabled={reviewMutation.isPending}
               className="px-3 py-1 border border-border text-text rounded text-xs font-medium hover:bg-bg transition-colors disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-border focus-visible:ring-offset-2"
             >
-              Reject
+              {pendingAction === 'reject' ? 'Rejecting…' : 'Reject'}
             </button>
           </>
         ) : (
           <button
-            onClick={() => reviewMutation.mutate('reject')}
+            onClick={() => {
+              setPendingAction('reject')
+              reviewMutation.mutate('reject')
+            }}
+            disabled={reviewMutation.isPending}
             className="text-xs text-text-muted hover:text-danger focus-visible:ring-2 focus-visible:ring-danger focus-visible:ring-offset-2 rounded"
           >
-            Undo approval
+            {pendingAction === 'reject' ? 'Undoing…' : 'Undo approval'}
           </button>
         )}
       </div>

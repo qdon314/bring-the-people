@@ -1,6 +1,6 @@
 'use client'
 import { useParams } from 'next/navigation'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { useMemos } from '@/lib/hooks/useMemos'
 import { useCycles } from '@/lib/hooks/useCycles'
@@ -18,12 +18,19 @@ export default function MemoPage() {
   const [selectedMemoId, setSelectedMemoId] = useState<string | null>(null)
 
   const currentCycle = cycles?.[0]
+  const [hasEditedCycleStart, setHasEditedCycleStart] = useState(false)
   const [cycleStart, setCycleStart] = useState(
     currentCycle?.started_at
       ? format(new Date(currentCycle.started_at), "yyyy-MM-dd'T'HH:mm")
       : format(subDays(new Date(), 7), "yyyy-MM-dd'T'HH:mm")
   )
   const [cycleEnd, setCycleEnd] = useState(format(new Date(), "yyyy-MM-dd'T'HH:mm"))
+
+  useEffect(() => {
+    if (!hasEditedCycleStart && currentCycle?.started_at) {
+      setCycleStart(format(new Date(currentCycle.started_at), "yyyy-MM-dd'T'HH:mm"))
+    }
+  }, [currentCycle?.started_at, hasEditedCycleStart])
 
   const selectedMemo = memos?.find(m => m.memo_id === selectedMemoId) ??
     (memos?.length ? memos[memos.length - 1] : null)
@@ -44,12 +51,20 @@ export default function MemoPage() {
           <div className="bg-surface border border-border rounded-lg p-5">
             <h3 className="font-semibold mb-3">Generate Memo</h3>
             <div className="space-y-3 mb-4">
-              <FormField label="Cycle start">
-                <input type="datetime-local" value={cycleStart}
-                  onChange={e => setCycleStart(e.target.value)} className="input text-sm w-full" />
+              <FormField label="Cycle start" fieldId="memo-cycle-start">
+                <input
+                  id="memo-cycle-start"
+                  type="datetime-local"
+                  value={cycleStart}
+                  onChange={e => {
+                    setHasEditedCycleStart(true)
+                    setCycleStart(e.target.value)
+                  }}
+                  className="input text-sm w-full"
+                />
               </FormField>
-              <FormField label="Cycle end">
-                <input type="datetime-local" value={cycleEnd}
+              <FormField label="Cycle end" fieldId="memo-cycle-end">
+                <input id="memo-cycle-end" type="datetime-local" value={cycleEnd}
                   onChange={e => setCycleEnd(e.target.value)} className="input text-sm w-full" />
               </FormField>
             </div>

@@ -19,6 +19,9 @@ const schema = z.object({
   revenue_usd: z.coerce.number().min(0).default(0),
   refunds: z.coerce.number().int().min(0).default(0),
   complaints: z.coerce.number().int().min(0).default(0),
+}).refine((data) => new Date(data.window_end) > new Date(data.window_start), {
+  message: 'Window end must be after window start',
+  path: ['window_end'],
 })
 
 type FormData = z.infer<typeof schema>
@@ -38,6 +41,7 @@ function PreviewMetric({ label, value }: { label: string; value: string }) {
 }
 
 export function ResultsEntryForm({ experimentId, onSaved }: Props) {
+  const idPrefix = `results-${experimentId.slice(0, 8)}`
   const today = format(new Date(), "yyyy-MM-dd'T'HH:mm")
   const weekAgo = format(subDays(new Date(), 7), "yyyy-MM-dd'T'HH:mm")
 
@@ -89,36 +93,44 @@ export function ResultsEntryForm({ experimentId, onSaved }: Props) {
     <form onSubmit={form.handleSubmit(d => mutation.mutate(d))} className="space-y-4">
       {/* Date range */}
       <div className="grid grid-cols-2 gap-3">
-        <FormField label="Window start">
-          <input {...form.register('window_start')} type="datetime-local" className="input text-sm" />
+        <FormField
+          label="Window start"
+          fieldId={`${idPrefix}-window_start`}
+          error={form.formState.errors.window_start?.message}
+        >
+          <input id={`${idPrefix}-window_start`} {...form.register('window_start')} type="datetime-local" className="input text-sm" />
         </FormField>
-        <FormField label="Window end">
-          <input {...form.register('window_end')} type="datetime-local" className="input text-sm" />
+        <FormField
+          label="Window end"
+          fieldId={`${idPrefix}-window_end`}
+          error={form.formState.errors.window_end?.message}
+        >
+          <input id={`${idPrefix}-window_end`} {...form.register('window_end')} type="datetime-local" className="input text-sm" />
         </FormField>
       </div>
 
       {/* Metrics */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <FormField label="Spend ($)">
-          <input {...form.register('spend_usd')} type="number" step="0.01" className="input text-sm" />
+        <FormField label="Spend ($)" fieldId={`${idPrefix}-spend_usd`} error={form.formState.errors.spend_usd?.message}>
+          <input id={`${idPrefix}-spend_usd`} {...form.register('spend_usd')} type="number" step="0.01" className="input text-sm" />
         </FormField>
-        <FormField label="Impressions">
-          <input {...form.register('impressions')} type="number" className="input text-sm" />
+        <FormField label="Impressions" fieldId={`${idPrefix}-impressions`} error={form.formState.errors.impressions?.message}>
+          <input id={`${idPrefix}-impressions`} {...form.register('impressions')} type="number" className="input text-sm" />
         </FormField>
-        <FormField label="Clicks">
-          <input {...form.register('clicks')} type="number" className="input text-sm" />
+        <FormField label="Clicks" fieldId={`${idPrefix}-clicks`} error={form.formState.errors.clicks?.message}>
+          <input id={`${idPrefix}-clicks`} {...form.register('clicks')} type="number" className="input text-sm" />
         </FormField>
-        <FormField label="Purchases">
-          <input {...form.register('purchases')} type="number" className="input text-sm" />
+        <FormField label="Purchases" fieldId={`${idPrefix}-purchases`} error={form.formState.errors.purchases?.message}>
+          <input id={`${idPrefix}-purchases`} {...form.register('purchases')} type="number" className="input text-sm" />
         </FormField>
-        <FormField label="Revenue ($)">
-          <input {...form.register('revenue_usd')} type="number" step="0.01" className="input text-sm" />
+        <FormField label="Revenue ($)" fieldId={`${idPrefix}-revenue_usd`} error={form.formState.errors.revenue_usd?.message}>
+          <input id={`${idPrefix}-revenue_usd`} {...form.register('revenue_usd')} type="number" step="0.01" className="input text-sm" />
         </FormField>
-        <FormField label="Refunds">
-          <input {...form.register('refunds')} type="number" className="input text-sm" />
+        <FormField label="Refunds" fieldId={`${idPrefix}-refunds`} error={form.formState.errors.refunds?.message}>
+          <input id={`${idPrefix}-refunds`} {...form.register('refunds')} type="number" className="input text-sm" />
         </FormField>
-        <FormField label="Complaints">
-          <input {...form.register('complaints')} type="number" className="input text-sm" />
+        <FormField label="Complaints" fieldId={`${idPrefix}-complaints`} error={form.formState.errors.complaints?.message}>
+          <input id={`${idPrefix}-complaints`} {...form.register('complaints')} type="number" className="input text-sm" />
         </FormField>
       </div>
 

@@ -90,7 +90,10 @@ export function AgentRunButton({
       {state === 'done' && job?.result_json && (
         <details className="rounded-lg bg-success-light p-3">
           <summary className="text-sm font-medium text-success cursor-pointer focus-visible:ring-2 focus-visible:ring-success focus-visible:ring-offset-2 rounded">
-            ✓ Complete — {job.result_json.reasoning_summary?.toString().slice(0, 80)}…
+            ✓ Complete
+            {job.result_json.reasoning_summary
+              ? ` — ${job.result_json.reasoning_summary.toString().slice(0, 80)}…`
+              : ''}
           </summary>
           <div className="mt-2 text-xs text-text-muted space-y-1">
             <p>Turns used: {String(job.result_json.turns_used ?? '—')}</p>

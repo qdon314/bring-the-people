@@ -101,5 +101,5 @@ function StatusDot({ show }: { show: Show }) {
   }
   
   // Default - muted
-  return <span className="w-2 h-2 rounded-full bg-border" />
+  return <span className="w-2 h-2 rounded-full bg-success/60" />
 }

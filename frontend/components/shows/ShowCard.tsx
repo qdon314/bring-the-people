@@ -5,7 +5,9 @@ import type { Show } from '@/lib/types'
 export function ShowCard({ show }: { show: Show }) {
   const daysAway = daysUntilShow(show.show_time)
   const status = getShowStatus(show)
-  const pct = Math.round((show.tickets_sold / show.tickets_total) * 100)
+  const pct = show.tickets_total > 0
+    ? Math.max(0, Math.min(100, Math.round((show.tickets_sold / show.tickets_total) * 100)))
+    : 0
 
   return (
     <Link href={`/shows/${show.show_id}/overview`}>
@@ -41,17 +43,15 @@ export function ShowCard({ show }: { show: Show }) {
   )
 }
 
-function StatusBadge({ status }: { status: 'past' | 'active' | 'draft' }) {
+function StatusBadge({ status }: { status: 'past' | 'active' }) {
   const styles = {
     past: 'bg-text-muted/10 text-text-muted',
     active: 'bg-success/10 text-success',
-    draft: 'bg-border text-text-muted',
   }
 
   const labels = {
     past: 'Past',
     active: 'Active',
-    draft: 'Draft',
   }
 
   return (
