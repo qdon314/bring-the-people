@@ -22,10 +22,14 @@ export default function PlanPage() {
   const { data: frames, isLoading: frameLoading } = useFrames(show_id, currentCycleId)
 
   function onStrategyComplete() {
-    // Invalidate segments and frames to reload with new cycle data
-    qc.invalidateQueries({ queryKey: ['cycles', show_id] })
-    qc.invalidateQueries({ queryKey: ['segments', show_id] })
-    qc.invalidateQueries({ queryKey: ['frames', show_id] })
+    // Delay slightly to allow backend to commit changes, then force refetch
+    setTimeout(() => {
+      qc.invalidateQueries({ queryKey: ['cycles', show_id] })
+      qc.invalidateQueries({ queryKey: ['segments', show_id] })
+      qc.invalidateQueries({ queryKey: ['frames', show_id] })
+      qc.refetchQueries({ queryKey: ['segments', show_id] })
+      qc.refetchQueries({ queryKey: ['frames', show_id] })
+    }, 500)
   }
 
   // Group frames by segment
@@ -69,7 +73,10 @@ export default function PlanPage() {
                 <SegmentCard
                   key={segment.segment_id}
                   segment={segment}
-                  onReviewed={() => qc.invalidateQueries({ queryKey: ['segments', show_id] })}
+                  onReviewed={() => {
+                    qc.invalidateQueries({ queryKey: ['segments', show_id] })
+                    qc.refetchQueries({ queryKey: ['segments', show_id] })
+                  }}
                 />
               ))}
             </div>
@@ -100,7 +107,10 @@ export default function PlanPage() {
                       <FrameCard
                         key={frame.frame_id}
                         frame={frame}
-                        onReviewed={() => qc.invalidateQueries({ queryKey: ['frames', show_id] })}
+                        onReviewed={() => {
+                          qc.invalidateQueries({ queryKey: ['frames', show_id] })
+                          qc.refetchQueries({ queryKey: ['frames', show_id] })
+                        }}
                       />
                     ))}
                   </div>
@@ -114,8 +124,8 @@ export default function PlanPage() {
       {/* Empty state */}
       {!segLoading && !segments?.length && (
         <div className="text-center py-16 text-text-muted">
-          <p className="text-lg font-medium mb-2">No strategy yet</p>
-          <p className="text-sm">Run the Strategy Agent to propose audience segments and frames.</p>
+          <p className="text-lg font-medium mb-2">Start by running the Strategy Agent</p>
+          <p className="text-sm">The agent will analyze your show and propose audience segments and creative frames.</p>
         </div>
       )}
 
