@@ -6,4 +6,5 @@ export const showsApi = {
   get: (id: string) => client.get<Show>(`/api/shows/${id}`),
   create: (body: Omit<Show, 'show_id'>) => client.post<Show>('/api/shows', body),
   update: (id: string, body: Partial<Show>) => client.patch<Show>(`/api/shows/${id}`, body),
+  delete: (id: string) => client.delete<void>(`/api/shows/${id}`),
 }
