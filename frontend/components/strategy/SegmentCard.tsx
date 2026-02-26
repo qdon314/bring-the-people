@@ -1,6 +1,7 @@
 'use client'
 import { useState } from 'react'
 import { useMutation } from '@tanstack/react-query'
+import { toast } from 'sonner'
 import { segmentsApi } from '@/lib/api/segments'
 import { StatusBadge } from '@/components/shared/StatusBadge'
 import { SegmentEditorModal } from './SegmentEditorModal'
@@ -18,7 +19,11 @@ export function SegmentCard({ segment, onReviewed }: SegmentCardProps) {
   const reviewMutation = useMutation({
     mutationFn: (action: 'approve' | 'reject') =>
       segmentsApi.review(segment.segment_id, { action, reviewed_by: 'producer' }),
-    onSuccess: onReviewed,
+    onSuccess: (_data, action) => {
+      toast.success(action === 'approve' ? 'Segment approved' : 'Segment rejected')
+      onReviewed()
+    },
+    onError: (e) => toast.error(e.message),
     onSettled: () => setPendingAction(null),
   })
 
@@ -27,15 +32,34 @@ export function SegmentCard({ segment, onReviewed }: SegmentCardProps) {
   const ageRange = def.age_range as string | undefined
   const interests = def.interests as string[] | undefined
 
+  const isApproved = segment.review_status === 'approved'
+  const isRejected = segment.review_status === 'rejected'
+
   return (
-    <div className="bg-surface border border-border rounded-lg p-5">
+    <div className={`relative bg-surface border rounded-lg p-5 transition-colors ${
+      isApproved 
+        ? 'border-success/40 bg-success/5 shadow-sm' 
+        : isRejected 
+          ? 'border-danger/40 bg-danger/5' 
+          : 'border-border'
+    }`}>
+      {/* Approval indicator strip */}
+      <div className={`absolute left-0 top-4 bottom-4 w-1 rounded-r ${
+        isApproved ? 'bg-success' : isRejected ? 'bg-danger' : 'bg-transparent'
+      }`} />
+      
       {/* Header */}
-      <div className="flex items-start justify-between mb-3">
-        <div>
-          <h4 className="font-semibold">{segment.name}</h4>
-          <div className="flex items-center gap-2 mt-1">
+      <div className="flex items-start justify-between mb-3 pl-2">
+        <div className="flex-1">
+          <div className="flex items-center gap-2 mb-1">
+            <h4 className="font-semibold">{segment.name}</h4>
+            {isApproved && (
+              <span className="text-success text-lg" title="Approved" aria-label="Approved">✓</span>
+            )}
+          </div>
+          <div className="flex items-center gap-2 flex-wrap">
             <span className="text-xs px-2 py-0.5 rounded bg-bg text-text-muted font-medium">
-              {segment.created_by === 'agent' ? '🤖 Agent' : '✏️ Human'}
+              {segment.created_by === 'agent' ? '🤖 Agent-generated' : '✏️ Edited by you'}
             </span>
             <StatusBadge status={segment.review_status} />
           </div>
@@ -49,7 +73,7 @@ export function SegmentCard({ segment, onReviewed }: SegmentCardProps) {
       </div>
 
       {/* Definition summary */}
-      <div className="text-sm text-text-muted space-y-1 mb-4">
+      <div className="pl-2 text-sm text-text-muted space-y-1 mb-4">
         {geo && geo.city && (
           <p>
             📍 {geo.city}
@@ -67,7 +91,7 @@ export function SegmentCard({ segment, onReviewed }: SegmentCardProps) {
 
       {/* Actions */}
       {segment.review_status !== 'approved' && (
-        <div className="flex gap-2">
+        <div className="pl-2 flex gap-2">
           <button
             onClick={() => {
               setPendingAction('approve')
@@ -76,31 +100,40 @@ export function SegmentCard({ segment, onReviewed }: SegmentCardProps) {
             disabled={reviewMutation.isPending}
             className="flex-1 bg-success text-white text-sm py-1.5 rounded-lg font-medium hover:bg-success/90 transition-colors disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-success focus-visible:ring-offset-2"
           >
-            {pendingAction === 'approve' ? 'Approving…' : 'Approve'}
+            {pendingAction === 'approve' ? 'Approving…' : '✓ Approve'}
           </button>
           <button
             onClick={() => {
-              setPendingAction('reject')
-              reviewMutation.mutate('reject')
+              if (window.confirm('Reject this segment? It will be hidden from experiments.')) {
+                setPendingAction('reject')
+                reviewMutation.mutate('reject')
+              }
             }}
             disabled={reviewMutation.isPending}
             className="flex-1 px-4 py-2 border border-border text-text rounded-lg text-sm font-medium hover:bg-bg transition-colors disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-border focus-visible:ring-offset-2"
           >
-            {pendingAction === 'reject' ? 'Rejecting…' : 'Reject'}
+            {pendingAction === 'reject' ? 'Rejecting…' : '✕ Reject'}
           </button>
         </div>
       )}
-      {segment.review_status === 'approved' && (
-        <button
-          onClick={() => {
-            setPendingAction('reject')
-            reviewMutation.mutate('reject')
-          }}
-          disabled={reviewMutation.isPending}
-          className="text-xs text-text-muted hover:text-danger focus-visible:ring-2 focus-visible:ring-danger focus-visible:ring-offset-2 rounded"
-        >
-          {pendingAction === 'reject' ? 'Undoing…' : 'Undo approval'}
-        </button>
+      {isApproved && (
+        <div className="pl-2 flex items-center justify-between">
+          <span className="text-sm text-success font-medium">
+            ✓ Approved and ready for experiments
+          </span>
+          <button
+            onClick={() => {
+              if (window.confirm('Undo approval? This segment will return to draft status.')) {
+                setPendingAction('reject')
+                reviewMutation.mutate('reject')
+              }
+            }}
+            disabled={reviewMutation.isPending}
+            className="text-xs text-text-muted hover:text-danger px-2 py-1 rounded hover:bg-danger/10 transition-colors focus-visible:ring-2 focus-visible:ring-danger focus-visible:ring-offset-2"
+          >
+            {pendingAction === 'reject' ? 'Undoing…' : 'Undo'}
+          </button>
+        </div>
       )}
 
       {reviewMutation.error && (
