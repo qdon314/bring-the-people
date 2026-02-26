@@ -20,9 +20,16 @@ export function formatDate(iso: string): string {
   return format(new Date(iso), 'MMM d, yyyy')
 }
 
-export function timeSince(iso: string): string {
-  const seconds = Math.floor((Date.now() - new Date(iso).getTime()) / 1000)
+export function timeSince(iso: string | undefined | null): string {
+  if (!iso) return '—'
+  const date = new Date(iso)
+  if (isNaN(date.getTime())) return '—'
+  
+  const seconds = Math.floor((Date.now() - date.getTime()) / 1000)
+  if (seconds < 0) return 'just now'
+  if (seconds < 5) return 'just now'
   if (seconds < 60) return `${seconds}s ago`
   if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`
-  return `${Math.floor(seconds / 3600)}h ago`
+  if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`
+  return `${Math.floor(seconds / 86400)}d ago`
 }
