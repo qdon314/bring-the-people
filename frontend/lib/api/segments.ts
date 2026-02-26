@@ -3,7 +3,8 @@ import type { Segment } from '../types'
 
 export const segmentsApi = {
   list: (showId: string, cycleId?: string) => {
-    const params = cycleId ? `&cycle_id=${cycleId}` : ''
+    // Only include cycle_id if it's a valid string
+    const params = cycleId && cycleId !== 'undefined' ? `&cycle_id=${cycleId}` : ''
     return client.get<Segment[]>(`/api/segments?show_id=${showId}${params}`)
   },
   get: (id: string) => client.get<Segment>(`/api/segments/${id}`),

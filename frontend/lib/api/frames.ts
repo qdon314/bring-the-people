@@ -4,8 +4,9 @@ import type { Frame } from '../types'
 export const framesApi = {
   list: (showId: string, cycleId?: string, segmentId?: string) => {
     let params = `?show_id=${showId}`
-    if (cycleId) params += `&cycle_id=${cycleId}`
-    if (segmentId) params += `&segment_id=${segmentId}`
+    // Only include optional params if they're valid strings
+    if (cycleId && cycleId !== 'undefined') params += `&cycle_id=${cycleId}`
+    if (segmentId && segmentId !== 'undefined') params += `&segment_id=${segmentId}`
     return client.get<Frame[]>(`/api/frames${params}`)
   },
   get: (id: string) => client.get<Frame>(`/api/frames/${id}`),
