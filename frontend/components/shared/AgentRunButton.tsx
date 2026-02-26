@@ -22,8 +22,19 @@ export function AgentRunButton({
   const [state, setState] = useState<State>('idle')
   const [jobId, setJobId] = useState<string | null>(null)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
+  const [startTime, setStartTime] = useState<number | null>(null)
+  const [elapsed, setElapsed] = useState(0)
 
   const { data: job } = useJobPoller(state === 'polling' ? jobId : null)
+
+  // Track elapsed time during polling
+  useEffect(() => {
+    if (state !== 'polling' || !startTime) return
+    const interval = setInterval(() => {
+      setElapsed(Math.floor((Date.now() - startTime) / 1000))
+    }, 1000)
+    return () => clearInterval(interval)
+  }, [state, startTime])
 
   // React to job status changes
   useEffect(() => {
@@ -40,9 +51,11 @@ export function AgentRunButton({
   async function handleRun() {
     setState('starting')
     setErrorMsg(null)
+    setElapsed(0)
     try {
       const { job_id } = await onRun()
       setJobId(job_id)
+      setStartTime(Date.now())
       setState('polling')
     } catch (e: unknown) {
       setState('error')
@@ -68,8 +81,9 @@ export function AgentRunButton({
 
       {/* Status line */}
       {state === 'polling' && job && (
-        <p className="text-xs text-text-muted">
-          Last updated {timeSince(job.updated_at)}
+        <p className="text-xs text-text-muted flex items-center gap-2">
+          <span className="inline-block w-1.5 h-1.5 rounded-full bg-primary animate-pulse" aria-hidden="true" />
+          Running… {elapsed}s elapsed · Last updated {timeSince(job.updated_at)}
         </p>
       )}
 
