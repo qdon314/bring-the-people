@@ -17,8 +17,18 @@ export function SegmentEditorModal({ segment, open, onClose, onSaved }: Props) {
   const [defJson, setDefJson] = useState(JSON.stringify(segment.definition_json, null, 2))
   const [jsonError, setJsonError] = useState<string | null>(null)
 
+  // Track original values for dirty checking
+  const [originalName] = useState(segment.name)
+  const [originalDefJson] = useState(JSON.stringify(segment.definition_json, null, 2))
+  
+  const isDirty = name !== originalName || defJson !== originalDefJson
+
   const mutation = useMutation({
     mutationFn: () => {
+      // Skip mutation if nothing changed
+      if (!isDirty) {
+        return Promise.resolve(segment)
+      }
       let def: object
       try {
         def = JSON.parse(defJson)
@@ -32,8 +42,15 @@ export function SegmentEditorModal({ segment, open, onClose, onSaved }: Props) {
     onSuccess: () => { onSaved(); onClose() },
   })
 
+  const handleClose = () => {
+    if (isDirty && !window.confirm('Discard your changes?')) {
+      return
+    }
+    onClose()
+  }
+
   return (
-    <Dialog open={open} onOpenChange={onClose}>
+    <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="max-w-lg">
         <DialogHeader>
           <DialogTitle>Edit Segment</DialogTitle>
@@ -57,9 +74,9 @@ export function SegmentEditorModal({ segment, open, onClose, onSaved }: Props) {
             ✏️ Editing marks this segment as human-authored.
           </p>
           <div className="flex justify-end gap-2">
-            <button onClick={onClose} className="px-4 py-2 border border-border text-text rounded-lg text-sm font-medium hover:bg-bg transition-colors">Cancel</button>
-            <button onClick={() => mutation.mutate()} disabled={mutation.isPending} className="btn-primary">
-              Save
+            <button onClick={handleClose} className="px-4 py-2 border border-border text-text rounded-lg text-sm font-medium hover:bg-bg transition-colors">Cancel</button>
+            <button onClick={() => mutation.mutate()} disabled={mutation.isPending || !isDirty} className="btn-primary">
+              {mutation.isPending ? 'Saving…' : 'Save'}
             </button>
           </div>
         </div>

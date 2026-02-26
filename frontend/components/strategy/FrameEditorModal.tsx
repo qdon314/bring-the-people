@@ -18,18 +18,42 @@ export function FrameEditorModal({ frame, open, onClose, onSaved }: Props) {
   const [channel, setChannel] = useState(frame.channel)
   const [riskNotes, setRiskNotes] = useState(frame.risk_notes ?? '')
 
+  // Track original values for dirty checking
+  const [originalHypothesis] = useState(frame.hypothesis)
+  const [originalPromise] = useState(frame.promise)
+  const [originalChannel] = useState(frame.channel)
+  const [originalRiskNotes] = useState(frame.risk_notes ?? '')
+
+  const isDirty = hypothesis !== originalHypothesis || 
+                  promise !== originalPromise || 
+                  channel !== originalChannel || 
+                  riskNotes !== originalRiskNotes
+
   const mutation = useMutation({
-    mutationFn: () => framesApi.update(frame.frame_id, {
-      hypothesis,
-      promise,
-      channel,
-      risk_notes: riskNotes || null,
-    }),
+    mutationFn: () => {
+      // Skip mutation if nothing changed
+      if (!isDirty) {
+        return Promise.resolve(frame)
+      }
+      return framesApi.update(frame.frame_id, {
+        hypothesis,
+        promise,
+        channel,
+        risk_notes: riskNotes || null,
+      })
+    },
     onSuccess: () => { onSaved(); onClose() },
   })
 
+  const handleClose = () => {
+    if (isDirty && !window.confirm('Discard your changes?')) {
+      return
+    }
+    onClose()
+  }
+
   return (
-    <Dialog open={open} onOpenChange={onClose}>
+    <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="max-w-lg">
         <DialogHeader>
           <DialogTitle>Edit Frame</DialogTitle>
@@ -61,9 +85,9 @@ export function FrameEditorModal({ frame, open, onClose, onSaved }: Props) {
             ✏️ Editing marks this frame as human-authored.
           </p>
           <div className="flex justify-end gap-2">
-            <button onClick={onClose} className="px-4 py-2 border border-border text-text rounded-lg text-sm font-medium hover:bg-bg transition-colors">Cancel</button>
-            <button onClick={() => mutation.mutate()} disabled={mutation.isPending} className="btn-primary">
-              Save
+            <button onClick={handleClose} className="px-4 py-2 border border-border text-text rounded-lg text-sm font-medium hover:bg-bg transition-colors">Cancel</button>
+            <button onClick={() => mutation.mutate()} disabled={mutation.isPending || !isDirty} className="btn-primary">
+              {mutation.isPending ? 'Saving…' : 'Save'}
             </button>
           </div>
         </div>
