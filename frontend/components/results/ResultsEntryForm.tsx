@@ -3,11 +3,11 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useMutation } from '@tanstack/react-query'
+import { toast } from 'sonner'
 import { observationsApi } from '@/lib/api/observations'
 import { computePreviewMetrics } from '@/lib/utils/metrics'
 import { format, subDays } from 'date-fns'
 import { FormField } from '@/components/shared/FormField'
-import { ErrorBanner } from '@/components/shared/ErrorBanner'
 
 const schema = z.object({
   window_start: z.string().min(1),
@@ -86,7 +86,11 @@ export function ResultsEntryForm({ experimentId, onSaved }: Props) {
       negative_comment_rate: null,
       attribution_model: 'last_click_utm',
     }),
-    onSuccess: onSaved,
+    onSuccess: () => {
+      toast.success('Results saved')
+      onSaved()
+    },
+    onError: (e) => toast.error(e.message),
   })
 
   return (
@@ -144,8 +148,6 @@ export function ResultsEntryForm({ experimentId, onSaved }: Props) {
           <PreviewMetric label="ROAS" value={preview.roas ? `${preview.roas.toFixed(2)}x` : '—'} />
         </div>
       </div>
-
-      {mutation.error && <ErrorBanner message={mutation.error.message} />}
 
       <button type="submit" disabled={mutation.isPending} className="btn-primary text-sm">
         {mutation.isPending ? 'Saving…' : 'Save Results'}

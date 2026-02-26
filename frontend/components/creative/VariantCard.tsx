@@ -1,6 +1,7 @@
 'use client'
 import { useState } from 'react'
 import { useMutation } from '@tanstack/react-query'
+import { toast } from 'sonner'
 import { variantsApi } from '@/lib/api/variants'
 import { StatusBadge } from '@/components/shared/StatusBadge'
 import { VariantEditorModal } from './VariantEditorModal'
@@ -22,7 +23,11 @@ export function VariantCard({ variant, onReviewed }: { variant: Variant; onRevie
   const reviewMutation = useMutation({
     mutationFn: (action: 'approve' | 'reject') =>
       variantsApi.review(variant.variant_id, { action, reviewed_by: 'producer' }),
-    onSuccess: onReviewed,
+    onSuccess: (_data, action) => {
+      toast.success(action === 'approve' ? 'Variant approved' : 'Variant rejected')
+      onReviewed()
+    },
+    onError: (e) => toast.error(e.message),
     onSettled: () => setPendingAction(null),
   })
 

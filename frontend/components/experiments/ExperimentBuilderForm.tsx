@@ -1,8 +1,11 @@
 'use client'
+import Link from 'next/link'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { useMutation } from '@tanstack/react-query'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { toast } from 'sonner'
+import { useEffect } from 'react'
 import { useSegments } from '@/lib/hooks/useSegments'
 import { useFrames } from '@/lib/hooks/useFrames'
 import { useVariants } from '@/lib/hooks/useVariants'
@@ -15,11 +18,11 @@ import { FormField } from '@/components/shared/FormField'
 import { ErrorBanner } from '@/components/shared/ErrorBanner'
 
 const schema = z.object({
-  segment_id: z.string().uuid(),
-  frame_id: z.string().uuid(),
-  variant_id: z.string().uuid(),
-  channel: z.string().min(1),
-  budget_usd: z.coerce.number().positive(),
+  segment_id: z.string().uuid({ message: "Please select an audience segment" }),
+  frame_id: z.string().uuid({ message: "Please select a creative frame" }),
+  variant_id: z.string().uuid({ message: "Please select a creative variant" }),
+  channel: z.string().min(1, "Please select a platform"),
+  budget_usd: z.coerce.number().positive("Budget must be greater than 0"),
   objective: z.string().default('ticket_sales'),
 })
 
@@ -76,8 +79,18 @@ export function ExperimentBuilderForm({ showId, cycleId, onCreated }: Props) {
       await experimentsApi.approve(exp.experiment_id, true)
       return exp
     },
-    onSuccess: onCreated,
+    onSuccess: () => {
+      toast.success('Experiment created')
+      onCreated()
+    },
   })
+
+  // Clear mutation error when user changes form values
+  useEffect(() => {
+    if (createMutation.error) {
+      createMutation.reset()
+    }
+  }, [selectedSegmentId, selectedFrameId, selectedVariantId, selectedChannel, form.watch('budget_usd')])
 
   return (
     <div className="bg-surface border border-border rounded-lg p-6 space-y-5">
@@ -91,11 +104,16 @@ export function ExperimentBuilderForm({ showId, cycleId, onCreated }: Props) {
           error={form.formState.errors.segment_id?.message}
         >
           <select id="segment_id" {...form.register('segment_id')} className="select w-full">
-            <option value="">Select segment…</option>
+            <option value="">— Choose an approved segment —</option>
             {(segments ?? [])
               .filter(s => s.review_status === 'approved')
               .map(s => <option key={s.segment_id} value={s.segment_id}>{s.name}</option>)}
           </select>
+          {(segments ?? []).filter(s => s.review_status === 'approved').length === 0 && (
+            <div className="mt-2 p-3 bg-warning-light rounded text-sm text-warning">
+              ⚠️ No approved segments. <Link href={`/shows/${showId}/plan`} className="underline font-medium">Go to Plan tab</Link> to review and approve segments first.
+            </div>
+          )}
         </FormField>
 
         {/* Frame (filtered by selected segment) */}

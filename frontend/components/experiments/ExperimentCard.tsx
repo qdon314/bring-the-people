@@ -1,5 +1,6 @@
 'use client'
 import { useMutation } from '@tanstack/react-query'
+import { toast } from 'sonner'
 import { experimentsApi } from '@/lib/api/experiments'
 import { useExperimentMetrics } from '@/lib/hooks/useExperiments'
 import { ChannelBadge } from '@/components/shared/ChannelBadge'
@@ -34,12 +35,20 @@ export function ExperimentCard({ experiment, showId, onUpdated }: Props) {
 
   const startMutation = useMutation({
     mutationFn: () => experimentsApi.start(experiment.experiment_id),
-    onSuccess: onUpdated,
+    onSuccess: () => {
+      toast.success('Experiment launched')
+      onUpdated()
+    },
+    onError: (e) => toast.error(e.message),
   })
 
   const stopMutation = useMutation({
     mutationFn: () => experimentsApi.stop(experiment.experiment_id),
-    onSuccess: onUpdated,
+    onSuccess: () => {
+      toast.success('Experiment stopped')
+      onUpdated()
+    },
+    onError: (e) => toast.error(e.message),
   })
 
   return (

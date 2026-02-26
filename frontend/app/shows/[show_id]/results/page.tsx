@@ -2,6 +2,7 @@
 import { useParams } from 'next/navigation'
 import { useMemo, useState } from 'react'
 import { useMutation, useQueries, useQueryClient } from '@tanstack/react-query'
+import { toast } from 'sonner'
 import { useExperiments } from '@/lib/hooks/useExperiments'
 import { useDecisions } from '@/lib/hooks/useDecisions'
 import { useCycles } from '@/lib/hooks/useCycles'
@@ -121,7 +122,11 @@ function ExperimentResultsRow({ experiment, metrics, onUpdated }: ExperimentResu
 
   const decisionMutation = useMutation({
     mutationFn: () => decisionsApi.evaluate(experiment.experiment_id),
-    onSuccess: onUpdated,
+    onSuccess: () => {
+      toast.success('Decision engine completed')
+      onUpdated()
+    },
+    onError: (e) => toast.error(e.message),
   })
 
   const [showForm, setShowForm] = useState(false)
