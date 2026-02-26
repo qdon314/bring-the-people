@@ -11,6 +11,7 @@ import { variantsApi } from '@/lib/api/variants'
 import { experimentsApi } from '@/lib/api/experiments'
 import { ShowHeader } from '@/components/layout/ShowHeader'
 import { CycleStepper } from '@/components/layout/CycleStepper'
+import { ErrorBoundary } from '@/components/shared/ErrorBoundary'
 
 export default function ShowLayout({ children }: { children: React.ReactNode }) {
   const { show_id } = useParams<{ show_id: string }>()
@@ -66,7 +67,9 @@ export default function ShowLayout({ children }: { children: React.ReactNode }) 
       <ShowHeader show={show} />
       <CycleStepper showId={show_id} state={stepperState} />
       <div className="flex-1 overflow-y-auto">
-        {children}
+        <ErrorBoundary>
+          {children}
+        </ErrorBoundary>
       </div>
     </div>
   )
