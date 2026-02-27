@@ -1,53 +1,24 @@
-# AGENTS.md — Debug Mode
+# AGENTS.md — Debug Mode (Bring The People)
 
-This file provides debugging guidance to agents when working with code in this repository.
+## Debug workflow
 
-## Critical Command Discipline
+1. Reproduce with explicit steps.
+2. Identify root cause with file/line evidence.
+3. Implement minimal fix.
+4. Add regression test where practical.
 
-**Never run `python`, `pip`, `pytest`, `ruff`, or `streamlit` directly.**
+## Useful commands
 
-Always use the pinned interpreter via:
-- `make <target>` for common workflows
-- `./scripts/py ...` for ad-hoc Python commands
-- `./scripts/pip ...` for dependency management
+Backend:
+- `uv run pytest -k <pattern>`
+- `uv run pytest tests/path/to/test_file.py`
 
-## Running Tests
+Frontend:
+- `cd frontend && npm run lint`
+- `cd frontend && npm run build`
 
-```bash
-make test                              # Full test suite
-./scripts/py -m pytest tests/foo.py    # Single test file
-./scripts/py -m pytest -k test_name    # Filter by test name
-```
+## Debugging constraints
 
-## Debugging Tools
-
-### Query Logs
-
-Query traces are logged to `artifacts/logs/queries.jsonl`:
-
-```bash
-make tail-logs NUM_LOGS=20             # Tail and pretty-print last N logs
-```
-
-### Environment Check
-
-```bash
-make env-check                         # Verify Python environment
-```
-
-## Architecture for Debugging
-
-**Hexagonal Architecture (Ports & Adapters)** - See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)
-
-- **Ports** (`src/rag/ports/`): Protocol-based interfaces
-- **Domain** (`src/rag/domain/`): Immutable frozen dataclasses
-- **Adapters** (`src/rag/adapters/`): Concrete implementations
-- **App** (`src/rag/app/`): Orchestration via [`Container`](src/rag/app/container.py:38)
-
-The [`run_query()`](src/rag/app/query_runner.py:15) function generates a complete [`QueryTrace`](src/rag/domain/models.py) with per-stage timing for observability.
-
-## Key Debugging Notes
-
-- Domain objects are frozen dataclasses - use `dataclasses.replace()` for modifications
-- All configuration is in [`settings.toml`](settings.toml)
-- Tests use fixtures from [`tests/conftest.py`](tests/conftest.py)
+- Do not mask contract issues with frontend-only workarounds.
+- Do not use timing hacks for data consistency.
+- Fix source-of-truth mismatch at the correct layer.

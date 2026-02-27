@@ -1,22 +1,25 @@
 # Kilo Code — Project Rules (Behavioral)
 
-These rules exist to reduce churn and keep work reviewable. Follow them unless explicitly instructed otherwise.
+These rules reduce churn and keep work reviewable. Follow unless explicitly overridden by the user.
 
-## 1) Batch edits (reduce focus/tab churn)
-- **Plan first**, then apply changes in as few passes as possible.
-- Avoid hopping between files repeatedly.
-- Prefer making a cohesive set of edits per file before moving on.
-- If a change touches many files, group them and do them in a deliberate sequence.
+## 1) Batch edits
+- Plan first, then apply cohesive edits in deliberate passes.
+- Avoid rapid file hopping for related changes.
+- Keep each patch scoped to a clear objective.
 
-## 2) Command discipline (prefer repo wrappers)
-When running Python, tests, linting, formatting, typechecking, or the UI:
-- Prefer `make <target>` for common workflows.
-- Otherwise use:
-  - `./scripts/py ...` for ad-hoc Python commands
-  - `./scripts/pip ...` for dependency management
-- Avoid running `python`, `pip`, `pytest`, `ruff`, or `streamlit` directly unless I explicitly ask.
+## 2) Command discipline
+- Prefer repo-native commands that actually exist in this project.
+- Backend: use `uv run ...` (for app and tests).
+- Frontend: run npm commands from `frontend/`.
+- Do not rely on non-existent wrappers like `make` or `./scripts/py` unless added later.
 
-## 3) Git behavior
-- Do **not** auto-commit.
-- Do **not** add “Co-authored-by” or similar attribution lines.
-- At the end of work, provide **suggested commits** (message + files included) so I can apply them.
+## 3) Contract discipline
+- Do not invent API endpoints or payload shapes.
+- Verify against `src/growth/app/api/*.py` and `src/growth/app/schemas.py`.
+- Keep status values canonical and consistent across backend/frontend.
+
+## 4) Git behavior
+- Do not auto-commit.
+- Do not add attribution lines like `Co-authored-by`.
+- Do not revert unrelated local changes.
+- At completion, provide suggested commits (message + files).

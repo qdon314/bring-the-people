@@ -1,40 +1,39 @@
-# AGENTS.md — Ask Mode
+# AGENTS.md — Ask Mode (Bring The People)
 
-This file provides guidance to agents when answering questions about this repository.
+Use this guidance when answering architecture/product/codebase questions.
 
 ## Project Overview
 
-This is a **Hexagonal Architecture (Ports & Adapters)** RAG system for Obsidian vaults with:
-- Protocol-based interfaces (PEP 544 structural subtyping)
-- Immutable frozen dataclasses for domain models
-- Stable content-hashed IDs for reproducibility
-- Built-in evaluation framework with comprehensive metrics
+Bring The People is an agentic growth system for live show marketing.
 
-## Key Documentation
+Main flow:
+1. Shows
+2. Strategy (segments + frames)
+3. Creative (variants)
+4. Run (experiments)
+5. Results (observations + decisions)
+6. Memo
 
-- [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) - Comprehensive architecture overview
-- [`docs/API_REFERENCE.md`](docs/API_REFERENCE.md) - API documentation
-- [`docs/USER_GUIDE.md`](docs/USER_GUIDE.md) - User-facing documentation
-- [`docs/CONFIGURATION.md`](docs/CONFIGURATION.md) - Configuration reference
-- [`settings.toml`](settings.toml) - Canonical configuration file
+## Stack
 
-## Architecture Layers
+- Backend: FastAPI + SQLAlchemy under `src/growth`
+- Frontend: Next.js (App Router) under `frontend`
 
-**Ports** (`src/rag/ports/`): Abstract interfaces
-- `Chunker`, `Embedder`, `Retriever`, `Generator`, `VectorStore`, etc.
+## Key docs
 
-**Domain** (`src/rag/domain/`): Immutable data models
-- `Document`, `Chunk`, `Candidate`, `QueryTrace`, etc.
+- `docs/designs/dashboard.md`
+- `docs/designs/frontend-architecture.md`
+- `docs/designs/frontend-ai-build-rules.md`
+- `docs/UX_REVIEW.md`
 
-**Adapters** (`src/rag/adapters/`): Concrete implementations
-- Chunking, embedding, vector stores, reranking, etc.
+## Architecture map
 
-**App** (`src/rag/app/`): Orchestration
-- [`Container`](src/rag/app/container.py:38) for dependency injection
-- [`run_query()`](src/rag/app/query_runner.py:15) for full pipeline
+- Domain: `src/growth/domain/*`
+- Ports: `src/growth/ports/*`
+- Adapters: `src/growth/adapters/*`
+- API/services/container: `src/growth/app/*`
 
-## Evaluation System
-
-- `src/rag/eval/` - Evaluation harness and metrics
-- `eval/app/` - Streamlit results analyzer UI
-- `eval/datasets/` - Query datasets (JSONL format)
+When answering questions:
+- Prefer concrete file references.
+- State contract assumptions explicitly.
+- Call out backend/frontend mismatches before proposing fixes.
