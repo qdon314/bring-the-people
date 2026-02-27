@@ -208,10 +208,10 @@ __marimo__/
 growth.db
 
 # Frontend
-frontend/.next/
-frontend/node_modules/
-frontend/.env.local
-!frontend/lib/
+frontend*/.next/
+frontend*/node_modules/
+frontend*/.env.local
+!frontend*/lib/
 
 # Artifacts
 data/
