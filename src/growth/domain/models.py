@@ -32,7 +32,7 @@ class DecisionAction(Enum):
 
 
 class ReviewStatus(str, Enum):
-    DRAFT = "draft"
+    PENDING = "pending"
     APPROVED = "approved"
     REJECTED = "rejected"
 
@@ -93,7 +93,7 @@ class AudienceSegment:
     estimated_size: int | None
     created_by: str
     cycle_id: UUID | None = None
-    review_status: str = "draft"
+    review_status: ReviewStatus = ReviewStatus.PENDING
     reviewed_at: datetime | None = None
     reviewed_by: str | None = None
 
@@ -109,7 +109,7 @@ class CreativeFrame:
     channel: str
     risk_notes: str | None = None
     cycle_id: UUID | None = None
-    review_status: str = "draft"
+    review_status: ReviewStatus = ReviewStatus.PENDING
     reviewed_at: datetime | None = None
     reviewed_by: str | None = None
 
@@ -124,7 +124,7 @@ class CreativeVariant:
     cta: str
     constraints_passed: bool = False
     cycle_id: UUID | None = None
-    review_status: str = "draft"
+    review_status: ReviewStatus = ReviewStatus.PENDING
     reviewed_at: datetime | None = None
     reviewed_by: str | None = None
 

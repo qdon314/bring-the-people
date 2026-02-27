@@ -7,6 +7,7 @@ from typing import Any, Optional
 from sqlalchemy import (
     JSON,
     DateTime,
+    Enum as SAEnum,
     ForeignKey,
     Integer,
     String,
@@ -18,6 +19,16 @@ from sqlalchemy.orm import (
     mapped_column,
     relationship,
     sessionmaker,
+)
+
+from growth.domain.models import ReviewStatus
+
+
+REVIEW_STATUS_ENUM = SAEnum(
+    ReviewStatus,
+    name="review_status_enum",
+    native_enum=False,
+    validate_strings=True,
 )
 
 
@@ -122,7 +133,9 @@ class AudienceSegmentORM(Base):
     cycle_id: Mapped[Optional[str]] = mapped_column(
         String(36), ForeignKey("cycles.cycle_id"), nullable=True
     )
-    review_status: Mapped[str] = mapped_column(String(20), default="draft")
+    review_status: Mapped[str] = mapped_column(
+        REVIEW_STATUS_ENUM, default=ReviewStatus.PENDING.value
+    )
     reviewed_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
     reviewed_by: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
 
@@ -141,7 +154,9 @@ class CreativeFrameORM(Base):
     cycle_id: Mapped[Optional[str]] = mapped_column(
         String(36), ForeignKey("cycles.cycle_id"), nullable=True
     )
-    review_status: Mapped[str] = mapped_column(String(20), default="draft")
+    review_status: Mapped[str] = mapped_column(
+        REVIEW_STATUS_ENUM, default=ReviewStatus.PENDING.value
+    )
     reviewed_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
     reviewed_by: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
 
@@ -159,7 +174,9 @@ class CreativeVariantORM(Base):
     cycle_id: Mapped[Optional[str]] = mapped_column(
         String(36), ForeignKey("cycles.cycle_id"), nullable=True
     )
-    review_status: Mapped[str] = mapped_column(String(20), default="draft")
+    review_status: Mapped[str] = mapped_column(
+        REVIEW_STATUS_ENUM, default=ReviewStatus.PENDING.value
+    )
     reviewed_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
     reviewed_by: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
 

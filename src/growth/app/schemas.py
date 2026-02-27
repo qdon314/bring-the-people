@@ -2,10 +2,13 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Any, Literal, Optional
+from enum import Enum
+from typing import Any, Optional
 from uuid import UUID
 
 from pydantic import BaseModel, Field, model_validator
+
+from growth.domain.models import ReviewStatus
 
 
 # --- Show schemas ---
@@ -239,7 +242,7 @@ class SegmentResponse(BaseModel):
     definition_json: dict[str, Any]
     estimated_size: Optional[int]
     created_by: str
-    review_status: str
+    review_status: ReviewStatus
     reviewed_at: Optional[datetime]
     reviewed_by: Optional[str]
 
@@ -271,7 +274,7 @@ class FrameResponse(BaseModel):
     evidence_refs: list[dict[str, Any]]
     channel: str
     risk_notes: Optional[str]
-    review_status: str
+    review_status: ReviewStatus
     reviewed_at: Optional[datetime]
     reviewed_by: Optional[str]
 
@@ -304,7 +307,7 @@ class VariantResponse(BaseModel):
     body: str
     cta: str
     constraints_passed: bool
-    review_status: str
+    review_status: ReviewStatus
     reviewed_at: Optional[datetime]
     reviewed_by: Optional[str]
 
@@ -325,10 +328,15 @@ class VariantResponse(BaseModel):
         )
 
 
+class ReviewAction(str, Enum):
+    APPROVE = "approve"
+    REJECT = "reject"
+
+
 # --- Review schemas ---
 
 class ReviewRequest(BaseModel):
-    action: Literal["approve", "reject"]
+    action: ReviewAction
     notes: str = ""
     reviewed_by: str = "producer"
 

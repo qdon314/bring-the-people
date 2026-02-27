@@ -6,7 +6,8 @@ from uuid import UUID
 
 from fastapi import APIRouter, HTTPException, Request
 
-from growth.app.schemas import ReviewRequest, SegmentResponse
+from growth.app.schemas import ReviewAction, ReviewRequest, SegmentResponse
+from growth.domain.models import ReviewStatus
 
 router = APIRouter()
 
@@ -42,7 +43,11 @@ def review_segment(segment_id: UUID, body: ReviewRequest, request: Request):
 
     from growth.domain.models import AudienceSegment
 
-    new_status = body.action  # "approve" or "reject"
+    new_status = (
+        ReviewStatus.APPROVED
+        if body.action == ReviewAction.APPROVE
+        else ReviewStatus.REJECTED
+    )
     updated = AudienceSegment(
         segment_id=segment.segment_id,
         show_id=segment.show_id,

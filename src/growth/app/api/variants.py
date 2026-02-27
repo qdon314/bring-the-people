@@ -6,7 +6,8 @@ from uuid import UUID
 
 from fastapi import APIRouter, HTTPException, Request
 
-from growth.app.schemas import ReviewRequest, VariantResponse
+from growth.app.schemas import ReviewAction, ReviewRequest, VariantResponse
+from growth.domain.models import ReviewStatus
 
 router = APIRouter()
 
@@ -36,7 +37,11 @@ def review_variant(variant_id: UUID, body: ReviewRequest, request: Request):
 
     from growth.domain.models import CreativeVariant
 
-    new_status = body.action  # "approve" or "reject"
+    new_status = (
+        ReviewStatus.APPROVED
+        if body.action == ReviewAction.APPROVE
+        else ReviewStatus.REJECTED
+    )
     updated = CreativeVariant(
         variant_id=variant.variant_id,
         frame_id=variant.frame_id,

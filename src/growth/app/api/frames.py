@@ -6,7 +6,8 @@ from uuid import UUID
 
 from fastapi import APIRouter, HTTPException, Request
 
-from growth.app.schemas import FrameResponse, ReviewRequest
+from growth.app.schemas import FrameResponse, ReviewAction, ReviewRequest
+from growth.domain.models import ReviewStatus
 
 router = APIRouter()
 
@@ -45,7 +46,11 @@ def review_frame(frame_id: UUID, body: ReviewRequest, request: Request):
 
     from growth.domain.models import CreativeFrame
 
-    new_status = body.action  # "approve" or "reject"
+    new_status = (
+        ReviewStatus.APPROVED
+        if body.action == ReviewAction.APPROVE
+        else ReviewStatus.REJECTED
+    )
     updated = CreativeFrame(
         frame_id=frame.frame_id,
         show_id=frame.show_id,
