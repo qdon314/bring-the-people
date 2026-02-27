@@ -63,9 +63,11 @@ These are called for in `docs/designs/dashboard.md`:
 
 ## API Client (`shared/api/`)
 
-| File        | Path                    | Status  | Purpose                            |
-|-------------|-------------------------|---------|------------------------------------|
-| client.ts   | shared/api/client.ts    | planned | Base fetch wrapper, ApiError class |
+| File               | Path                              | Status  | Purpose                                  |
+|--------------------|-----------------------------------|---------|------------------------------------------|
+| client.ts          | shared/api/client.ts              | planned | Base fetch wrapper, ApiError class       |
+| openapi.json       | shared/api/generated/openapi.json | exists  | Generated OpenAPI schema snapshot         |
+| schema.ts          | shared/api/generated/schema.ts    | exists  | Generated OpenAPI TypeScript definitions |
 
 ## Feature Modules (`features/`)
 

@@ -6,7 +6,10 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "generate:openapi:schema": "cd .. && ./.venv/bin/python frontend-v2/scripts/export_openapi_schema.py",
+    "generate:openapi:types": "openapi-typescript ./shared/api/generated/openapi.json -o ./shared/api/generated/schema.ts",
+    "generate:api": "npm run generate:openapi:schema && npm run generate:openapi:types"
   },
   "dependencies": {
     "next": "14.1.0",
@@ -20,6 +23,7 @@
     "autoprefixer": "^10.0.1",
     "eslint": "^8.57.0",
     "eslint-config-next": "14.1.0",
+    "openapi-typescript": "^7.13.0",
     "postcss": "^8",
     "tailwindcss": "^3.3.0",
     "typescript": "^5"

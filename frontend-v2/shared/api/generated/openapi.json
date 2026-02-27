@@ -1,0 +1,3245 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Bring The People \u2014 Growth API",
+    "description": "API for managing growth experiments and decisions for live shows.",
+    "version": "0.3.0"
+  },
+  "paths": {
+    "/health": {
+      "get": {
+        "summary": "Health",
+        "operationId": "health_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/shows": {
+      "get": {
+        "tags": [
+          "shows"
+        ],
+        "summary": "List Shows",
+        "operationId": "list_shows_api_shows_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ShowResponse"
+                  },
+                  "type": "array",
+                  "title": "Response List Shows Api Shows Get"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "shows"
+        ],
+        "summary": "Create Show",
+        "operationId": "create_show_api_shows_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ShowCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShowResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/shows/{show_id}": {
+      "get": {
+        "tags": [
+          "shows"
+        ],
+        "summary": "Get Show",
+        "operationId": "get_show_api_shows__show_id__get",
+        "parameters": [
+          {
+            "name": "show_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Show Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShowResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "shows"
+        ],
+        "summary": "Update Show",
+        "operationId": "update_show_api_shows__show_id__patch",
+        "parameters": [
+          {
+            "name": "show_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Show Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ShowUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShowResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/experiments": {
+      "post": {
+        "tags": [
+          "experiments"
+        ],
+        "summary": "Create Experiment",
+        "operationId": "create_experiment_api_experiments_post",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExperimentCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExperimentResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "experiments"
+        ],
+        "summary": "List Experiments",
+        "operationId": "list_experiments_api_experiments_get",
+        "parameters": [
+          {
+            "name": "show_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Show Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ExperimentResponse"
+                  },
+                  "title": "Response List Experiments Api Experiments Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/experiments/{experiment_id}": {
+      "get": {
+        "tags": [
+          "experiments"
+        ],
+        "summary": "Get Experiment",
+        "operationId": "get_experiment_api_experiments__experiment_id__get",
+        "parameters": [
+          {
+            "name": "experiment_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Experiment Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExperimentResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/experiments/{experiment_id}/submit": {
+      "post": {
+        "tags": [
+          "experiments"
+        ],
+        "summary": "Submit For Approval",
+        "operationId": "submit_for_approval_api_experiments__experiment_id__submit_post",
+        "parameters": [
+          {
+            "name": "experiment_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Experiment Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExperimentResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/experiments/{experiment_id}/approve": {
+      "post": {
+        "tags": [
+          "experiments"
+        ],
+        "summary": "Approve Experiment",
+        "operationId": "approve_experiment_api_experiments__experiment_id__approve_post",
+        "parameters": [
+          {
+            "name": "experiment_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Experiment Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApprovalRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExperimentResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/experiments/{experiment_id}/start": {
+      "post": {
+        "tags": [
+          "experiments"
+        ],
+        "summary": "Start Experiment",
+        "operationId": "start_experiment_api_experiments__experiment_id__start_post",
+        "parameters": [
+          {
+            "name": "experiment_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Experiment Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExperimentResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/experiments/{experiment_id}/complete": {
+      "post": {
+        "tags": [
+          "experiments"
+        ],
+        "summary": "Complete Experiment",
+        "operationId": "complete_experiment_api_experiments__experiment_id__complete_post",
+        "parameters": [
+          {
+            "name": "experiment_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Experiment Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExperimentResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/experiments/{experiment_id}/stop": {
+      "post": {
+        "tags": [
+          "experiments"
+        ],
+        "summary": "Stop Experiment",
+        "operationId": "stop_experiment_api_experiments__experiment_id__stop_post",
+        "parameters": [
+          {
+            "name": "experiment_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Experiment Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExperimentResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/experiments/{experiment_id}/metrics": {
+      "get": {
+        "tags": [
+          "experiments"
+        ],
+        "summary": "Get Experiment Metrics",
+        "operationId": "get_experiment_metrics_api_experiments__experiment_id__metrics_get",
+        "parameters": [
+          {
+            "name": "experiment_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Experiment Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExperimentMetrics"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/observations": {
+      "post": {
+        "tags": [
+          "observations"
+        ],
+        "summary": "Create Observation",
+        "operationId": "create_observation_api_observations_post",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ObservationCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ObservationResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "observations"
+        ],
+        "summary": "List Observations",
+        "operationId": "list_observations_api_observations_get",
+        "parameters": [
+          {
+            "name": "experiment_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Experiment Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ObservationResponse"
+                  },
+                  "title": "Response List Observations Api Observations Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/observations/bulk": {
+      "post": {
+        "tags": [
+          "observations"
+        ],
+        "summary": "Create Observations Bulk",
+        "operationId": "create_observations_bulk_api_observations_bulk_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ObservationBulkCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ObservationResponse"
+                  },
+                  "type": "array",
+                  "title": "Response Create Observations Bulk Api Observations Bulk Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/decisions/evaluate/{experiment_id}": {
+      "post": {
+        "tags": [
+          "decisions"
+        ],
+        "summary": "Evaluate Experiment",
+        "description": "Evaluate an experiment and return a decision.",
+        "operationId": "evaluate_experiment_api_decisions_evaluate__experiment_id__post",
+        "parameters": [
+          {
+            "name": "experiment_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Experiment Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DecisionResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/decisions": {
+      "get": {
+        "tags": [
+          "decisions"
+        ],
+        "summary": "List Decisions",
+        "description": "Get all decisions for an experiment.",
+        "operationId": "list_decisions_api_decisions_get",
+        "parameters": [
+          {
+            "name": "experiment_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Experiment Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/DecisionResponse"
+                  },
+                  "title": "Response List Decisions Api Decisions Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/strategy/{show_id}/run": {
+      "post": {
+        "tags": [
+          "strategy"
+        ],
+        "summary": "Run Strategy",
+        "description": "Run the Strategy Agent for a show (enqueues a job).",
+        "operationId": "run_strategy_api_strategy__show_id__run_post",
+        "parameters": [
+          {
+            "name": "show_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Show Id"
+            }
+          }
+        ],
+        "responses": {
+          "202": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/creative/{frame_id}/run": {
+      "post": {
+        "tags": [
+          "creative"
+        ],
+        "summary": "Run Creative",
+        "description": "Run the Creative Agent for a frame (enqueues a job).",
+        "operationId": "run_creative_api_creative__frame_id__run_post",
+        "parameters": [
+          {
+            "name": "frame_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Frame Id"
+            }
+          }
+        ],
+        "responses": {
+          "202": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/memos": {
+      "get": {
+        "tags": [
+          "memos"
+        ],
+        "summary": "List Memos",
+        "description": "List all memos for a show.",
+        "operationId": "list_memos_api_memos_get",
+        "parameters": [
+          {
+            "name": "show_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Show Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/MemoResponse"
+                  },
+                  "title": "Response List Memos Api Memos Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/memos/{memo_id}": {
+      "get": {
+        "tags": [
+          "memos"
+        ],
+        "summary": "Get Memo",
+        "description": "Get a memo by ID.",
+        "operationId": "get_memo_api_memos__memo_id__get",
+        "parameters": [
+          {
+            "name": "memo_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Memo Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MemoResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/memos/{show_id}/run": {
+      "post": {
+        "tags": [
+          "memos"
+        ],
+        "summary": "Run Memo",
+        "description": "Run the Memo Agent for a show (enqueues a job).",
+        "operationId": "run_memo_api_memos__show_id__run_post",
+        "parameters": [
+          {
+            "name": "show_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Show Id"
+            }
+          },
+          {
+            "name": "cycle_start",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date-time",
+              "description": "ISO timestamp for cycle start",
+              "title": "Cycle Start"
+            },
+            "description": "ISO timestamp for cycle start"
+          },
+          {
+            "name": "cycle_end",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date-time",
+              "description": "ISO timestamp for cycle end",
+              "title": "Cycle End"
+            },
+            "description": "ISO timestamp for cycle end"
+          }
+        ],
+        "responses": {
+          "202": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/shows/{show_id}/cycles": {
+      "get": {
+        "tags": [
+          "cycles"
+        ],
+        "summary": "List Cycles",
+        "operationId": "list_cycles_api_shows__show_id__cycles_get",
+        "parameters": [
+          {
+            "name": "show_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Show Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CycleResponse"
+                  },
+                  "title": "Response List Cycles Api Shows  Show Id  Cycles Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/shows/cycles/{cycle_id}": {
+      "get": {
+        "tags": [
+          "cycles"
+        ],
+        "summary": "Get Cycle",
+        "operationId": "get_cycle_api_shows_cycles__cycle_id__get",
+        "parameters": [
+          {
+            "name": "cycle_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Cycle Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CycleResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/{show_id}/cycles": {
+      "get": {
+        "tags": [
+          "cycles"
+        ],
+        "summary": "List Cycles",
+        "operationId": "list_cycles_api__show_id__cycles_get",
+        "parameters": [
+          {
+            "name": "show_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Show Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CycleResponse"
+                  },
+                  "title": "Response List Cycles Api  Show Id  Cycles Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/cycles/{cycle_id}": {
+      "get": {
+        "tags": [
+          "cycles"
+        ],
+        "summary": "Get Cycle",
+        "operationId": "get_cycle_api_cycles__cycle_id__get",
+        "parameters": [
+          {
+            "name": "cycle_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Cycle Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CycleResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/segments": {
+      "get": {
+        "tags": [
+          "segments"
+        ],
+        "summary": "List Segments",
+        "operationId": "list_segments_api_segments_get",
+        "parameters": [
+          {
+            "name": "show_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Show Id"
+            }
+          },
+          {
+            "name": "cycle_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cycle Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SegmentResponse"
+                  },
+                  "title": "Response List Segments Api Segments Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/segments/{segment_id}": {
+      "get": {
+        "tags": [
+          "segments"
+        ],
+        "summary": "Get Segment",
+        "operationId": "get_segment_api_segments__segment_id__get",
+        "parameters": [
+          {
+            "name": "segment_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Segment Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SegmentResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/segments/{segment_id}/review": {
+      "post": {
+        "tags": [
+          "segments"
+        ],
+        "summary": "Review Segment",
+        "operationId": "review_segment_api_segments__segment_id__review_post",
+        "parameters": [
+          {
+            "name": "segment_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Segment Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReviewRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SegmentResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/frames": {
+      "get": {
+        "tags": [
+          "frames"
+        ],
+        "summary": "List Frames",
+        "operationId": "list_frames_api_frames_get",
+        "parameters": [
+          {
+            "name": "show_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Show Id"
+            }
+          },
+          {
+            "name": "cycle_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cycle Id"
+            }
+          },
+          {
+            "name": "segment_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Segment Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/FrameResponse"
+                  },
+                  "title": "Response List Frames Api Frames Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/frames/{frame_id}": {
+      "get": {
+        "tags": [
+          "frames"
+        ],
+        "summary": "Get Frame",
+        "operationId": "get_frame_api_frames__frame_id__get",
+        "parameters": [
+          {
+            "name": "frame_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Frame Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FrameResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/frames/{frame_id}/review": {
+      "post": {
+        "tags": [
+          "frames"
+        ],
+        "summary": "Review Frame",
+        "operationId": "review_frame_api_frames__frame_id__review_post",
+        "parameters": [
+          {
+            "name": "frame_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Frame Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReviewRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FrameResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/variants": {
+      "get": {
+        "tags": [
+          "variants"
+        ],
+        "summary": "List Variants",
+        "operationId": "list_variants_api_variants_get",
+        "parameters": [
+          {
+            "name": "frame_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Frame Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/VariantResponse"
+                  },
+                  "title": "Response List Variants Api Variants Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/variants/{variant_id}": {
+      "get": {
+        "tags": [
+          "variants"
+        ],
+        "summary": "Get Variant",
+        "operationId": "get_variant_api_variants__variant_id__get",
+        "parameters": [
+          {
+            "name": "variant_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Variant Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VariantResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/variants/{variant_id}/review": {
+      "post": {
+        "tags": [
+          "variants"
+        ],
+        "summary": "Review Variant",
+        "operationId": "review_variant_api_variants__variant_id__review_post",
+        "parameters": [
+          {
+            "name": "variant_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Variant Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReviewRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VariantResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/jobs/{job_id}": {
+      "get": {
+        "tags": [
+          "jobs"
+        ],
+        "summary": "Get Job",
+        "operationId": "get_job_api_jobs__job_id__get",
+        "parameters": [
+          {
+            "name": "job_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Job Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JobResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/events": {
+      "get": {
+        "tags": [
+          "events"
+        ],
+        "summary": "List Events",
+        "operationId": "list_events_api_events_get",
+        "parameters": [
+          {
+            "name": "show_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Show Id"
+            }
+          },
+          {
+            "name": "cycle_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cycle Id"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 50,
+              "title": "Limit"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/EventResponse"
+                  },
+                  "title": "Response List Events Api Events Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ApprovalRequest": {
+        "properties": {
+          "approved": {
+            "type": "boolean",
+            "title": "Approved"
+          },
+          "notes": {
+            "type": "string",
+            "maxLength": 1000,
+            "title": "Notes",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "required": [
+          "approved"
+        ],
+        "title": "ApprovalRequest"
+      },
+      "CycleResponse": {
+        "properties": {
+          "cycle_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Cycle Id"
+          },
+          "show_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Show Id"
+          },
+          "started_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Started At"
+          },
+          "label": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Label"
+          }
+        },
+        "type": "object",
+        "required": [
+          "cycle_id",
+          "show_id",
+          "started_at",
+          "label"
+        ],
+        "title": "CycleResponse"
+      },
+      "DecisionResponse": {
+        "properties": {
+          "decision_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Decision Id"
+          },
+          "experiment_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Experiment Id"
+          },
+          "action": {
+            "type": "string",
+            "title": "Action"
+          },
+          "confidence": {
+            "type": "number",
+            "title": "Confidence"
+          },
+          "rationale": {
+            "type": "string",
+            "title": "Rationale"
+          },
+          "policy_version": {
+            "type": "string",
+            "title": "Policy Version"
+          },
+          "metrics_snapshot": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Metrics Snapshot"
+          }
+        },
+        "type": "object",
+        "required": [
+          "decision_id",
+          "experiment_id",
+          "action",
+          "confidence",
+          "rationale",
+          "policy_version",
+          "metrics_snapshot"
+        ],
+        "title": "DecisionResponse"
+      },
+      "EventDisplay": {
+        "properties": {
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "subtitle": {
+            "type": "string",
+            "title": "Subtitle"
+          }
+        },
+        "type": "object",
+        "required": [
+          "title",
+          "subtitle"
+        ],
+        "title": "EventDisplay"
+      },
+      "EventResponse": {
+        "properties": {
+          "event_id": {
+            "type": "string",
+            "title": "Event Id"
+          },
+          "at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "At"
+          },
+          "show_id": {
+            "type": "string",
+            "title": "Show Id"
+          },
+          "cycle_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cycle Id"
+          },
+          "type": {
+            "type": "string",
+            "title": "Type"
+          },
+          "actor": {
+            "type": "string",
+            "title": "Actor"
+          },
+          "display": {
+            "$ref": "#/components/schemas/EventDisplay"
+          },
+          "payload": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Payload"
+          }
+        },
+        "type": "object",
+        "required": [
+          "event_id",
+          "at",
+          "show_id",
+          "cycle_id",
+          "type",
+          "actor",
+          "display",
+          "payload"
+        ],
+        "title": "EventResponse"
+      },
+      "ExperimentCreate": {
+        "properties": {
+          "show_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Show Id"
+          },
+          "segment_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Segment Id"
+          },
+          "frame_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Frame Id"
+          },
+          "channel": {
+            "type": "string",
+            "maxLength": 50,
+            "minLength": 1,
+            "title": "Channel"
+          },
+          "objective": {
+            "type": "string",
+            "maxLength": 100,
+            "title": "Objective",
+            "default": "ticket_sales"
+          },
+          "budget_cap_cents": {
+            "type": "integer",
+            "exclusiveMinimum": 0.0,
+            "title": "Budget Cap Cents"
+          },
+          "baseline_snapshot": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Baseline Snapshot"
+          }
+        },
+        "type": "object",
+        "required": [
+          "show_id",
+          "segment_id",
+          "frame_id",
+          "channel",
+          "budget_cap_cents"
+        ],
+        "title": "ExperimentCreate"
+      },
+      "ExperimentMetrics": {
+        "properties": {
+          "experiment_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Experiment Id"
+          },
+          "total_spend_cents": {
+            "type": "integer",
+            "title": "Total Spend Cents"
+          },
+          "total_impressions": {
+            "type": "integer",
+            "title": "Total Impressions"
+          },
+          "total_clicks": {
+            "type": "integer",
+            "title": "Total Clicks"
+          },
+          "total_purchases": {
+            "type": "integer",
+            "title": "Total Purchases"
+          },
+          "total_revenue_cents": {
+            "type": "integer",
+            "title": "Total Revenue Cents"
+          },
+          "windows_count": {
+            "type": "integer",
+            "title": "Windows Count"
+          },
+          "ctr": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ctr"
+          },
+          "cpc_cents": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cpc Cents"
+          },
+          "cpa_cents": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cpa Cents"
+          },
+          "roas": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Roas"
+          },
+          "conversion_rate": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Conversion Rate"
+          },
+          "evidence_sufficient": {
+            "type": "boolean",
+            "title": "Evidence Sufficient"
+          }
+        },
+        "type": "object",
+        "required": [
+          "experiment_id",
+          "total_spend_cents",
+          "total_impressions",
+          "total_clicks",
+          "total_purchases",
+          "total_revenue_cents",
+          "windows_count",
+          "ctr",
+          "cpc_cents",
+          "cpa_cents",
+          "roas",
+          "conversion_rate",
+          "evidence_sufficient"
+        ],
+        "title": "ExperimentMetrics"
+      },
+      "ExperimentResponse": {
+        "properties": {
+          "experiment_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Experiment Id"
+          },
+          "show_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Show Id"
+          },
+          "cycle_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cycle Id"
+          },
+          "segment_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Segment Id"
+          },
+          "frame_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Frame Id"
+          },
+          "channel": {
+            "type": "string",
+            "title": "Channel"
+          },
+          "objective": {
+            "type": "string",
+            "title": "Objective"
+          },
+          "budget_cap_cents": {
+            "type": "integer",
+            "title": "Budget Cap Cents"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "start_time": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Start Time"
+          },
+          "end_time": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "End Time"
+          },
+          "baseline_snapshot": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Baseline Snapshot"
+          }
+        },
+        "type": "object",
+        "required": [
+          "experiment_id",
+          "show_id",
+          "cycle_id",
+          "segment_id",
+          "frame_id",
+          "channel",
+          "objective",
+          "budget_cap_cents",
+          "status",
+          "start_time",
+          "end_time",
+          "baseline_snapshot"
+        ],
+        "title": "ExperimentResponse"
+      },
+      "FrameResponse": {
+        "properties": {
+          "frame_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Frame Id"
+          },
+          "show_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Show Id"
+          },
+          "segment_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Segment Id"
+          },
+          "cycle_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cycle Id"
+          },
+          "hypothesis": {
+            "type": "string",
+            "title": "Hypothesis"
+          },
+          "promise": {
+            "type": "string",
+            "title": "Promise"
+          },
+          "evidence_refs": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Evidence Refs"
+          },
+          "channel": {
+            "type": "string",
+            "title": "Channel"
+          },
+          "risk_notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Risk Notes"
+          },
+          "review_status": {
+            "$ref": "#/components/schemas/ReviewStatus"
+          },
+          "reviewed_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reviewed At"
+          },
+          "reviewed_by": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reviewed By"
+          }
+        },
+        "type": "object",
+        "required": [
+          "frame_id",
+          "show_id",
+          "segment_id",
+          "cycle_id",
+          "hypothesis",
+          "promise",
+          "evidence_refs",
+          "channel",
+          "risk_notes",
+          "review_status",
+          "reviewed_at",
+          "reviewed_by"
+        ],
+        "title": "FrameResponse"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "JobResponse": {
+        "properties": {
+          "job_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Job Id"
+          },
+          "job_type": {
+            "type": "string",
+            "title": "Job Type"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "show_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Show Id"
+          },
+          "result_json": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Result Json"
+          },
+          "error_message": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error Message"
+          },
+          "attempt_count": {
+            "type": "integer",
+            "title": "Attempt Count"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          },
+          "completed_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Completed At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "job_id",
+          "job_type",
+          "status",
+          "show_id",
+          "result_json",
+          "error_message",
+          "attempt_count",
+          "created_at",
+          "updated_at",
+          "completed_at"
+        ],
+        "title": "JobResponse"
+      },
+      "MemoResponse": {
+        "properties": {
+          "memo_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Memo Id"
+          },
+          "show_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Show Id"
+          },
+          "cycle_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cycle Id"
+          },
+          "cycle_start": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Cycle Start"
+          },
+          "cycle_end": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Cycle End"
+          },
+          "markdown": {
+            "type": "string",
+            "title": "Markdown"
+          }
+        },
+        "type": "object",
+        "required": [
+          "memo_id",
+          "show_id",
+          "cycle_id",
+          "cycle_start",
+          "cycle_end",
+          "markdown"
+        ],
+        "title": "MemoResponse"
+      },
+      "ObservationBulkCreate": {
+        "properties": {
+          "observations": {
+            "items": {
+              "$ref": "#/components/schemas/ObservationCreate"
+            },
+            "type": "array",
+            "minItems": 1,
+            "title": "Observations"
+          }
+        },
+        "type": "object",
+        "required": [
+          "observations"
+        ],
+        "title": "ObservationBulkCreate",
+        "description": "Wrapper for CSV/bulk observation ingest."
+      },
+      "ObservationCreate": {
+        "properties": {
+          "experiment_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Experiment Id"
+          },
+          "window_start": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Window Start"
+          },
+          "window_end": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Window End"
+          },
+          "spend_cents": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Spend Cents"
+          },
+          "impressions": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Impressions"
+          },
+          "clicks": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Clicks"
+          },
+          "sessions": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Sessions"
+          },
+          "checkouts": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Checkouts"
+          },
+          "purchases": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Purchases"
+          },
+          "revenue_cents": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Revenue Cents"
+          },
+          "refunds": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Refunds"
+          },
+          "refund_cents": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Refund Cents"
+          },
+          "complaints": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Complaints"
+          },
+          "negative_comment_rate": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 1.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Negative Comment Rate"
+          },
+          "attribution_model": {
+            "type": "string",
+            "maxLength": 50,
+            "title": "Attribution Model",
+            "default": "last_click_utm"
+          }
+        },
+        "type": "object",
+        "required": [
+          "experiment_id",
+          "window_start",
+          "window_end",
+          "spend_cents",
+          "impressions",
+          "clicks",
+          "sessions",
+          "checkouts",
+          "purchases",
+          "revenue_cents",
+          "refunds",
+          "refund_cents",
+          "complaints"
+        ],
+        "title": "ObservationCreate"
+      },
+      "ObservationResponse": {
+        "properties": {
+          "observation_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Observation Id"
+          },
+          "experiment_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Experiment Id"
+          },
+          "window_start": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Window Start"
+          },
+          "window_end": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Window End"
+          },
+          "spend_cents": {
+            "type": "integer",
+            "title": "Spend Cents"
+          },
+          "impressions": {
+            "type": "integer",
+            "title": "Impressions"
+          },
+          "clicks": {
+            "type": "integer",
+            "title": "Clicks"
+          },
+          "sessions": {
+            "type": "integer",
+            "title": "Sessions"
+          },
+          "checkouts": {
+            "type": "integer",
+            "title": "Checkouts"
+          },
+          "purchases": {
+            "type": "integer",
+            "title": "Purchases"
+          },
+          "revenue_cents": {
+            "type": "integer",
+            "title": "Revenue Cents"
+          },
+          "refunds": {
+            "type": "integer",
+            "title": "Refunds"
+          },
+          "refund_cents": {
+            "type": "integer",
+            "title": "Refund Cents"
+          },
+          "complaints": {
+            "type": "integer",
+            "title": "Complaints"
+          },
+          "negative_comment_rate": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Negative Comment Rate"
+          },
+          "attribution_model": {
+            "type": "string",
+            "title": "Attribution Model"
+          }
+        },
+        "type": "object",
+        "required": [
+          "observation_id",
+          "experiment_id",
+          "window_start",
+          "window_end",
+          "spend_cents",
+          "impressions",
+          "clicks",
+          "sessions",
+          "checkouts",
+          "purchases",
+          "revenue_cents",
+          "refunds",
+          "refund_cents",
+          "complaints",
+          "negative_comment_rate",
+          "attribution_model"
+        ],
+        "title": "ObservationResponse"
+      },
+      "ReviewAction": {
+        "type": "string",
+        "enum": [
+          "approve",
+          "reject"
+        ],
+        "title": "ReviewAction"
+      },
+      "ReviewRequest": {
+        "properties": {
+          "action": {
+            "$ref": "#/components/schemas/ReviewAction"
+          },
+          "notes": {
+            "type": "string",
+            "title": "Notes",
+            "default": ""
+          },
+          "reviewed_by": {
+            "type": "string",
+            "title": "Reviewed By",
+            "default": "producer"
+          }
+        },
+        "type": "object",
+        "required": [
+          "action"
+        ],
+        "title": "ReviewRequest"
+      },
+      "ReviewStatus": {
+        "type": "string",
+        "enum": [
+          "pending",
+          "approved",
+          "rejected"
+        ],
+        "title": "ReviewStatus"
+      },
+      "SegmentResponse": {
+        "properties": {
+          "segment_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Segment Id"
+          },
+          "show_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Show Id"
+          },
+          "cycle_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cycle Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "definition_json": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Definition Json"
+          },
+          "estimated_size": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Estimated Size"
+          },
+          "created_by": {
+            "type": "string",
+            "title": "Created By"
+          },
+          "review_status": {
+            "$ref": "#/components/schemas/ReviewStatus"
+          },
+          "reviewed_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reviewed At"
+          },
+          "reviewed_by": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reviewed By"
+          }
+        },
+        "type": "object",
+        "required": [
+          "segment_id",
+          "show_id",
+          "cycle_id",
+          "name",
+          "definition_json",
+          "estimated_size",
+          "created_by",
+          "review_status",
+          "reviewed_at",
+          "reviewed_by"
+        ],
+        "title": "SegmentResponse"
+      },
+      "ShowCreate": {
+        "properties": {
+          "artist_name": {
+            "type": "string",
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Artist Name"
+          },
+          "city": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "City"
+          },
+          "venue": {
+            "type": "string",
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Venue"
+          },
+          "show_time": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Show Time"
+          },
+          "timezone": {
+            "type": "string",
+            "maxLength": 50,
+            "minLength": 1,
+            "title": "Timezone"
+          },
+          "capacity": {
+            "type": "integer",
+            "exclusiveMinimum": 0.0,
+            "title": "Capacity"
+          },
+          "tickets_total": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Tickets Total"
+          },
+          "tickets_sold": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Tickets Sold"
+          },
+          "currency": {
+            "type": "string",
+            "maxLength": 3,
+            "title": "Currency",
+            "default": "USD"
+          },
+          "ticket_base_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ticket Base Url"
+          }
+        },
+        "type": "object",
+        "required": [
+          "artist_name",
+          "city",
+          "venue",
+          "show_time",
+          "timezone",
+          "capacity",
+          "tickets_total",
+          "tickets_sold"
+        ],
+        "title": "ShowCreate"
+      },
+      "ShowResponse": {
+        "properties": {
+          "show_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Show Id"
+          },
+          "artist_name": {
+            "type": "string",
+            "title": "Artist Name"
+          },
+          "city": {
+            "type": "string",
+            "title": "City"
+          },
+          "venue": {
+            "type": "string",
+            "title": "Venue"
+          },
+          "show_time": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Show Time"
+          },
+          "timezone": {
+            "type": "string",
+            "title": "Timezone"
+          },
+          "capacity": {
+            "type": "integer",
+            "title": "Capacity"
+          },
+          "tickets_total": {
+            "type": "integer",
+            "title": "Tickets Total"
+          },
+          "tickets_sold": {
+            "type": "integer",
+            "title": "Tickets Sold"
+          },
+          "currency": {
+            "type": "string",
+            "title": "Currency"
+          },
+          "ticket_base_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ticket Base Url"
+          }
+        },
+        "type": "object",
+        "required": [
+          "show_id",
+          "artist_name",
+          "city",
+          "venue",
+          "show_time",
+          "timezone",
+          "capacity",
+          "tickets_total",
+          "tickets_sold",
+          "currency"
+        ],
+        "title": "ShowResponse"
+      },
+      "ShowUpdate": {
+        "properties": {
+          "artist_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Artist Name"
+          },
+          "city": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "City"
+          },
+          "venue": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Venue"
+          },
+          "show_time": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Show Time"
+          },
+          "timezone": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Timezone"
+          },
+          "capacity": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Capacity"
+          },
+          "tickets_total": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tickets Total"
+          },
+          "tickets_sold": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tickets Sold"
+          },
+          "ticket_base_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ticket Base Url"
+          }
+        },
+        "type": "object",
+        "title": "ShowUpdate"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "ctx": {
+            "type": "object",
+            "title": "Context"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      },
+      "VariantResponse": {
+        "properties": {
+          "variant_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Variant Id"
+          },
+          "frame_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Frame Id"
+          },
+          "cycle_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cycle Id"
+          },
+          "platform": {
+            "type": "string",
+            "title": "Platform"
+          },
+          "hook": {
+            "type": "string",
+            "title": "Hook"
+          },
+          "body": {
+            "type": "string",
+            "title": "Body"
+          },
+          "cta": {
+            "type": "string",
+            "title": "Cta"
+          },
+          "constraints_passed": {
+            "type": "boolean",
+            "title": "Constraints Passed"
+          },
+          "review_status": {
+            "$ref": "#/components/schemas/ReviewStatus"
+          },
+          "reviewed_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reviewed At"
+          },
+          "reviewed_by": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reviewed By"
+          }
+        },
+        "type": "object",
+        "required": [
+          "variant_id",
+          "frame_id",
+          "cycle_id",
+          "platform",
+          "hook",
+          "body",
+          "cta",
+          "constraints_passed",
+          "review_status",
+          "reviewed_at",
+          "reviewed_by"
+        ],
+        "title": "VariantResponse"
+      }
+    }
+  }
+}

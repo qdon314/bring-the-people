@@ -69,7 +69,6 @@ Parallelization rule:
 
 - [ ] V2-001
 - [ ] V2-002
-- [ ] V2-004
 - [ ] V2-005
 - [ ] V2-006
 - [ ] V2-008
@@ -91,7 +90,7 @@ Parallelization rule:
 
 ## Done
 
-- [ ] (completed ticket IDs)
+- [x] V2-004
 
 ## Sprint Exit Criteria
 
