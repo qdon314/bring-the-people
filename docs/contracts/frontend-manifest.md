@@ -5,12 +5,12 @@ Living inventory of components, utilities, hooks, and feature modules for
 or utilities to avoid duplication.
 
 **Status column**: `exists` = file is implemented and importable.
-`planned` = target name and path for when this is built. Do not try to
-import planned items — they do not exist yet.
+`planned` = confirmed by design docs — use this name and path when building.
+Do not try to import planned items.
 
 **Update this file whenever you add a shared component, utility, or hook.**
-Flip `planned` → `exists` when you create the file. This is part of the
-definition of done.
+Flip `planned` → `exists` when you create the file. Add new rows for items
+not yet listed. This is part of the definition of done.
 
 Last updated: 2026-02-27
 
@@ -18,51 +18,54 @@ Last updated: 2026-02-27
 
 ## Shared UI Components (`shared/ui/`)
 
+These are called for in `docs/designs/dashboard.md`:
+
 | Component     | Path                       | Status  | Purpose                              |
 |---------------|----------------------------|---------|--------------------------------------|
 | StatusBadge   | shared/ui/StatusBadge.tsx   | planned | Render review/job/experiment status  |
 | ErrorBanner   | shared/ui/ErrorBanner.tsx   | planned | Query error display with retry       |
 | ErrorBoundary | shared/ui/ErrorBoundary.tsx | planned | Catch React render errors            |
-| FormField     | shared/ui/FormField.tsx     | planned | Label + input + error message wrapper|
-| SpinnerIcon   | shared/ui/SpinnerIcon.tsx   | planned | Inline loading indicator             |
-| ChannelBadge  | shared/ui/ChannelBadge.tsx  | planned | Display channel type                 |
-| CopyButton    | shared/ui/CopyButton.tsx    | planned | Copy-to-clipboard with feedback      |
 | EmptyState    | shared/ui/EmptyState.tsx    | planned | Descriptive empty state with CTA     |
+| SpinnerIcon   | shared/ui/SpinnerIcon.tsx   | planned | Inline loading indicator             |
 | Dialog        | shared/ui/dialog.tsx        | planned | Radix Dialog wrapper                 |
 
 ## Shared Utilities (`shared/lib/`)
 
-| Function              | Path                    | Status  | Purpose                              |
-|-----------------------|-------------------------|---------|--------------------------------------|
-| cn()                  | shared/lib/utils.ts     | planned | Tailwind class merging (clsx + tw-merge) |
-| getCycleProgress()    | shared/lib/progress.ts  | planned | Derive workflow step completion      |
-| buildUTM()            | shared/lib/utm.ts       | planned | Construct UTM query strings          |
-| buildAdSetName()      | shared/lib/utm.ts       | planned | Derive ad set name from UTM params   |
-| computeMetrics()      | shared/lib/metrics.ts   | planned | Aggregate experiment metrics         |
-| computePreviewMetrics() | shared/lib/metrics.ts | planned | Preview metrics before save          |
-| formatDate()          | shared/lib/dates.ts     | planned | Consistent date formatting           |
+These are called for in `docs/designs/frontend-architecture.md`:
+
+| Function           | Path                    | Status  | Purpose                         |
+|--------------------|-------------------------|---------|---------------------------------|
+| cn()               | shared/lib/utils.ts     | planned | Tailwind class merging          |
+| getCycleProgress() | shared/lib/progress.ts  | planned | Derive workflow step completion |
 
 ## Shared Hooks (`shared/hooks/`)
 
-| Hook          | Path                          | Status  | Purpose                        |
-|---------------|-------------------------------|---------|--------------------------------|
-| useJobPoller  | shared/hooks/useJobPoller.ts  | planned | Adaptive async job polling     |
+| Hook          | Path                          | Status  | Purpose                    |
+|---------------|-------------------------------|---------|----------------------------|
+| useJobPoller  | shared/hooks/useJobPoller.ts  | planned | Adaptive async job polling |
 
 ## Shared Config (`shared/config/`)
 
-| File          | Path                      | Status  | Purpose                          |
-|---------------|---------------------------|---------|----------------------------------|
-| polling.ts    | shared/config/polling.ts  | planned | Polling interval constants       |
-| env.ts        | shared/config/env.ts      | planned | Environment variable access      |
+| File          | Path                      | Status  | Purpose                    |
+|---------------|---------------------------|---------|----------------------------|
+| polling.ts    | shared/config/polling.ts  | planned | Polling interval constants |
 
 ## Layout Components (`shared/ui/`)
 
-| Component     | Path                        | Status  | Purpose                          |
-|---------------|-----------------------------|---------|----------------------------------|
-| AppShell      | shared/ui/AppShell.tsx      | planned | Sidebar + main content layout    |
-| Sidebar       | shared/ui/Sidebar.tsx       | planned | Global navigation rail           |
-| ShowHeader    | shared/ui/ShowHeader.tsx    | planned | Show name, phase, dates          |
-| CycleStepper  | shared/ui/CycleStepper.tsx  | planned | Workflow progress indicator      |
+These are called for in `docs/designs/dashboard.md`:
+
+| Component     | Path                        | Status  | Purpose                       |
+|---------------|-----------------------------|---------|-------------------------------|
+| AppShell      | shared/ui/AppShell.tsx      | planned | Sidebar + main content layout |
+| Sidebar       | shared/ui/Sidebar.tsx       | planned | Global navigation rail        |
+| ShowHeader    | shared/ui/ShowHeader.tsx    | planned | Show name, phase, dates       |
+| CycleStepper  | shared/ui/CycleStepper.tsx  | planned | Workflow progress indicator   |
+
+## API Client (`shared/api/`)
+
+| File        | Path                    | Status  | Purpose                            |
+|-------------|-------------------------|---------|------------------------------------|
+| client.ts   | shared/api/client.ts    | planned | Base fetch wrapper, ApiError class |
 
 ## Feature Modules (`features/`)
 
@@ -80,10 +83,3 @@ Update this table as feature modules are built.
 | decisions     | not started | -   | -       | -         | -   |
 | memos         | not started | -   | -       | -         | -   |
 | jobs          | not started | -   | -       | -         | -   |
-
-## API Client (`shared/api/`)
-
-| File        | Path                    | Status  | Purpose                            |
-|-------------|-------------------------|---------|------------------------------------|
-| client.ts   | shared/api/client.ts    | planned | Base fetch wrapper, ApiError class |
-| types.ts    | shared/api/types.ts     | planned | Shared API error/response types    |
