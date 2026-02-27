@@ -9,11 +9,11 @@ Source UX intent:
 - `docs/designs/dashboard-prototype.html`
 
 Known failure patterns to avoid:
-- `docs/UX_REVIEW.md`
+- UX debt identified during rebuild (tracked in backlog FE-030).
 
 ## Decision Summary
 
-1. Rebuild in parallel (`frontend-v2/` or `/v2` route namespace) while keeping current `frontend/` stable except critical fixes, then cut over after acceptance gates pass.
+1. Rebuild in `frontend-v2/` (parallel directory) while keeping current `frontend/` stable except critical fixes, then cut over after acceptance gates pass.
 2. Keep the existing visual language from `dashboard-prototype.html` (colors, typography, stepper).
 3. Make backend contract alignment a hard prerequisite before feature delivery.
 4. Ship by vertical slices (Plan, Create, Run, Results, Memo), each with explicit acceptance tests.
@@ -103,10 +103,10 @@ Canonical statuses and orthogonal state:
 
 | Entity | Canonical fields |
 | --- | --- |
-| Segment / Frame / Variant | `review_status: draft|approved|rejected`, `source: agent|human|system`, `edited_by_human: boolean` |
+| Segment / Frame / Variant | `review_status: pending|approved|rejected`, `source: agent|human|system`, `edited_by_human: boolean` |
 | Variant copy history | Keep immutable `agent_output`; keep editable `approved_copy` for producer-approved text |
 | Experiment | `status: draft|approved|launched|completed` |
-| Job | `status: queued|running|completed|failed|canceled` |
+| Job | `status: queued|running|completed|failed` |
 
 Step completion (derived from persisted data, scoped to current cycle):
 
@@ -131,12 +131,12 @@ Before frontend rewrite, align these mismatches:
 Current backend: `POST /api/decisions/evaluate/{experiment_id}`  
 Current frontend call: `POST /api/decisions/evaluate` with body.
 
-2. Missing PATCH routes used by frontend  
-Frontend calls:
+2. Missing PATCH routes for content editing
+Frontend needs content-editing endpoints (name, description, copy text):
 - `PATCH /api/segments/{id}`
 - `PATCH /api/frames/{id}`
-- `PATCH /api/variants/{id}`  
-These routes are currently absent.
+- `PATCH /api/variants/{id}`
+These are distinct from the existing `POST /review` routes which handle review status changes only.
 
 3. Missing DELETE show route used by frontend  
 Frontend calls `DELETE /api/shows/{id}`; backend route is absent.
@@ -174,7 +174,6 @@ Polling schedule:
 Terminal statuses:
 - `completed`
 - `failed`
-- `canceled`
 
 On terminal success, invalidate query keys by job type:
 
@@ -223,7 +222,7 @@ Required critical paths:
 - Introduce generated API types/client.
 - Introduce query key factories and mutation conventions.
 - Add Playwright baseline and CI checks.
-- Establish cutover strategy (`frontend-v2` or `/v2`) and keep v1 isolated during rebuild.
+- Keep v1 (`frontend/`) isolated during rebuild in `frontend-v2/`.
 
 Exit criteria:
 - No handwritten endpoint URLs in UI components.
@@ -271,5 +270,5 @@ Exit criteria:
 ## Default Decisions (Locked)
 
 1. Cycle scoping is strict per tab; Run builder operates within the current cycle only.
-2. “Undo approval” returns entity to `draft` (not `rejected`).
+2. “Undo approval” returns entity to `pending` (not `rejected`).
 3. Show deletion remains supported in MVP if backend route exists; otherwise hide control until route is delivered.

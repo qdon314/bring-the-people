@@ -13,8 +13,8 @@ You are working on a FastAPI + Next.js system for live show marketing experiment
 - Do not allow downstream actions when required approvals are missing.
 
 3. Canonical statuses only.
-- Review status: `draft|approved|rejected`
-- Job status: `queued|running|completed|failed`
+- Review status: `pending|approved|rejected`
+- Job status: `queued|running|completed|failed` (terminal: `completed|failed`)
 - Experiment status must match domain enum values.
 
 4. Jobs are asynchronous.
@@ -59,4 +59,3 @@ Frontend:
 - `docs/designs/frontend-architecture.md`
 - `docs/designs/frontend-ai-build-rules.md`
 - `docs/designs/dashboard.md`
-- `docs/UX_REVIEW.md`

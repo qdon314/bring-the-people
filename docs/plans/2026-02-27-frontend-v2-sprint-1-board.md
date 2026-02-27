@@ -29,9 +29,10 @@ Ship the V2 foundation and contract hardening so feature-slice work can begin wi
 | V2-012 | M | 5 | Backend API | Decisions route contract alignment |
 | V2-013 | M | 5 | Backend API | PATCH endpoints for segment/frame/variant |
 | V2-014 | S | 2 | Backend API | Persist `cycle_id` on experiment create |
-| V2-016 | S | 2 | Backend API | Canonical review status verification/tests |
+| V2-016 | S | 2 | Backend API | Canonical review enum (`approved|pending|rejected`) verification/tests |
+| V2-017 | S | 2 | Backend API | Reset legacy local DB for V2 enum contract cutover |
 
-Committed total: **42 points**
+Committed total: **44 points**
 
 ## Stretch Scope (If Capacity Allows)
 
@@ -55,7 +56,8 @@ Committed total: **42 points**
 9. V2-012  
 10. V2-013  
 11. V2-014  
-12. V2-016
+12. V2-016  
+13. V2-017
 
 Parallelization rule:
 - FE Platform/App and Backend API tracks can run in parallel after V2-001.
@@ -77,6 +79,7 @@ Parallelization rule:
 - [ ] V2-013
 - [ ] V2-014
 - [ ] V2-016
+- [ ] V2-017
 
 ## In Progress
 
@@ -97,6 +100,7 @@ Parallelization rule:
 3. Query key factories and shared job polling primitive are in place (`V2-008`, `V2-009`).
 4. Shared cycle progress function exists and is tested (`V2-010`).
 5. Backend contract blockers for plan/create/run flows are resolved (`V2-012`, `V2-013`, `V2-014`, `V2-016`).
+6. Local V2 DB has been recreated after review-status enum cutover (`V2-017`).
 
 ## Daily Standup Template
 
@@ -104,4 +108,3 @@ Parallelization rule:
 - Today: ticket IDs in progress
 - Blockers: contract gaps, failing checks, dependency waits
 - Risk: any committed ticket at risk of missing sprint
-
