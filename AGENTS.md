@@ -2,6 +2,9 @@
 
 This file is the primary repository guide for coding agents (including Codex).
 
+## GitHub
+ - Provide suggested commits after making changes.
+
 ## Project Context
 
 Bring The People is an agentic growth system for live show marketing experiments.

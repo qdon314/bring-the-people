@@ -7,7 +7,6 @@ Primary references:
 - `docs/designs/frontend-ai-build-rules.md`
 - `docs/designs/dashboard.md`
 - `docs/designs/dashboard-prototype.html`
-- `docs/UX_REVIEW.md`
 - `docs/plans/2026-02-27-frontend-v2-concrete-work-items.md`
 
 ## Goal
