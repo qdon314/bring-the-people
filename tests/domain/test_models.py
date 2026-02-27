@@ -14,6 +14,7 @@ from growth.domain.models import (
     ExperimentStatus,
     Observation,
     ProducerMemo,
+    ReviewStatus,
     Show,
     ShowPhase,
     get_show_phase,
@@ -92,6 +93,13 @@ class TestDecisionAction:
         assert DecisionAction.SCALE.value == "scale"
         assert DecisionAction.HOLD.value == "hold"
         assert DecisionAction.KILL.value == "kill"
+
+
+class TestReviewStatus:
+    def test_valid_statuses(self):
+        assert ReviewStatus.PENDING.value == "pending"
+        assert ReviewStatus.APPROVED.value == "approved"
+        assert ReviewStatus.REJECTED.value == "rejected"
 
 
 class TestExperiment:

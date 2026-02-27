@@ -10,7 +10,10 @@ from growth.app.schemas import (
     ShowResponse,
     ObservationCreate,
     ApprovalRequest,
+    ReviewAction,
+    ReviewRequest,
 )
+from growth.domain.models import ReviewStatus
 
 
 class TestShowSchemas:
@@ -134,3 +137,13 @@ class TestApprovalSchema:
             notes="Budget too high for this segment.",
         )
         assert req.approved is False
+
+
+class TestReviewSchema:
+    def test_review_request_valid(self):
+        req = ReviewRequest(action=ReviewAction.APPROVE)
+        assert req.action == ReviewAction.APPROVE
+
+    def test_review_request_rejects_non_action_status_values(self):
+        with pytest.raises(ValidationError):
+            ReviewRequest(action=ReviewStatus.APPROVED.value)

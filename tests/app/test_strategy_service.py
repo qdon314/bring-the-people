@@ -21,6 +21,7 @@ from growth.adapters.llm.schemas import (
 )
 from growth.adapters.orm import create_tables, get_engine, get_session_maker
 from growth.adapters.repositories import (
+    SQLAlchemyCycleRepository,
     SQLAlchemyExperimentRepository,
     SQLAlchemyFrameRepository,
     SQLAlchemySegmentRepository,
@@ -120,6 +121,7 @@ def setup(tmp_path):
     exp_repo = SQLAlchemyExperimentRepository(session)
     seg_repo = SQLAlchemySegmentRepository(session)
     frame_repo = SQLAlchemyFrameRepository(session)
+    cycle_repo = SQLAlchemyCycleRepository(session)
     event_log = JSONLEventLog(tmp_path / "events.jsonl")
     runs_path = tmp_path / "runs"
 
@@ -144,6 +146,7 @@ def setup(tmp_path):
         exp_repo=exp_repo,
         seg_repo=seg_repo,
         frame_repo=frame_repo,
+        cycle_repo=cycle_repo,
         event_log=event_log,
         policy=_test_policy(),
         runs_path=runs_path,

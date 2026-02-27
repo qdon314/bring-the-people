@@ -2,13 +2,12 @@
 from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 from uuid import uuid4
 
 import pytest
 from fastapi.testclient import TestClient
 
-from growth.adapters.llm.result import AgentResult
 from growth.adapters.llm.schemas import (
     BudgetRangeCents,
     Channel,
@@ -83,23 +82,14 @@ def _create_show(client) -> str:
 
 
 class TestStrategyAPI:
-    @patch("growth.app.services.strategy_service.run_agent")
-    def test_run_strategy_success(self, mock_run_agent, client):
+    def test_run_strategy_success(self, client):
         show_id = _create_show(client)
 
-        mock_run_agent.return_value = AgentResult(
-            output=_make_strategy_output(),
-            turns_used=2,
-            total_input_tokens=700,
-            total_output_tokens=400,
-        )
-
         resp = client.post(f"/api/strategy/{show_id}/run")
-        assert resp.status_code == 200
+        assert resp.status_code == 202
         data = resp.json()
-        assert len(data["segment_ids"]) == 3
-        assert len(data["frame_ids"]) == 3
-        assert "reasoning_summary" in data
+        assert data["status"] == "queued"
+        assert "job_id" in data
 
     def test_run_strategy_show_not_found(self, client):
         resp = client.post(f"/api/strategy/{uuid4()}/run")
