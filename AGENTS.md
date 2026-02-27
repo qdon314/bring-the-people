@@ -30,6 +30,12 @@ Primary workflows:
 - AI implementation rules: `docs/designs/frontend-ai-build-rules.md`
 - Current UX gap analysis: `docs/UX_REVIEW.md`
 
+## Frontend Contract
+
+Before any frontend task, read these files:
+- `docs/contracts/frontend-contract.md` — canonical rules, patterns, and forbidden anti-patterns.
+- `docs/contracts/frontend-manifest.md` — component/utility inventory. Check before creating anything new.
+
 ## Working Rules
 
 1. Contract-first changes.
@@ -38,7 +44,7 @@ Primary workflows:
 
 2. Keep workflow gates explicit.
 - Plan -> Create -> Run -> Results -> Memo gating must be data-driven.
-- Approval status must remain canonical: `draft|approved|rejected`.
+- Approval status must remain canonical: `pending|approved|rejected`.
 
 3. Preserve auditability.
 - Keep agent-generated content distinct from human-edited content where applicable.
@@ -54,11 +60,17 @@ Backend:
 - Run tests: `uv run pytest`
 - Run a specific test: `uv run pytest tests/path/to/test_file.py -k <pattern>`
 
-Frontend:
+Frontend (v1):
 - Install deps: `cd frontend && npm install`
 - Dev server: `cd frontend && npm run dev`
 - Build: `cd frontend && npm run build`
 - Lint: `cd frontend && npm run lint`
+
+Frontend (v2):
+- Install deps: `cd frontend-v2 && npm install`
+- Dev server: `cd frontend-v2 && npm run dev`
+- Build: `cd frontend-v2 && npm run build`
+- Lint: `cd frontend-v2 && npm run lint`
 
 ## Architecture Pointers
 
@@ -76,6 +88,7 @@ Before coding:
 
 After coding:
 - Report behavior changes, contract assumptions, tests run, and any remaining risks.
+- Update `docs/contracts/frontend-manifest.md` if you added shared components, utilities, or hooks.
 
 Git:
 - Never auto-commit.

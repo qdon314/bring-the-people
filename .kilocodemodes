@@ -55,6 +55,7 @@ customModes:
     customInstructions: |
       Prioritize correctness, regressions, contract mismatches, and missing tests.
       Provide actionable, file-specific findings.
+      For frontend reviews, check compliance with docs/contracts/frontend-contract.md.
     source: project
 
   - slug: planning
@@ -109,8 +110,8 @@ customModes:
     source: project
 
   - slug: frontend-ui
-    name: Frontend UI/UX
-    description: Improve the Next.js dashboard UI/UX with small, reviewable diffs.
+    name: Frontend UI/UX (v1)
+    description: Maintain the v1 Next.js dashboard with small, reviewable diffs.
     roleDefinition: >-
       You are a frontend product engineer focused on workflow clarity, usability, and robust state handling.
     groups:
@@ -119,11 +120,44 @@ customModes:
       - command
       - - edit
         - fileRegex: ^(frontend/).*(\.ts|\.tsx|\.css|\.md)$
-          description: Frontend UI files only
+          description: Frontend v1 files only
     whenToUse: >
-      Use for dashboard UI tasks, interaction flow improvements, and accessibility polish.
+      Use for v1 dashboard maintenance, bug fixes, and minor polish. For new feature work, use frontend-build.
     customInstructions: |-
+      - BEFORE writing code, read docs/contracts/frontend-contract.md and docs/contracts/frontend-manifest.md.
       - Preserve existing design tokens and visual direction.
       - Include loading/empty/error/success states.
       - Avoid backend contract changes unless explicitly requested.
+      - Status values: pending|approved|rejected (ReviewStatus), queued|running|completed|failed (JobStatus). No other values.
+    source: project
+
+  - slug: frontend-build
+    name: Frontend Build (v2)
+    description: Build v2 frontend features following the frontend contract.
+    roleDefinition: >-
+      You are a frontend engineer implementing features in frontend-v2/.
+      You follow the project's frontend contract exactly.
+    groups:
+      - read
+      - browser
+      - command
+      - - edit
+        - fileRegex: ^(frontend-v2/).*(\.ts|\.tsx|\.css)$
+          description: v2 frontend source files only
+      - - edit
+        - fileRegex: ^docs/contracts/frontend-manifest\.md$
+          description: Frontend manifest updates
+    whenToUse: >
+      Use for all frontend-v2 implementation work — components, hooks, API clients, and feature modules.
+    customInstructions: |-
+      - BEFORE writing code, read docs/contracts/frontend-contract.md and docs/contracts/frontend-manifest.md.
+      - Status values: pending|approved|rejected (ReviewStatus), queued|running|completed|failed (JobStatus). No other values.
+      - Every component must handle: loading, empty, error, success states.
+      - Use existing shared/ utilities. Do not create duplicates — check the manifest first.
+      - All API calls go through shared/api/client.ts. No raw fetch().
+      - Query keys use factories from features/*/queries.ts, never inline strings.
+      - Mutations own their cache invalidation in features/*/mutations.ts.
+      - No setTimeout for data consistency. Use the useJobPoller hook.
+      - After adding shared components/utilities/hooks, update docs/contracts/frontend-manifest.md.
+      - Run: cd frontend-v2 && npm run lint && npm run build
     source: project

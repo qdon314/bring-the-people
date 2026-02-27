@@ -10,7 +10,8 @@ These rules reduce churn and keep work reviewable. Follow unless explicitly over
 ## 2) Command discipline
 - Prefer repo-native commands that actually exist in this project.
 - Backend: use `uv run ...` (for app and tests).
-- Frontend: run npm commands from `frontend/`.
+- Frontend (v1): run npm commands from `frontend/`.
+- Frontend (v2): run npm commands from `frontend-v2/`.
 - Do not rely on non-existent wrappers like `make` or `./scripts/py` unless added later.
 
 ## 3) Contract discipline
@@ -23,3 +24,7 @@ These rules reduce churn and keep work reviewable. Follow unless explicitly over
 - Do not add attribution lines like `Co-authored-by`.
 - Do not revert unrelated local changes.
 - At completion, provide suggested commits (message + files).
+
+## 5) Manifest discipline
+- After adding shared components, utilities, or hooks to `frontend-v2/`, update `docs/contracts/frontend-manifest.md`.
+- This is part of the definition of done — code is not complete until the manifest reflects it.

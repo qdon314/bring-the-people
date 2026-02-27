@@ -27,6 +27,12 @@ You are working on a FastAPI + Next.js system for live show marketing experiment
 6. Keep business logic out of UI components.
 - Put metrics, UTM derivation, and status derivation in reusable utilities/domain logic.
 
+## Frontend contract
+
+Before any frontend task, read these files:
+- `docs/contracts/frontend-contract.md` — canonical rules, patterns, and forbidden anti-patterns.
+- `docs/contracts/frontend-manifest.md` — component/utility inventory. Check before creating anything new.
+
 ## Delivery workflow
 
 Before coding:
@@ -44,15 +50,20 @@ After coding:
 - Report behavior change.
 - Report verification commands run and results.
 - Report open risks/follow-ups.
+- Update `docs/contracts/frontend-manifest.md` if you added shared components, utilities, or hooks.
 
 ## Testing expectations
 
 Backend:
 - `uv run pytest`
 
-Frontend:
+Frontend (v1):
 - `cd frontend && npm run lint`
 - `cd frontend && npm run build` (when relevant)
+
+Frontend (v2):
+- `cd frontend-v2 && npm run lint`
+- `cd frontend-v2 && npm run build` (when relevant)
 
 ## Source docs
 

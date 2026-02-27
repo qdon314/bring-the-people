@@ -1,3 +1,33 @@
 {
-  "extends": ["next/core-web-vitals"]
+  "extends": ["next/core-web-vitals"],
+  "rules": {
+    "no-restricted-globals": [
+      "error",
+      {
+        "name": "fetch",
+        "message": "Use shared/api/client.ts instead of raw fetch(). See docs/contracts/frontend-contract.md §2."
+      }
+    ],
+    "no-restricted-syntax": [
+      "error",
+      {
+        "selector": "CallExpression[callee.name='setTimeout']",
+        "message": "No setTimeout for data consistency. Use useJobPoller for async jobs, mutation onSuccess for sync writes. See docs/contracts/frontend-contract.md §4."
+      }
+    ],
+    "no-console": [
+      "error",
+      {
+        "allow": ["warn", "error"]
+      }
+    ]
+  },
+  "overrides": [
+    {
+      "files": ["app/**/page.tsx", "app/**/layout.tsx"],
+      "rules": {
+        "import/no-default-export": "off"
+      }
+    }
+  ]
 }
