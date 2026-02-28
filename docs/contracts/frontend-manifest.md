@@ -39,6 +39,12 @@ These are called for in `docs/designs/frontend-architecture.md`:
 | getCycleProgress() | shared/lib/progress.ts  | planned | Derive workflow step completion |
 | query key factories | shared/queryKeys.ts     | exists  | Canonical query key builders by domain |
 
+## Shared Error Utilities (`shared/errors/`)
+
+| Function      | Path                           | Status | Purpose                                    |
+|---------------|--------------------------------|--------|--------------------------------------------|
+| mapApiError() | shared/errors/mapApiError.ts   | exists | Map API and transport failures to UI copy  |
+
 ## Shared Hooks (`shared/hooks/`)
 
 | Hook          | Path                          | Status  | Purpose                    |
