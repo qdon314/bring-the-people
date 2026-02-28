@@ -57,7 +57,7 @@ def create_experiment(show_id) -> Experiment:
         channel="meta",
         objective="ticket_sales",
         budget_cap_cents=5000,
-        status=ExperimentStatus.RUNNING,
+        status=ExperimentStatus.ACTIVE,
         start_time=datetime(2026, 4, 1, 10, 0, tzinfo=timezone.utc),
         end_time=None,
         baseline_snapshot={"cac_cents": 800, "conversion_rate": 0.02},
