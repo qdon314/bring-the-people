@@ -80,12 +80,9 @@ export interface Experiment {
 
 export type ExperimentStatus =
   | 'draft'
+  | 'active'
   | 'awaiting_approval'
-  | 'approved'
-  | 'running'
-  | 'completed'
-  | 'stopped'
-  | 'archived'
+  | 'decided'
 
 export interface Observation {
   observation_id: string

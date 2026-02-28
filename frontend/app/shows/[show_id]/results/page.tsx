@@ -19,7 +19,7 @@ export default function ResultsPage() {
   const currentCycleId = cycles?.[0]?.cycle_id
   const { data: experiments, isLoading: experimentsLoading } = useExperiments(show_id)
   const cycleExperiments = experiments?.filter(e =>
-    e.cycle_id === currentCycleId && ['running', 'completed'].includes(e.status)
+    e.cycle_id === currentCycleId && ['active', 'decided'].includes(e.status)
   ) ?? []
 
   const [sortKey, setSortKey] = useState<'cpa' | 'purchases' | 'ctr'>('cpa')

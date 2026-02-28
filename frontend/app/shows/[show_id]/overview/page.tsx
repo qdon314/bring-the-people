@@ -25,7 +25,7 @@ export default function OverviewPage() {
   const { data: events } = useEvents(show_id)
 
   const runningExperiments = experiments?.filter(e =>
-    e.status === 'running' && e.cycle_id === currentCycleId
+    e.status === 'active' && e.cycle_id === currentCycleId
   ) ?? []
 
   if (!show) return <OverviewSkeleton />

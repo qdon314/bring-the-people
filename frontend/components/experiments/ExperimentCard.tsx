@@ -81,7 +81,7 @@ export function ExperimentCard({ experiment, showId, onUpdated }: Props) {
 
         {/* Actions */}
         <div className="flex items-center gap-2">
-          {experiment.status === 'approved' && (
+          {experiment.status === 'draft' && (
             <button
               onClick={() => startMutation.mutate()}
               disabled={startMutation.isPending}
@@ -90,7 +90,7 @@ export function ExperimentCard({ experiment, showId, onUpdated }: Props) {
               {startMutation.isPending ? 'Launching…' : 'Mark Launched'}
             </button>
           )}
-          {experiment.status === 'running' && (
+          {experiment.status === 'active' && (
             <button
               onClick={() => stopMutation.mutate()}
               disabled={stopMutation.isPending}
@@ -126,22 +126,16 @@ export function ExperimentCard({ experiment, showId, onUpdated }: Props) {
 function ExperimentStatusBadge({ status }: { status: string }) {
   const styles: Record<string, string> = {
     draft: 'bg-border text-text-muted',
+    active: 'bg-success-light text-success',
     awaiting_approval: 'bg-warning-light text-warning',
-    approved: 'bg-accent-light text-accent',
-    running: 'bg-success-light text-success',
-    completed: 'bg-bg text-text-muted',
-    stopped: 'bg-danger-light text-danger',
-    archived: 'bg-bg text-text-muted',
+    decided: 'bg-bg text-text-muted',
   }
 
   const labels: Record<string, string> = {
     draft: 'Draft',
+    active: 'Active',
     awaiting_approval: 'Awaiting Approval',
-    approved: 'Approved',
-    running: 'Running',
-    completed: 'Completed',
-    stopped: 'Stopped',
-    archived: 'Archived',
+    decided: 'Decided',
   }
 
   return (
