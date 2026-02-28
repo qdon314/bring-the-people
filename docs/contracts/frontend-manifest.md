@@ -12,7 +12,7 @@ Do not try to import planned items.
 Flip `planned` → `exists` when you create the file. Add new rows for items
 not yet listed. This is part of the definition of done.
 
-Last updated: 2026-02-27
+Last updated: 2026-02-28
 
 ---
 
@@ -68,6 +68,7 @@ These are called for in `docs/designs/dashboard.md`:
 | client.ts          | shared/api/client.ts              | exists  | Base fetch wrapper, ApiError class       |
 | openapi.json       | shared/api/generated/openapi.json | exists  | Generated OpenAPI schema snapshot         |
 | schema.ts          | shared/api/generated/schema.ts    | exists  | Generated OpenAPI TypeScript definitions |
+| validators/*       | shared/api/validators/*           | exists  | Runtime response validation functions     |
 
 ## Feature Modules (`features/`)
 
@@ -75,7 +76,7 @@ Update this table as feature modules are built.
 
 | Feature       | Status      | api | queries | mutations | ui  |
 |---------------|-------------|-----|---------|-----------|-----|
-| shows         | not started | -   | -       | -         | -   |
+| shows         | in progress | exists | -       | -         | -   |
 | cycles        | not started | -   | -       | -         | -   |
 | segments      | not started | -   | -       | -         | -   |
 | frames        | not started | -   | -       | -         | -   |
