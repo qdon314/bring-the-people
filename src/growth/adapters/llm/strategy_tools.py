@@ -55,9 +55,9 @@ def get_active_experiments(
     seg_repo: SegmentRepository,
     frame_repo: FrameRepository,
 ) -> dict[str, Any]:
-    """Get all running or approved experiments for a show."""
+    """Get all active experiments for a show."""
     all_experiments = exp_repo.get_by_show(show_id)
-    active_statuses = {ExperimentStatus.RUNNING, ExperimentStatus.APPROVED}
+    active_statuses = {ExperimentStatus.ACTIVE}
     active = [e for e in all_experiments if e.status in active_statuses]
 
     experiments: list[dict[str, Any]] = []

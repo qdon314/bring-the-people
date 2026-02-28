@@ -1,11 +1,14 @@
 """Decisions API routes."""
 from __future__ import annotations
 
+from dataclasses import replace
+from datetime import datetime, timezone
 from uuid import UUID
 
 from fastapi import APIRouter, HTTPException, Request
 
 from growth.app.schemas import DecisionResponse
+from growth.domain.models import ExperimentStatus
 
 router = APIRouter()
 
@@ -30,6 +33,15 @@ def evaluate_experiment(experiment_id: UUID, request: Request):
     # Use decision service to evaluate
     service = _get_decision_service(request)
     decision = service.evaluate_experiment(experiment_id)
+
+    # Transition experiment to DECIDED status
+    updated_exp = replace(
+        exp,
+        status=ExperimentStatus.DECIDED,
+        end_time=datetime.now(timezone.utc),
+    )
+    repo.save(updated_exp)
+
     return DecisionResponse.from_domain(decision)
 
 
