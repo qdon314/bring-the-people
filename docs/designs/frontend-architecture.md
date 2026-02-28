@@ -127,9 +127,8 @@ Step completion (derived from persisted data, scoped to current cycle):
 
 Before frontend rewrite, align these mismatches:
 
-1. `decisions.evaluate` path mismatch  
-Current backend: `POST /api/decisions/evaluate/{experiment_id}`  
-Current frontend call: `POST /api/decisions/evaluate` with body.
+1. `decisions.evaluate` route is canonicalized  
+Canonical route: `POST /api/decisions/evaluate/{experiment_id}`.
 
 2. Missing PATCH routes for content editing
 Frontend needs content-editing endpoints (name, description, copy text):

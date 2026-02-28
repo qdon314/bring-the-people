@@ -12,6 +12,8 @@ from growth.domain.models import ExperimentStatus
 
 router = APIRouter()
 
+CANONICAL_EVALUATE_ROUTE = "/api/decisions/evaluate/{experiment_id}"
+
 
 def _get_exp_repo(request: Request):
     return request.state.container.experiment_repo()
@@ -19,6 +21,15 @@ def _get_exp_repo(request: Request):
 
 def _get_decision_service(request: Request):
     return request.state.container.decision_service()
+
+
+@router.post("/evaluate", include_in_schema=False)
+def evaluate_experiment_legacy_route():
+    """Legacy route shape no longer supported; use path-param route."""
+    raise HTTPException(
+        status_code=410,
+        detail=f"Use {CANONICAL_EVALUATE_ROUTE}",
+    )
 
 
 @router.post("/evaluate/{experiment_id}", response_model=DecisionResponse)
@@ -29,7 +40,7 @@ def evaluate_experiment(experiment_id: UUID, request: Request):
     exp = repo.get_by_id(experiment_id)
     if exp is None:
         raise HTTPException(status_code=404, detail="Experiment not found")
-    
+
     # Use decision service to evaluate
     service = _get_decision_service(request)
     decision = service.evaluate_experiment(experiment_id)

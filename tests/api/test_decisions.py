@@ -26,9 +26,7 @@ def _create_experiment_with_observation(client) -> str:
     })
     exp_id = exp_resp.json()["experiment_id"]
 
-    client.post(f"/api/experiments/{exp_id}/submit")
-    client.post(f"/api/experiments/{exp_id}/approve", json={"approved": True, "notes": ""})
-    client.post(f"/api/experiments/{exp_id}/start")
+    client.post(f"/api/experiments/{exp_id}/launch")
 
     # Add observation with strong performance
     client.post("/api/observations", json={
@@ -66,6 +64,14 @@ class TestDecisionsAPI:
     def test_evaluate_nonexistent_experiment(self, client):
         resp = client.post(f"/api/decisions/evaluate/{uuid4()}")
         assert resp.status_code == 404
+
+    def test_legacy_evaluate_route_returns_contract_guidance(self, client):
+        exp_id = _create_experiment_with_observation(client)
+
+        resp = client.post("/api/decisions/evaluate", json={"experiment_id": exp_id})
+
+        assert resp.status_code == 410
+        assert resp.json()["detail"] == "Use /api/decisions/evaluate/{experiment_id}"
 
     def test_get_decisions_for_experiment(self, client):
         exp_id = _create_experiment_with_observation(client)
