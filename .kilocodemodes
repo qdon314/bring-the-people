@@ -142,11 +142,8 @@ customModes:
       - browser
       - command
       - - edit
-        - fileRegex: ^(frontend-v2/).*(\.ts|\.tsx|\.css)$
-          description: v2 frontend source files only
-      - - edit
-        - fileRegex: ^docs/contracts/frontend-manifest\.md$
-          description: Frontend manifest updates
+        - fileRegex: ^(frontend-v2/.*\.(ts|tsx|css)|docs/contracts/frontend-manifest\.md)$
+          description: v2 frontend files and manifest
     whenToUse: >
       Use for all frontend-v2 implementation work — components, hooks, API clients, and feature modules.
     customInstructions: |-
