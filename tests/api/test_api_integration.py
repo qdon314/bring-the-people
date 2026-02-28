@@ -4,7 +4,7 @@ from uuid import uuid4
 
 class TestFullAPILifecycle:
     def test_show_to_decision_lifecycle(self, client):
-        """Full lifecycle: show → experiment → approve → observe → decide."""
+        """Full lifecycle: show -> experiment -> launch -> observe -> decide."""
         # 1. Create show
         show_resp = client.post("/api/shows", json={
             "artist_name": "Integration Test Artist",
@@ -33,25 +33,12 @@ class TestFullAPILifecycle:
         exp_id = exp_resp.json()["experiment_id"]
         assert exp_resp.json()["status"] == "draft"
 
-        # 3. Submit for approval
-        submit_resp = client.post(f"/api/experiments/{exp_id}/submit")
-        assert submit_resp.status_code == 200
-        assert submit_resp.json()["status"] == "awaiting_approval"
+        # 3. Launch (draft -> active)
+        launch_resp = client.post(f"/api/experiments/{exp_id}/launch")
+        assert launch_resp.status_code == 200
+        assert launch_resp.json()["status"] == "active"
 
-        # 4. Approve
-        approve_resp = client.post(f"/api/experiments/{exp_id}/approve", json={
-            "approved": True,
-            "notes": "Approved for testing",
-        })
-        assert approve_resp.status_code == 200
-        assert approve_resp.json()["status"] == "approved"
-
-        # 5. Start
-        start_resp = client.post(f"/api/experiments/{exp_id}/start")
-        assert start_resp.status_code == 200
-        assert start_resp.json()["status"] == "running"
-
-        # 6. Add observations (two windows)
+        # 4. Add observations (two windows)
         for day in [1, 2]:
             obs_resp = client.post("/api/observations", json={
                 "experiment_id": exp_id,
@@ -76,17 +63,17 @@ class TestFullAPILifecycle:
         obs_list_resp = client.get(f"/api/observations?experiment_id={exp_id}")
         assert len(obs_list_resp.json()) == 2
 
-        # 7. Evaluate
+        # 5. Evaluate (creates a decision)
         decision_resp = client.post(f"/api/decisions/evaluate/{exp_id}")
         assert decision_resp.status_code == 200
         decision = decision_resp.json()
         assert decision["action"] in ["scale", "hold", "kill"]
         assert decision["experiment_id"] == exp_id
 
-        # 8. Verify decision persisted
+        # 6. Verify decision persisted
         decisions_resp = client.get(f"/api/decisions?experiment_id={exp_id}")
         assert len(decisions_resp.json()) == 1
 
-        # 9. Verify show still accessible
+        # 7. Verify show still accessible
         show_get_resp = client.get(f"/api/shows/{show_id}")
         assert show_get_resp.status_code == 200
