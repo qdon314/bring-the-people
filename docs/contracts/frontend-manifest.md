@@ -70,6 +70,13 @@ These are called for in `docs/designs/dashboard.md`:
 | schema.ts          | shared/api/generated/schema.ts    | exists  | Generated OpenAPI TypeScript definitions |
 | validators/*       | shared/api/validators/*           | exists  | Runtime response validation functions     |
 
+## Test Infrastructure
+
+| File               | Path                       | Status  | Purpose                                  |
+|--------------------|----------------------------|---------|------------------------------------------|
+| vitest.config.ts   | vitest.config.ts           | exists  | Vitest config (jsdom, globals, coverage) |
+| vitest.setup.ts    | vitest.setup.ts            | exists  | Test setup (@testing-library/jest-dom)   |
+
 ## Feature Modules (`features/`)
 
 Update this table as feature modules are built.

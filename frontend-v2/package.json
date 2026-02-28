@@ -10,6 +10,9 @@
     "lint:ci": "next lint --max-warnings=0",
     "check:no-direct-fetch": "eslint --no-error-on-unmatched-pattern --max-warnings=0 \"app/**/*.{ts,tsx}\" \"features/**/*.{ts,tsx}\"",
     "ci:checks": "npm run lint:ci && npm run check:no-direct-fetch",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
     "generate:openapi:schema": "cd .. && ./.venv/bin/python frontend-v2/scripts/export_openapi_schema.py",
     "generate:openapi:types": "openapi-typescript ./shared/api/generated/openapi.json -o ./shared/api/generated/schema.ts",
     "generate:api": "npm run generate:openapi:schema && npm run generate:openapi:types"
@@ -20,15 +23,21 @@
     "react-dom": "^18.2.0"
   },
   "devDependencies": {
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
+    "@testing-library/user-event": "^14.6.1",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
+    "@vitest/coverage-v8": "^4.0.18",
     "autoprefixer": "^10.0.1",
     "eslint": "^8.57.0",
     "eslint-config-next": "14.1.0",
+    "jsdom": "^28.1.0",
     "openapi-typescript": "^7.13.0",
     "postcss": "^8",
     "tailwindcss": "^3.3.0",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^4.0.18"
   }
 }
