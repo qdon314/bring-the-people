@@ -23,7 +23,7 @@ Main flow:
 
 - `docs/designs/dashboard.md`
 - `docs/designs/frontend-architecture.md`
-- `docs/designs/frontend-ai-build-rules.md`
+- `docs/contracts/frontend-contract.md`
 - `docs/UX_REVIEW.md`
 
 ## Architecture map

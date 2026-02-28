@@ -27,7 +27,6 @@ Primary workflows:
 - Product/UX: `docs/designs/dashboard.md`
 - Visual baseline: `docs/designs/dashboard-prototype.html`
 - Frontend architecture: `docs/designs/frontend-architecture.md`
-- AI implementation rules: `docs/designs/frontend-ai-build-rules.md`
 - Current UX gap analysis: `docs/UX_REVIEW.md`
 
 ## Frontend Contract
@@ -71,6 +70,7 @@ Frontend (v2):
 - Dev server: `cd frontend-v2 && npm run dev`
 - Build: `cd frontend-v2 && npm run build`
 - Lint: `cd frontend-v2 && npm run lint`
+- Test: `cd frontend-v2 && npm run test` (when test infrastructure is present)
 
 ## Architecture Pointers
 
@@ -89,6 +89,11 @@ Before coding:
 After coding:
 - Report behavior changes, contract assumptions, tests run, and any remaining risks.
 - Update `docs/contracts/frontend-manifest.md` if you added shared components, utilities, or hooks.
+
+Testing:
+- Every code change must include or update tests in the same task.
+- No deferred "test later" unless explicitly approved.
+- See `docs/contracts/frontend-contract.md` §7 for full testing rules.
 
 Git:
 - Never auto-commit.

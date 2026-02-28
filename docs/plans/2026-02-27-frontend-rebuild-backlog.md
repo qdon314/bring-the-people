@@ -4,7 +4,7 @@ Date: 2026-02-27
 Owner: Product + Frontend  
 Primary references:
 - `docs/designs/frontend-architecture.md`
-- `docs/designs/frontend-ai-build-rules.md`
+- `docs/contracts/frontend-contract.md`
 - `docs/designs/dashboard.md`
 - `docs/designs/dashboard-prototype.html`
 - `docs/plans/2026-02-27-frontend-v2-concrete-work-items.md`

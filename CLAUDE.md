@@ -63,10 +63,13 @@ Frontend (v1):
 
 Frontend (v2):
 - `cd frontend-v2 && npm run lint`
+- `cd frontend-v2 && npm run test` (when test infrastructure is present)
 - `cd frontend-v2 && npm run build` (when relevant)
+
+Every frontend code change must include or update tests in the same task.
+No deferred "test later" unless explicitly approved. See `docs/contracts/frontend-contract.md` §7 for full testing rules.
 
 ## Source docs
 
 - `docs/designs/frontend-architecture.md`
-- `docs/designs/frontend-ai-build-rules.md`
 - `docs/designs/dashboard.md`

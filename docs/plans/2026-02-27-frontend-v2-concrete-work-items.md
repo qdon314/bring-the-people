@@ -5,7 +5,7 @@ Scope: Implement the new frontend architecture in small/medium tickets.
 
 References:
 - `docs/designs/frontend-architecture.md`
-- `docs/designs/frontend-ai-build-rules.md`
+- `docs/contracts/frontend-contract.md`
 - `docs/plans/2026-02-27-frontend-rebuild-backlog.md`
 - `docs/plans/2026-02-27-frontend-v2-sprint-1-board.md`
 
