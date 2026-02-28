@@ -27,7 +27,8 @@ export interface CycleProgress {
   nextAction: CycleNextAction
 }
 
-const RUN_COMPLETE_STATUSES = new Set(['running', 'launched', 'completed'])
+/** Experiment statuses that indicate the experiment has been launched. */
+const LAUNCHED_STATUSES = new Set(['active', 'decided'])
 
 function isApproved(reviewStatus: components['schemas']['ReviewStatus']): boolean {
   return reviewStatus === 'approved'
@@ -40,9 +41,9 @@ export function getCycleProgress(snapshot: CycleProgressSnapshot): CycleProgress
       .map((frame) => frame.frame_id)
   )
 
-  const runCompleteExperimentIds = new Set(
+  const launchedExperimentIds = new Set(
     snapshot.experiments
-      .filter((experiment) => RUN_COMPLETE_STATUSES.has(experiment.status))
+      .filter((experiment) => LAUNCHED_STATUSES.has(experiment.status))
       .map((experiment) => experiment.experiment_id)
   )
 
@@ -54,10 +55,10 @@ export function getCycleProgress(snapshot: CycleProgressSnapshot): CycleProgress
     (variant) => isApproved(variant.review_status) && approvedFrameIds.has(variant.frame_id)
   )
 
-  const runComplete = runCompleteExperimentIds.size > 0
+  const runComplete = launchedExperimentIds.size > 0
 
   const resultsComplete = snapshot.observations.some((observation) =>
-    runCompleteExperimentIds.has(observation.experiment_id)
+    launchedExperimentIds.has(observation.experiment_id)
   )
 
   const memoComplete = snapshot.memos.length > 0
