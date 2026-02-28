@@ -7,6 +7,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "lint:ci": "next lint --max-warnings=0",
+    "check:no-direct-fetch": "eslint --no-error-on-unmatched-pattern --max-warnings=0 \"app/**/*.{ts,tsx}\" \"features/**/*.{ts,tsx}\"",
+    "ci:checks": "npm run lint:ci && npm run check:no-direct-fetch",
     "generate:openapi:schema": "cd .. && ./.venv/bin/python frontend-v2/scripts/export_openapi_schema.py",
     "generate:openapi:types": "openapi-typescript ./shared/api/generated/openapi.json -o ./shared/api/generated/schema.ts",
     "generate:api": "npm run generate:openapi:schema && npm run generate:openapi:types"
