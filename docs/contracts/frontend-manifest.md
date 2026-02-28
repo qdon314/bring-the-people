@@ -89,6 +89,10 @@ These are called for in `docs/designs/dashboard.md`:
 |--------------------|----------------------------|---------|------------------------------------------|
 | vitest.config.ts   | vitest.config.ts           | exists  | Vitest config (jsdom, globals, coverage) |
 | vitest.setup.ts    | vitest.setup.ts            | exists  | Test setup (@testing-library/jest-dom)   |
+| playwright.config.ts | playwright.config.ts     | exists  | Playwright e2e config and dev server     |
+| e2e smoke test     | tests/e2e/smoke.spec.ts    | exists  | First end-to-end smoke test               |
+| msw server setup   | test/msw/server.ts         | exists  | Shared MSW server for integration tests    |
+| msw handlers       | test/msw/handlers.ts       | exists  | Baseline mocked API handlers               |
 
 ## Feature Modules (`features/`)
 
