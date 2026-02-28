@@ -1,4 +1,4 @@
-import { renderHook, waitFor } from '@testing-library/react'
+import { act, renderHook, waitFor } from '@testing-library/react'
 import { getJob } from './api'
 import {
   getJobInvalidationKeys,
@@ -38,6 +38,11 @@ const failedJob = {
   completed_at: '2026-02-27T12:00:05Z',
 }
 
+async function flushPromises(): Promise<void> {
+  await Promise.resolve()
+  await Promise.resolve()
+}
+
 describe('polling utilities', () => {
   it('calculates the configured interval bands', () => {
     expect(getJobPollingIntervalMs(0)).toBe(1000)
@@ -75,6 +80,10 @@ describe('polling utilities', () => {
 describe('useJobPolling', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
   })
 
   it('stops polling and calls onComplete for completed jobs', async () => {
@@ -134,5 +143,87 @@ describe('useJobPolling', () => {
     })
 
     expect(getJob).not.toHaveBeenCalled()
+  })
+
+  it('polls repeatedly with the configured elapsed-time intervals', async () => {
+    vi.useFakeTimers()
+
+    let currentTimeMs = 0
+    const now = () => currentTimeMs
+
+    const queuedJob = {
+      ...runningJob,
+      status: 'queued' as const,
+    }
+
+    vi.mocked(getJob)
+      .mockResolvedValueOnce(queuedJob)
+      .mockResolvedValueOnce(runningJob)
+      .mockResolvedValueOnce(runningJob)
+      .mockResolvedValueOnce(completedJob)
+
+    const onComplete = vi.fn()
+    renderHook(() => useJobPolling('job-1', { now, onComplete }))
+
+    await act(async () => {
+      await flushPromises()
+    })
+    expect(getJob).toHaveBeenCalledTimes(1)
+
+    currentTimeMs = 5_000
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(1_000)
+      await flushPromises()
+    })
+    expect(getJob).toHaveBeenCalledTimes(2)
+
+    currentTimeMs = 6_000
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(2_000)
+      await flushPromises()
+    })
+    expect(getJob).toHaveBeenCalledTimes(3)
+
+    currentTimeMs = 31_000
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(5_000)
+      await flushPromises()
+    })
+    expect(getJob).toHaveBeenCalledTimes(4)
+    expect(onComplete).toHaveBeenCalledTimes(1)
+  })
+
+  it('keeps polling across rerenders even when callback references change', async () => {
+    vi.useFakeTimers()
+
+    let currentTimeMs = 0
+    const now = () => currentTimeMs
+
+    vi.mocked(getJob).mockResolvedValueOnce(runningJob).mockResolvedValueOnce(completedJob)
+
+    const firstOnComplete = vi.fn()
+    const secondOnComplete = vi.fn()
+
+    const { rerender } = renderHook(
+      ({ onComplete }) => useJobPolling('job-1', { now, onComplete }),
+      { initialProps: { onComplete: firstOnComplete } }
+    )
+
+    await act(async () => {
+      await flushPromises()
+    })
+    expect(getJob).toHaveBeenCalledTimes(1)
+
+    rerender({ onComplete: secondOnComplete })
+
+    currentTimeMs = 5_000
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(1_000)
+      await flushPromises()
+    })
+
+    expect(getJob).toHaveBeenCalledTimes(2)
+    expect(secondOnComplete).toHaveBeenCalledTimes(1)
+    expect(firstOnComplete).not.toHaveBeenCalled()
   })
 })

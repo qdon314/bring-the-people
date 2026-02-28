@@ -68,6 +68,17 @@ export function useJobPolling(
   const [isPolling, setIsPolling] = useState(false)
   const [attemptCount, setAttemptCount] = useState(0)
   const startTimeRef = useRef<number | null>(null)
+  const onCompleteRef = useRef(onComplete)
+  const onFailedRef = useRef(onFailed)
+  const onErrorRef = useRef(onError)
+  const nowRef = useRef(now)
+
+  useEffect(() => {
+    onCompleteRef.current = onComplete
+    onFailedRef.current = onFailed
+    onErrorRef.current = onError
+    nowRef.current = now
+  }, [now, onComplete, onError, onFailed])
 
   useEffect(() => {
     if (!jobId || !enabled) {
@@ -78,7 +89,7 @@ export function useJobPolling(
     let timeoutId: ReturnType<typeof setTimeout> | undefined
     let cancelled = false
 
-    startTimeRef.current = now()
+    startTimeRef.current = nowRef.current()
     setJob(null)
     setError(null)
     setAttemptCount(0)
@@ -98,23 +109,24 @@ export function useJobPolling(
           setIsPolling(false)
 
           if (status === 'completed') {
-            onComplete?.(response, getJobInvalidationKeys(response.job_type))
+            onCompleteRef.current?.(response, getJobInvalidationKeys(response.job_type))
           } else {
-            onFailed?.(response)
+            onFailedRef.current?.(response)
           }
 
           return
         }
 
-        const elapsedMs = now() - (startTimeRef.current ?? now())
-        // eslint-disable-next-line no-restricted-syntax
+        const currentTime = nowRef.current()
+        const elapsedMs = currentTime - (startTimeRef.current ?? currentTime)
+        // eslint-disable-next-line no-restricted-syntax -- this IS the polling primitive
         timeoutId = setTimeout(poll, getJobPollingIntervalMs(elapsedMs))
       } catch (requestError) {
         if (cancelled) return
 
         setError(requestError)
         setIsPolling(false)
-        onError?.(requestError)
+        onErrorRef.current?.(requestError)
       }
     }
 
@@ -127,7 +139,7 @@ export function useJobPolling(
         clearTimeout(timeoutId)
       }
     }
-  }, [enabled, jobId, now, onComplete, onError, onFailed])
+  }, [enabled, jobId])
 
   return {
     job,
