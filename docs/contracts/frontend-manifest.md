@@ -37,12 +37,19 @@ These are called for in `docs/designs/frontend-architecture.md`:
 |--------------------|-------------------------|---------|---------------------------------|
 | cn()               | shared/lib/utils.ts     | planned | Tailwind class merging          |
 | getCycleProgress() | shared/lib/progress.ts  | planned | Derive workflow step completion |
+| query key factories | shared/queryKeys.ts     | exists  | Canonical query key builders by domain |
 
 ## Shared Hooks (`shared/hooks/`)
 
 | Hook          | Path                          | Status  | Purpose                    |
 |---------------|-------------------------------|---------|----------------------------|
 | useJobPoller  | shared/hooks/useJobPoller.ts  | planned | Adaptive async job polling |
+
+## Feature Hooks (`features/*`)
+
+| Hook          | Path                               | Status  | Purpose                              |
+|---------------|------------------------------------|---------|--------------------------------------|
+| useJobPolling | features/jobs/useJobPolling.ts     | exists  | Adaptive job polling for async runs  |
 
 ## Shared Config (`shared/config/`)
 
@@ -83,13 +90,14 @@ Update this table as feature modules are built.
 
 | Feature       | Status      | api | queries | mutations | ui  |
 |---------------|-------------|-----|---------|-----------|-----|
-| shows         | in progress | exists | -       | -         | -   |
-| cycles        | not started | -   | -       | -         | -   |
-| segments      | not started | -   | -       | -         | -   |
-| frames        | not started | -   | -       | -         | -   |
-| variants      | not started | -   | -       | -         | -   |
-| experiments   | not started | -   | -       | -         | -   |
-| observations  | not started | -   | -       | -         | -   |
-| decisions     | not started | -   | -       | -         | -   |
-| memos         | not started | -   | -       | -         | -   |
-| jobs          | not started | -   | -       | -         | -   |
+| shows         | in progress | exists | exists  | -         | -   |
+| cycles        | in progress | -   | exists  | -         | -   |
+| segments      | in progress | -   | exists  | -         | -   |
+| frames        | in progress | -   | exists  | -         | -   |
+| variants      | in progress | -   | exists  | -         | -   |
+| experiments   | in progress | -   | exists  | -         | -   |
+| observations  | in progress | -   | exists  | -         | -   |
+| decisions     | in progress | -   | exists  | -         | -   |
+| memos         | in progress | -   | exists  | -         | -   |
+| jobs          | in progress | exists | exists  | -         | -   |
+| events        | in progress | -   | exists  | -         | -   |
