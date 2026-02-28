@@ -132,7 +132,7 @@ class TestGetActiveExperiments:
             experiment_id=uuid4(), show_id=show.show_id,
             segment_id=seg.segment_id, frame_id=frame.frame_id,
             channel="meta", objective="ticket_sales",
-            budget_cap_cents=5000, status=ExperimentStatus.RUNNING,
+            budget_cap_cents=5000, status=ExperimentStatus.ACTIVE,
             start_time=datetime.now(timezone.utc), end_time=None,
             baseline_snapshot={},
         )
@@ -146,7 +146,7 @@ class TestGetActiveExperiments:
         )
         assert len(result["experiments"]) == 1
         assert result["experiments"][0]["segment_name"] == "Test Segment"
-        assert result["experiments"][0]["status"] == "running"
+        assert result["experiments"][0]["status"] == "active"
 
     def test_excludes_completed_experiments(self, repos):
         show = _create_show(repos["show_repo"])
@@ -154,7 +154,7 @@ class TestGetActiveExperiments:
             experiment_id=uuid4(), show_id=show.show_id,
             segment_id=uuid4(), frame_id=uuid4(),
             channel="meta", objective="ticket_sales",
-            budget_cap_cents=5000, status=ExperimentStatus.COMPLETED,
+            budget_cap_cents=5000, status=ExperimentStatus.DECIDED,
             start_time=datetime.now(timezone.utc), end_time=None,
             baseline_snapshot={},
         )
@@ -180,7 +180,7 @@ class TestGetBudgetStatus:
             experiment_id=uuid4(), show_id=show.show_id,
             segment_id=uuid4(), frame_id=uuid4(),
             channel="meta", objective="ticket_sales",
-            budget_cap_cents=5000, status=ExperimentStatus.RUNNING,
+            budget_cap_cents=5000, status=ExperimentStatus.ACTIVE,
             start_time=datetime.now(timezone.utc), end_time=None,
             baseline_snapshot={},
         )
@@ -247,7 +247,7 @@ class TestQueryKnowledgeBase:
             experiment_id=uuid4(), show_id=show.show_id,
             segment_id=seg.segment_id, frame_id=frame.frame_id,
             channel="meta", objective="ticket_sales",
-            budget_cap_cents=5000, status=ExperimentStatus.COMPLETED,
+            budget_cap_cents=5000, status=ExperimentStatus.DECIDED,
             start_time=datetime.now(timezone.utc) - timedelta(days=14),
             end_time=datetime.now(timezone.utc) - timedelta(days=7),
             baseline_snapshot={"cac_cents": 800},
@@ -279,7 +279,7 @@ class TestQueryKnowledgeBase:
             experiment_id=uuid4(), show_id=show.show_id,
             segment_id=uuid4(), frame_id=uuid4(),
             channel="meta", objective="ticket_sales",
-            budget_cap_cents=5000, status=ExperimentStatus.COMPLETED,
+            budget_cap_cents=5000, status=ExperimentStatus.DECIDED,
             start_time=None, end_time=None, baseline_snapshot={},
         )
         repos["exp_repo"].save(exp)
@@ -300,7 +300,7 @@ class TestQueryKnowledgeBase:
             experiment_id=uuid4(), show_id=show.show_id,
             segment_id=uuid4(), frame_id=uuid4(),
             channel="meta", objective="ticket_sales",
-            budget_cap_cents=5000, status=ExperimentStatus.COMPLETED,
+            budget_cap_cents=5000, status=ExperimentStatus.DECIDED,
             start_time=None, end_time=None, baseline_snapshot={},
         )
         repos["exp_repo"].save(exp)

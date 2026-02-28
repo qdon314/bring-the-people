@@ -73,7 +73,7 @@ def _setup_cycle_data(repos):
     repos["exp_repo"].save(Experiment(
         experiment_id=exp_id, show_id=show_id, segment_id=seg_id,
         frame_id=frame_id, channel="meta", objective="ticket_sales",
-        budget_cap_cents=15000, status=ExperimentStatus.COMPLETED,
+        budget_cap_cents=15000, status=ExperimentStatus.DECIDED,
         start_time=cycle_start, end_time=cycle_end,
         baseline_snapshot={"tickets_sold": 50},
     ))
