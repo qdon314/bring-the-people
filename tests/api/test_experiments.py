@@ -62,7 +62,7 @@ class TestExperimentsAPI:
         assert resp.status_code == 200
         assert len(resp.json()) == 3
 
-    def test_submit_for_approval(self, client):
+    def test_launch_from_draft(self, client):
         show_id = _create_show(client)
         create_resp = client.post("/api/experiments", json={
             "show_id": show_id,
@@ -73,11 +73,61 @@ class TestExperimentsAPI:
         })
         exp_id = create_resp.json()["experiment_id"]
 
-        resp = client.post(f"/api/experiments/{exp_id}/submit")
+        resp = client.post(f"/api/experiments/{exp_id}/launch")
+        assert resp.status_code == 200
+        assert resp.json()["status"] == "active"
+        assert resp.json()["start_time"] is not None
+
+    def test_launch_from_awaiting_approval(self, client):
+        """Cross-cycle: awaiting_approval experiments can be re-launched."""
+        show_id = _create_show(client)
+        create_resp = client.post("/api/experiments", json={
+            "show_id": show_id,
+            "segment_id": str(uuid4()),
+            "frame_id": str(uuid4()),
+            "channel": "meta",
+            "budget_cap_cents": 5000,
+        })
+        exp_id = create_resp.json()["experiment_id"]
+
+        # Transition to awaiting_approval first
+        client.post(f"/api/experiments/{exp_id}/request-reapproval")
+
+        resp = client.post(f"/api/experiments/{exp_id}/launch")
+        assert resp.status_code == 200
+        assert resp.json()["status"] == "active"
+
+    def test_launch_from_active_fails(self, client):
+        show_id = _create_show(client)
+        create_resp = client.post("/api/experiments", json={
+            "show_id": show_id,
+            "segment_id": str(uuid4()),
+            "frame_id": str(uuid4()),
+            "channel": "meta",
+            "budget_cap_cents": 5000,
+        })
+        exp_id = create_resp.json()["experiment_id"]
+
+        client.post(f"/api/experiments/{exp_id}/launch")
+        resp = client.post(f"/api/experiments/{exp_id}/launch")
+        assert resp.status_code == 409
+
+    def test_request_reapproval_from_draft(self, client):
+        show_id = _create_show(client)
+        create_resp = client.post("/api/experiments", json={
+            "show_id": show_id,
+            "segment_id": str(uuid4()),
+            "frame_id": str(uuid4()),
+            "channel": "meta",
+            "budget_cap_cents": 5000,
+        })
+        exp_id = create_resp.json()["experiment_id"]
+
+        resp = client.post(f"/api/experiments/{exp_id}/request-reapproval")
         assert resp.status_code == 200
         assert resp.json()["status"] == "awaiting_approval"
 
-    def test_approve_experiment(self, client):
+    def test_request_reapproval_from_active_fails(self, client):
         show_id = _create_show(client)
         create_resp = client.post("/api/experiments", json={
             "show_id": show_id,
@@ -88,70 +138,6 @@ class TestExperimentsAPI:
         })
         exp_id = create_resp.json()["experiment_id"]
 
-        # Submit for approval
-        client.post(f"/api/experiments/{exp_id}/submit")
-
-        # Approve
-        resp = client.post(f"/api/experiments/{exp_id}/approve", json={
-            "approved": True,
-            "notes": "Looks good",
-        })
-        assert resp.status_code == 200
-        assert resp.json()["status"] == "approved"
-
-    def test_reject_experiment(self, client):
-        show_id = _create_show(client)
-        create_resp = client.post("/api/experiments", json={
-            "show_id": show_id,
-            "segment_id": str(uuid4()),
-            "frame_id": str(uuid4()),
-            "channel": "meta",
-            "budget_cap_cents": 5000,
-        })
-        exp_id = create_resp.json()["experiment_id"]
-
-        client.post(f"/api/experiments/{exp_id}/submit")
-
-        resp = client.post(f"/api/experiments/{exp_id}/approve", json={
-            "approved": False,
-            "notes": "Budget too high",
-        })
-        assert resp.status_code == 200
-        assert resp.json()["status"] == "draft"
-
-    def test_approve_without_submit_fails(self, client):
-        show_id = _create_show(client)
-        create_resp = client.post("/api/experiments", json={
-            "show_id": show_id,
-            "segment_id": str(uuid4()),
-            "frame_id": str(uuid4()),
-            "channel": "meta",
-            "budget_cap_cents": 5000,
-        })
-        exp_id = create_resp.json()["experiment_id"]
-
-        resp = client.post(f"/api/experiments/{exp_id}/approve", json={
-            "approved": True,
-            "notes": "",
-        })
-        assert resp.status_code == 409  # Conflict — wrong state
-
-    def test_start_approved_experiment(self, client):
-        show_id = _create_show(client)
-        create_resp = client.post("/api/experiments", json={
-            "show_id": show_id,
-            "segment_id": str(uuid4()),
-            "frame_id": str(uuid4()),
-            "channel": "meta",
-            "budget_cap_cents": 5000,
-        })
-        exp_id = create_resp.json()["experiment_id"]
-
-        client.post(f"/api/experiments/{exp_id}/submit")
-        client.post(f"/api/experiments/{exp_id}/approve", json={
-            "approved": True, "notes": "",
-        })
-
-        resp = client.post(f"/api/experiments/{exp_id}/start")
-        assert resp.status_code == 200
-        assert resp.json()["status"] == "running"
+        client.post(f"/api/experiments/{exp_id}/launch")
+        resp = client.post(f"/api/experiments/{exp_id}/request-reapproval")
+        assert resp.status_code == 409
