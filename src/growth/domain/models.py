@@ -17,12 +17,9 @@ class ShowPhase(Enum):
 
 class ExperimentStatus(Enum):
     DRAFT = "draft"
+    ACTIVE = "active"
     AWAITING_APPROVAL = "awaiting_approval"
-    APPROVED = "approved"
-    RUNNING = "running"
-    COMPLETED = "completed"
-    STOPPED = "stopped"
-    ARCHIVED = "archived"
+    DECIDED = "decided"
 
 
 class DecisionAction(Enum):

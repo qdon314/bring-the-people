@@ -80,12 +80,12 @@ class TestShow:
 class TestExperimentStatus:
     def test_valid_statuses(self):
         assert ExperimentStatus.DRAFT.value == "draft"
+        assert ExperimentStatus.ACTIVE.value == "active"
         assert ExperimentStatus.AWAITING_APPROVAL.value == "awaiting_approval"
-        assert ExperimentStatus.APPROVED.value == "approved"
-        assert ExperimentStatus.RUNNING.value == "running"
-        assert ExperimentStatus.COMPLETED.value == "completed"
-        assert ExperimentStatus.STOPPED.value == "stopped"
-        assert ExperimentStatus.ARCHIVED.value == "archived"
+        assert ExperimentStatus.DECIDED.value == "decided"
+
+    def test_has_exactly_four_members(self):
+        assert len(ExperimentStatus) == 4
 
 
 class TestDecisionAction:
@@ -135,7 +135,7 @@ class TestExperiment:
             baseline_snapshot={},
         )
         with pytest.raises(AttributeError):
-            exp.status = ExperimentStatus.RUNNING
+            exp.status = ExperimentStatus.ACTIVE
 
 
 class TestObservation:
