@@ -72,6 +72,7 @@ class ShowResponse(BaseModel):
 
 class ExperimentCreate(BaseModel):
     show_id: UUID
+    cycle_id: UUID
     segment_id: UUID
     frame_id: UUID
     channel: str = Field(min_length=1, max_length=50)

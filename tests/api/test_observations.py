@@ -18,6 +18,7 @@ def _create_running_experiment(client) -> tuple[str, str]:
 
     exp_resp = client.post("/api/experiments", json={
         "show_id": show_id,
+        "cycle_id": str(uuid4()),
         "segment_id": str(uuid4()),
         "frame_id": str(uuid4()),
         "channel": "meta",

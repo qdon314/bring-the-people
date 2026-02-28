@@ -114,6 +114,7 @@ Create a new experiment.
 ```json
 {
   "show_id": "uuid",
+  "cycle_id": "uuid",
   "segment_id": "uuid",
   "frame_id": "uuid",
   "channel": "string (1-50 chars)",

@@ -58,7 +58,7 @@ def create_experiment(body: ExperimentCreate, request: Request):
         start_time=None,
         end_time=None,
         baseline_snapshot=body.baseline_snapshot,
-        cycle_id=None,
+        cycle_id=body.cycle_id,
     )
     repo.save(exp)
     return ExperimentResponse.from_domain(exp)
