@@ -1,12 +1,13 @@
 """Frame API routes."""
 from __future__ import annotations
 
+from dataclasses import replace
 from datetime import datetime, timezone
 from uuid import UUID
 
 from fastapi import APIRouter, HTTPException, Request
 
-from growth.app.schemas import FrameResponse, ReviewAction, ReviewRequest
+from growth.app.schemas import FrameResponse, FrameUpdate, ReviewAction, ReviewRequest
 from growth.domain.models import ReviewStatus
 
 router = APIRouter()
@@ -35,6 +36,30 @@ def get_frame(frame_id: UUID, request: Request):
     if frame is None:
         raise HTTPException(404, "Frame not found")
     return FrameResponse.from_domain(frame)
+
+
+@router.patch("/{frame_id}", response_model=FrameResponse)
+def update_frame(frame_id: UUID, body: FrameUpdate, request: Request):
+    repo = request.state.container.frame_repo()
+    frame = repo.get_by_id(frame_id)
+    if frame is None:
+        raise HTTPException(404, "Frame not found")
+
+    updates = {}
+    if "hypothesis" in body.model_fields_set:
+        updates["hypothesis"] = body.hypothesis
+    if "promise" in body.model_fields_set:
+        updates["promise"] = body.promise
+    if "evidence_refs" in body.model_fields_set:
+        updates["evidence_refs"] = body.evidence_refs
+    if "channel" in body.model_fields_set:
+        updates["channel"] = body.channel
+    if "risk_notes" in body.model_fields_set:
+        updates["risk_notes"] = body.risk_notes
+
+    updated = replace(frame, **updates)
+    repo.save(updated)
+    return FrameResponse.from_domain(updated)
 
 
 @router.post("/{frame_id}/review", response_model=FrameResponse)

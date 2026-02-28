@@ -234,6 +234,22 @@ class CycleResponse(BaseModel):
 
 # --- Segment schemas ---
 
+class SegmentUpdate(BaseModel):
+    name: Optional[str] = Field(default=None, min_length=1, max_length=255)
+    definition_json: Optional[dict[str, Any]] = None
+    estimated_size: Optional[int] = Field(default=None, ge=0)
+
+    @model_validator(mode="after")
+    def has_at_least_one_field(self):
+        if not self.model_fields_set:
+            raise ValueError("at least one field must be provided")
+        if "name" in self.model_fields_set and self.name is None:
+            raise ValueError("name cannot be null")
+        if "definition_json" in self.model_fields_set and self.definition_json is None:
+            raise ValueError("definition_json cannot be null")
+        return self
+
+
 class SegmentResponse(BaseModel):
     segment_id: UUID
     show_id: UUID
@@ -263,6 +279,28 @@ class SegmentResponse(BaseModel):
 
 
 # --- Frame schemas ---
+
+class FrameUpdate(BaseModel):
+    hypothesis: Optional[str] = Field(default=None, min_length=1)
+    promise: Optional[str] = Field(default=None, min_length=1)
+    evidence_refs: Optional[list[dict[str, Any]]] = None
+    channel: Optional[str] = Field(default=None, min_length=1, max_length=50)
+    risk_notes: Optional[str] = None
+
+    @model_validator(mode="after")
+    def has_at_least_one_field(self):
+        if not self.model_fields_set:
+            raise ValueError("at least one field must be provided")
+        if "hypothesis" in self.model_fields_set and self.hypothesis is None:
+            raise ValueError("hypothesis cannot be null")
+        if "promise" in self.model_fields_set and self.promise is None:
+            raise ValueError("promise cannot be null")
+        if "evidence_refs" in self.model_fields_set and self.evidence_refs is None:
+            raise ValueError("evidence_refs cannot be null")
+        if "channel" in self.model_fields_set and self.channel is None:
+            raise ValueError("channel cannot be null")
+        return self
+
 
 class FrameResponse(BaseModel):
     frame_id: UUID
@@ -297,6 +335,24 @@ class FrameResponse(BaseModel):
 
 
 # --- Variant schemas ---
+
+class VariantUpdate(BaseModel):
+    hook: Optional[str] = Field(default=None, min_length=1)
+    body: Optional[str] = Field(default=None, min_length=1)
+    cta: Optional[str] = Field(default=None, min_length=1)
+
+    @model_validator(mode="after")
+    def has_at_least_one_field(self):
+        if not self.model_fields_set:
+            raise ValueError("at least one field must be provided")
+        if "hook" in self.model_fields_set and self.hook is None:
+            raise ValueError("hook cannot be null")
+        if "body" in self.model_fields_set and self.body is None:
+            raise ValueError("body cannot be null")
+        if "cta" in self.model_fields_set and self.cta is None:
+            raise ValueError("cta cannot be null")
+        return self
+
 
 class VariantResponse(BaseModel):
     variant_id: UUID
