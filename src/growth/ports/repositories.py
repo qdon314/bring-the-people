@@ -1,7 +1,6 @@
 """Repository protocols (ports) for the domain."""
 from __future__ import annotations
 
-from datetime import datetime
 from typing import Protocol
 from uuid import UUID
 
@@ -112,6 +111,10 @@ class ShowRepository(Protocol):
 
     def list_all(self) -> list[Show]:
         """Get all shows."""
+        ...
+
+    def delete(self, show_id: UUID) -> bool:
+        """Delete a show by ID; returns True if deleted, False if not found."""
         ...
 
 

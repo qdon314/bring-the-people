@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from uuid import UUID, uuid4
 
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, HTTPException, Request, Response, status
 
 from growth.app.schemas import ShowCreate, ShowResponse, ShowUpdate
 from growth.domain.models import Show
@@ -29,6 +29,7 @@ def create_show(body: ShowCreate, request: Request):
         tickets_total=body.tickets_total,
         tickets_sold=body.tickets_sold,
         currency=body.currency,
+        ticket_base_url=body.ticket_base_url,
     )
     repo.save(show)
     return ShowResponse.from_domain(show)
@@ -65,3 +66,12 @@ def update_show(show_id: UUID, body: ShowUpdate, request: Request):
     updated_show = Show(**current)
     repo.save(updated_show)
     return ShowResponse.from_domain(updated_show)
+
+
+@router.delete("/{show_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_show(show_id: UUID, request: Request):
+    repo = _get_show_repo(request)
+    deleted = repo.delete(show_id)
+    if not deleted:
+        raise HTTPException(status_code=404, detail="Show not found")
+    return Response(status_code=status.HTTP_204_NO_CONTENT)

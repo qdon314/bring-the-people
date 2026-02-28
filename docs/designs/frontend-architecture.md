@@ -137,14 +137,14 @@ Frontend needs content-editing endpoints (name, description, copy text):
 - `PATCH /api/variants/{id}`
 These are distinct from the existing `POST /review` routes which handle review status changes only.
 
-3. Missing DELETE show route used by frontend  
-Frontend calls `DELETE /api/shows/{id}`; backend route is absent.
+3. Show deletion route is implemented  
+Canonical route: `DELETE /api/shows/{show_id}`.
 
-4. Experiment `cycle_id` dropped on create  
-Frontend sends `cycle_id`; backend schema/create path currently drops it.
+4. Experiment `cycle_id` is persisted on create  
+Canonical create payload includes `cycle_id`, and backend persists it.
 
-5. Show `ticket_base_url` dropped on create  
-`ShowCreate` includes field, but create route currently does not persist it.
+5. Show `ticket_base_url` is persisted on create  
+`ShowCreate` includes `ticket_base_url`, and create route persists and returns it.
 
 6. Keep review status mapping canonical  
 `approve|reject` actions must map to persisted `approved|rejected` values.

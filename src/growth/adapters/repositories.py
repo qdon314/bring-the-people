@@ -212,6 +212,58 @@ class SQLAlchemyShowRepository(ShowRepository):
         orms = self._session.query(ShowORM).all()
         return [_show_to_domain(orm) for orm in orms]
 
+    def delete(self, show_id: UUID) -> bool:
+        show_id_str = str(show_id)
+        show_orm = self._session.get(ShowORM, show_id_str)
+        if show_orm is None:
+            return False
+
+        frame_ids = [
+            frame_id
+            for frame_id, in self._session.query(CreativeFrameORM.frame_id).filter_by(show_id=show_id_str).all()
+        ]
+        experiment_ids = [
+            experiment_id
+            for experiment_id, in self._session.query(ExperimentORM.experiment_id).filter_by(show_id=show_id_str).all()
+        ]
+
+        if frame_ids:
+            self._session.query(CreativeVariantORM).filter(
+                CreativeVariantORM.frame_id.in_(frame_ids)
+            ).delete(synchronize_session=False)
+
+        self._session.query(CreativeFrameORM).filter_by(show_id=show_id_str).delete(
+            synchronize_session=False
+        )
+        self._session.query(AudienceSegmentORM).filter_by(show_id=show_id_str).delete(
+            synchronize_session=False
+        )
+
+        if experiment_ids:
+            self._session.query(ObservationORM).filter(
+                ObservationORM.experiment_id.in_(experiment_ids)
+            ).delete(synchronize_session=False)
+            self._session.query(DecisionORM).filter(
+                DecisionORM.experiment_id.in_(experiment_ids)
+            ).delete(synchronize_session=False)
+
+        self._session.query(ExperimentORM).filter_by(show_id=show_id_str).delete(
+            synchronize_session=False
+        )
+        self._session.query(ProducerMemoORM).filter_by(show_id=show_id_str).delete(
+            synchronize_session=False
+        )
+        self._session.query(CycleORM).filter_by(show_id=show_id_str).delete(
+            synchronize_session=False
+        )
+        self._session.query(BackgroundJobORM).filter_by(show_id=show_id_str).delete(
+            synchronize_session=False
+        )
+        self._session.query(ShowORM).filter_by(show_id=show_id_str).delete(synchronize_session=False)
+
+        self._session.commit()
+        return True
+
 
 class SQLAlchemyExperimentRepository(ExperimentRepository):
     """SQLAlchemy implementation of ExperimentRepository."""

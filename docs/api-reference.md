@@ -29,7 +29,8 @@ Create a new show.
   "capacity": "integer > 0",
   "tickets_total": "integer >= 0",
   "tickets_sold": "integer >= 0",
-  "currency": "string, 3 chars, default: USD"
+  "currency": "string, 3 chars, default: USD",
+  "ticket_base_url": "string URL (optional)"
 }
 ```
 
@@ -45,7 +46,8 @@ Create a new show.
   "capacity": 200,
   "tickets_total": 200,
   "tickets_sold": 0,
-  "currency": "USD"
+  "currency": "USD",
+  "ticket_base_url": null
 }
 ```
 
@@ -101,6 +103,16 @@ Update a show (partial update).
 **Request Body**: Any subset of show fields
 
 **Response (200)**: Updated show object
+
+---
+
+### `DELETE /shows/{show_id}`
+
+Delete a show and its related workflow artifacts.
+
+**Response (204)**: No Content
+
+**Response (404)**: `{"detail": "Show not found"}`
 
 ---
 
