@@ -43,15 +43,12 @@ verbs with status values. `"approve"` is an action. `"approved"` is a status.
 
 ### Experiment status
 
-| Value             | Meaning                |
-|-------------------|------------------------|
-| draft             | Created, not reviewed  |
-| awaiting_approval | Submitted for approval |
-| approved          | Ready to launch        |
-| running           | Active                 |
-| completed         | Finished               |
-| stopped           | Manually halted        |
-| archived          | No longer active       |
+| Value             | Meaning                                |
+|-------------------|----------------------------------------|
+| draft             | Created, not yet launched              |
+| active            | Ads running externally                 |
+| awaiting_approval | Carried from prior cycle, needs review |
+| decided           | Scale/hold/kill decision recorded      |
 
 ### Decision action
 

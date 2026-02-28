@@ -157,7 +157,7 @@ create table experiments (
   objective text not null,
   budget_cap_cents int not null check (budget_cap_cents > 0),
   status text not null check (status in (
-    'draft','awaiting_approval','approved','running','completed','stopped','archived'
+    'draft','active','awaiting_approval','decided'
   )),
   start_time timestamptz,
   end_time timestamptz,

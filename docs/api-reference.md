@@ -163,46 +163,29 @@ Get a specific experiment.
 
 ---
 
-### `POST /experiments/{experiment_id}/submit`
+### `POST /experiments/{experiment_id}/launch`
 
-Submit a draft experiment for approval.
+Launch an experiment (mark ads as live).
+
+**Transitions**: `draft` or `awaiting_approval` → `active`
+
+Sets `start_time` to current timestamp.
+
+**Response (200)**: Updated experiment
+
+**Response (409)**: Cannot launch from current status
+
+---
+
+### `POST /experiments/{experiment_id}/request-reapproval`
+
+Request reapproval for a draft experiment (cross-cycle carry-forward).
 
 **Transitions**: `draft` → `awaiting_approval`
 
 **Response (200)**: Updated experiment
 
-**Response (409)**: Cannot submit from current status
-
----
-
-### `POST /experiments/{experiment_id}/approve`
-
-Approve or reject an experiment awaiting approval.
-
-**Request Body**:
-```json
-{
-  "approved": true  // or false
-}
-```
-
-**Transitions**:
-- `approved: true` → `approved`
-- `approved: false` → `draft`
-
-**Response (200)**: Updated experiment
-
----
-
-### `POST /experiments/{experiment_id}/start`
-
-Start an approved experiment.
-
-**Transitions**: `approved` → `running`
-
-Sets `start_time` to current timestamp.
-
-**Response (200)**: Updated experiment
+**Response (409)**: Cannot request reapproval from current status
 
 ---
 

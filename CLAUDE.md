@@ -55,7 +55,7 @@ After coding:
 ## Testing expectations
 
 Backend:
-- `uv run pytest`
+- `pytest`
 
 Frontend (v1):
 - `cd frontend && npm run lint`
