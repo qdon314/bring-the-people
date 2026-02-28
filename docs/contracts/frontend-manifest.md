@@ -65,7 +65,7 @@ These are called for in `docs/designs/dashboard.md`:
 
 | File               | Path                              | Status  | Purpose                                  |
 |--------------------|-----------------------------------|---------|------------------------------------------|
-| client.ts          | shared/api/client.ts              | planned | Base fetch wrapper, ApiError class       |
+| client.ts          | shared/api/client.ts              | exists  | Base fetch wrapper, ApiError class       |
 | openapi.json       | shared/api/generated/openapi.json | exists  | Generated OpenAPI schema snapshot         |
 | schema.ts          | shared/api/generated/schema.ts    | exists  | Generated OpenAPI TypeScript definitions |
 
