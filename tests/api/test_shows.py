@@ -1,4 +1,5 @@
 """Tests for the Shows API."""
+from uuid import uuid4
 
 class TestShowsAPI:
     def test_create_show(self, client):
@@ -11,11 +12,13 @@ class TestShowsAPI:
             "capacity": 200,
             "tickets_total": 200,
             "tickets_sold": 0,
+            "ticket_base_url": "https://tickets.example.com/show/test",
         })
         assert resp.status_code == 201
         data = resp.json()
         assert data["artist_name"] == "Test Artist"
         assert "show_id" in data
+        assert data["ticket_base_url"] == "https://tickets.example.com/show/test"
 
     def test_get_show(self, client):
         # Create first
@@ -76,6 +79,61 @@ class TestShowsAPI:
         })
         assert resp.status_code == 200
         assert resp.json()["tickets_sold"] == 50
+
+    def test_delete_show(self, client):
+        create_resp = client.post("/api/shows", json={
+            "artist_name": "Delete Me",
+            "city": "Austin",
+            "venue": "The Parish",
+            "show_time": "2026-05-01T20:00:00Z",
+            "timezone": "America/Chicago",
+            "capacity": 200,
+            "tickets_total": 200,
+            "tickets_sold": 0,
+        })
+        show_id = create_resp.json()["show_id"]
+
+        delete_resp = client.delete(f"/api/shows/{show_id}")
+        assert delete_resp.status_code == 204
+
+        get_resp = client.get(f"/api/shows/{show_id}")
+        assert get_resp.status_code == 404
+
+    def test_delete_show_removes_related_experiments(self, client):
+        create_resp = client.post("/api/shows", json={
+            "artist_name": "Delete With Children",
+            "city": "Austin",
+            "venue": "The Parish",
+            "show_time": "2026-05-01T20:00:00Z",
+            "timezone": "America/Chicago",
+            "capacity": 200,
+            "tickets_total": 200,
+            "tickets_sold": 0,
+        })
+        show_id = create_resp.json()["show_id"]
+
+        exp_resp = client.post("/api/experiments", json={
+            "show_id": show_id,
+            "cycle_id": str(uuid4()),
+            "segment_id": str(uuid4()),
+            "frame_id": str(uuid4()),
+            "channel": "meta",
+            "budget_cap_cents": 5000,
+        })
+        assert exp_resp.status_code == 201
+        experiment_id = exp_resp.json()["experiment_id"]
+
+        delete_resp = client.delete(f"/api/shows/{show_id}")
+        assert delete_resp.status_code == 204
+
+        get_experiment_resp = client.get(f"/api/experiments/{experiment_id}")
+        assert get_experiment_resp.status_code == 404
+
+    def test_delete_show_not_found(self, client):
+        import uuid
+
+        resp = client.delete(f"/api/shows/{uuid.uuid4()}")
+        assert resp.status_code == 404
 
     def test_create_show_invalid_capacity(self, client):
         resp = client.post("/api/shows", json={
