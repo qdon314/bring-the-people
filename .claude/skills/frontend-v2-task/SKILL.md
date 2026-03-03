@@ -1,3 +1,8 @@
+--- 
+name: frontend-v2-task
+description: Workflow and guardrails for frontend-v2 development tasks
+---
+
 # Frontend V2 Task Workflow
 
 Use this skill for all frontend-v2 development tasks. It enforces a 4-phase loop with explicit checkpoints.

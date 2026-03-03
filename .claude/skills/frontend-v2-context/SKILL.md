@@ -1,3 +1,8 @@
+---
+name: frontend-v2-context
+description: Fast-load codebase context for frontend-v2 tasks
+---
+
 # Frontend V2 — Codebase Context
 
 last-verified: 2026-03-03 c74b22a
