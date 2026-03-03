@@ -1,9 +1,29 @@
+import { getShow } from '@/features/shows/api'
+import { getCycle } from '@/features/cycles/api'
+import { AppShell } from '@/features/layout'
+
 interface CycleLayoutProps {
   children: React.ReactNode
   params: { show_id: string; cycle_id: string }
 }
 
-// Scaffold: AppShell, ShowHeader, and CycleStepper will be wired here in V2-022/V2-023/V2-024.
-export default function CycleLayout({ children }: CycleLayoutProps) {
-  return <div className="min-h-screen">{children}</div>
+export default async function CycleLayout({ children, params }: CycleLayoutProps) {
+  const { show_id: showId, cycle_id: cycleId } = params
+
+  // Fetch data server-side
+  const [show, cycle] = await Promise.all([
+    getShow(showId).catch(() => null),
+    getCycle(cycleId).catch(() => null),
+  ])
+
+  return (
+    <AppShell 
+      showId={showId} 
+      cycleId={cycleId}
+      show={show}
+      cycle={cycle}
+    >
+      {children}
+    </AppShell>
+  )
 }

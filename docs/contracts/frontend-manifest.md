@@ -35,7 +35,7 @@ These are called for in `docs/designs/frontend-architecture.md`:
 
 | Function           | Path                    | Status  | Purpose                         |
 |--------------------|-------------------------|---------|---------------------------------|
-| cn()               | shared/lib/utils.ts     | planned | Tailwind class merging          |
+| cn()               | shared/lib/utils.ts     | exists  | Tailwind class merging          |
 | getCycleProgress() | shared/lib/progress.ts  | planned | Derive workflow step completion |
 | getActiveCycle()   | shared/lib/cycles.ts    | exists  | Return most recently started cycle from list |
 | query key factories | shared/queryKeys.ts     | exists  | Canonical query key builders by domain |
@@ -64,36 +64,44 @@ These are called for in `docs/designs/frontend-architecture.md`:
 |---------------|---------------------------|---------|----------------------------|
 | polling.ts    | shared/config/polling.ts  | planned | Polling interval constants |
 
-## Layout Components (`shared/ui/`)
+## Layout Components (`features/layout/`)
 
-These are called for in `docs/designs/dashboard.md`:
+App shell and navigation components for cycle-scoped routes:
+
+| Component       | Path                          | Status | Purpose                              |
+|-----------------|-------------------------------|--------|--------------------------------------|
+| AppShell        | features/layout/AppShell.tsx  | exists | Sidebar + main content layout        |
+| AppShellSkeleton| features/layout/AppShell.tsx  | exists | Loading skeleton for AppShell        |
+| Sidebar         | features/layout/Sidebar.tsx   | exists | Left navigation rail with tabs       |
+| TopBar          | features/layout/TopBar.tsx    | exists | Show name, phase badge, sales       |
+| TopBarSkeleton  | features/layout/TopBar.tsx    | exists | Loading skeleton for TopBar        |
+
+## Show/Cycle Components (`features/shows/ui/`, `features/cycles/ui/`)
 
 | Component     | Path                        | Status  | Purpose                       |
 |---------------|-----------------------------|---------|-------------------------------|
-| AppShell      | shared/ui/AppShell.tsx      | planned | Sidebar + main content layout |
-| Sidebar       | shared/ui/Sidebar.tsx       | planned | Global navigation rail        |
-| ShowHeader    | shared/ui/ShowHeader.tsx    | planned | Show name, phase, dates       |
-| CycleStepper  | shared/ui/CycleStepper.tsx  | planned | Workflow progress indicator   |
+| ShowHeader    | features/shows/ui/ShowHeader.tsx    | planned | Show name, phase, dates       |
+| CycleStepper  | features/cycles/ui/CycleStepper.tsx  | planned | Workflow progress indicator   |
 
 ## API Client (`shared/api/`)
 
-| File               | Path                              | Status  | Purpose                                  |
-|--------------------|-----------------------------------|---------|------------------------------------------|
-| client.ts          | shared/api/client.ts              | exists  | Base fetch wrapper, ApiError class       |
-| openapi.json       | shared/api/generated/openapi.json | exists  | Generated OpenAPI schema snapshot         |
-| schema.ts          | shared/api/generated/schema.ts    | exists  | Generated OpenAPI TypeScript definitions |
-| validators/*       | shared/api/validators/*           | exists  | Runtime response validation functions     |
+| File               | Path                              | Status | Purpose                                  |
+|--------------------|-----------------------------------|--------|------------------------------------------|
+| client.ts          | shared/api/client.ts              | exists | Base fetch wrapper, ApiError class       |
+| openapi.json       | shared/api/generated/openapi.json | exists | Generated OpenAPI schema snapshot         |
+| schema.ts          | shared/api/generated/schema.ts    | exists | Generated OpenAPI TypeScript definitions |
+| validators/*       | shared/api/validators/*           | exists | Runtime response validation functions     |
 
 ## Test Infrastructure
 
-| File               | Path                       | Status  | Purpose                                  |
-|--------------------|----------------------------|---------|------------------------------------------|
-| vitest.config.ts   | vitest.config.ts           | exists  | Vitest config (jsdom, globals, coverage) |
-| vitest.setup.ts    | vitest.setup.ts            | exists  | Test setup (@testing-library/jest-dom)   |
-| playwright.config.ts | playwright.config.ts     | exists  | Playwright e2e config and dev server     |
-| e2e smoke test     | tests/e2e/smoke.spec.ts    | exists  | First end-to-end smoke test               |
-| msw server setup   | test/msw/server.ts         | exists  | Shared MSW server for integration tests    |
-| msw handlers       | test/msw/handlers.ts       | exists  | Baseline mocked API handlers               |
+| File               | Path                       | Status | Purpose                                  |
+|--------------------|----------------------------|--------|------------------------------------------|
+| vitest.config.ts   | vitest.config.ts           | exists | Vitest config (jsdom, globals, coverage) |
+| vitest.setup.ts    | vitest.setup.ts            | exists | Test setup (@testing-library/jest-dom)   |
+| playwright.config.ts | playwright.config.ts     | exists | Playwright e2e config and dev server     |
+| e2e smoke test     | tests/e2e/smoke.spec.ts    | exists | First end-to-end smoke test               |
+| msw server setup   | test/msw/server.ts         | exists | Shared MSW server for integration tests    |
+| msw handlers       | test/msw/handlers.ts       | exists | Baseline mocked API handlers               |
 
 ## Feature Modules (`features/`)
 
@@ -103,6 +111,7 @@ Update this table as feature modules are built.
 |---------------|-------------|-----|---------|-----------|-----|
 | shows         | in progress | exists | exists  | -         | -   |
 | cycles        | in progress | exists | exists  | -         | -   |
+| layout        | exists      | -    | -       | -         | exists |
 | segments      | in progress | -   | exists  | -         | -   |
 | frames        | in progress | -   | exists  | -         | -   |
 | variants      | in progress | -   | exists  | -         | -   |
