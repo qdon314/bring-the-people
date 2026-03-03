@@ -29,7 +29,9 @@ You are working on a FastAPI + Next.js system for live show marketing experiment
 
 ## Frontend contract
 
-Before any frontend task, read these files:
+For all `frontend-v2` tasks, use the `frontend-v2-task` skill. It enforces the spec → patch → test → merge loop and loads codebase context without full exploration.
+
+The skill will direct you to the relevant sections of these files when needed — do not read them in full upfront:
 - `docs/contracts/frontend-contract.md` — canonical rules, patterns, and forbidden anti-patterns.
 - `docs/contracts/frontend-manifest.md` — component/utility inventory. Check before creating anything new.
 
