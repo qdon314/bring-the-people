@@ -38,7 +38,7 @@ describe('apiClient.get', () => {
   it('makes a GET request to the correct URL', async () => {
     vi.mocked(fetch).mockResolvedValue(jsonResponse([]))
 
-    await apiClient.get('/api/shows' as never)
+    await apiClient.get('/api/shows' as never, {} as never)
 
     expect(fetch).toHaveBeenCalledWith(
       'http://localhost:8000/api/shows',
@@ -50,7 +50,7 @@ describe('apiClient.get', () => {
     const data = [{ show_id: '1', artist_name: 'Test' }]
     vi.mocked(fetch).mockResolvedValue(jsonResponse(data))
 
-    const result = await apiClient.get('/api/shows' as never)
+    const result = await apiClient.get('/api/shows' as never, {} as never)
 
     expect(result).toEqual(data)
   })
@@ -172,7 +172,7 @@ describe('error handling', () => {
     vi.mocked(fetch).mockResolvedValue(jsonResponse({ detail }, 422))
 
     try {
-      await apiClient.get('/api/shows' as never)
+      await apiClient.get('/api/shows' as never, {} as never)
     } catch (error) {
       const apiError = error as ApiError
       expect(apiError.message).toBe(JSON.stringify(detail))
@@ -183,7 +183,7 @@ describe('error handling', () => {
     vi.mocked(fetch).mockResolvedValue(jsonResponse({ error: 'something' }, 500))
 
     try {
-      await apiClient.get('/api/shows' as never)
+      await apiClient.get('/api/shows' as never, {} as never)
     } catch (error) {
       const apiError = error as ApiError
       expect(apiError.message).toBe('HTTP 500')
@@ -194,7 +194,7 @@ describe('error handling', () => {
     vi.mocked(fetch).mockResolvedValue(textResponse('Internal Server Error', 500))
 
     try {
-      await apiClient.get('/api/shows' as never)
+      await apiClient.get('/api/shows' as never, {} as never)
     } catch (error) {
       const apiError = error as ApiError
       expect(apiError.status).toBe(500)
