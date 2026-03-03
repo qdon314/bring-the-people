@@ -63,7 +63,7 @@ Frontend (v1):
 
 Frontend (v2):
 - `cd frontend-v2 && npm run lint`
-- `cd frontend-v2 && npm run test` (when test infrastructure is present)
+- `cd frontend-v2 && npm run test`
 - `cd frontend-v2 && npm run build` (when relevant)
 
 Every frontend code change must include or update tests in the same task.

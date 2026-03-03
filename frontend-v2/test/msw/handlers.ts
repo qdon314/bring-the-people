@@ -16,6 +16,21 @@ const defaultShow = {
   ticket_base_url: null,
 }
 
+export const defaultCycles = [
+  {
+    cycle_id: 'cycle-1',
+    show_id: 'show-1',
+    started_at: '2026-02-01T00:00:00Z',
+    label: 'Cycle 1 · Feb 1–7',
+  },
+  {
+    cycle_id: 'cycle-2',
+    show_id: 'show-1',
+    started_at: '2026-02-08T00:00:00Z',
+    label: 'Cycle 2 · Feb 8–14',
+  },
+]
+
 export const handlers = [
   http.get(`${API_BASE_URL}/api/shows`, () => {
     return HttpResponse.json([defaultShow])
@@ -28,5 +43,24 @@ export const handlers = [
     }
 
     return HttpResponse.json({ detail: 'Show not found' }, { status: 404 })
+  }),
+  http.get(`${API_BASE_URL}/api/shows/:showId/cycles`, ({ params }) => {
+    const { showId } = params
+
+    if (showId === defaultShow.show_id) {
+      return HttpResponse.json(defaultCycles)
+    }
+
+    return HttpResponse.json({ detail: 'Show not found' }, { status: 404 })
+  }),
+  http.get(`${API_BASE_URL}/api/cycles/:cycleId`, ({ params }) => {
+    const { cycleId } = params
+    const cycle = defaultCycles.find((c) => c.cycle_id === cycleId)
+
+    if (cycle) {
+      return HttpResponse.json(cycle)
+    }
+
+    return HttpResponse.json({ detail: 'Cycle not found' }, { status: 404 })
   }),
 ]

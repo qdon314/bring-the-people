@@ -12,7 +12,7 @@ Do not try to import planned items.
 Flip `planned` → `exists` when you create the file. Add new rows for items
 not yet listed. This is part of the definition of done.
 
-Last updated: 2026-02-28
+Last updated: 2026-03-03
 
 ---
 
@@ -37,6 +37,7 @@ These are called for in `docs/designs/frontend-architecture.md`:
 |--------------------|-------------------------|---------|---------------------------------|
 | cn()               | shared/lib/utils.ts     | planned | Tailwind class merging          |
 | getCycleProgress() | shared/lib/progress.ts  | planned | Derive workflow step completion |
+| getActiveCycle()   | shared/lib/cycles.ts    | exists  | Return most recently started cycle from list |
 | query key factories | shared/queryKeys.ts     | exists  | Canonical query key builders by domain |
 
 ## Shared Error Utilities (`shared/errors/`)
@@ -101,7 +102,7 @@ Update this table as feature modules are built.
 | Feature       | Status      | api | queries | mutations | ui  |
 |---------------|-------------|-----|---------|-----------|-----|
 | shows         | in progress | exists | exists  | -         | -   |
-| cycles        | in progress | -   | exists  | -         | -   |
+| cycles        | in progress | exists | exists  | -         | -   |
 | segments      | in progress | -   | exists  | -         | -   |
 | frames        | in progress | -   | exists  | -         | -   |
 | variants      | in progress | -   | exists  | -         | -   |
