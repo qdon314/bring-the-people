@@ -16,6 +16,20 @@ const defaultShow = {
   ticket_base_url: null,
 }
 
+const emptyCyclesShow = {
+  show_id: 'show-empty',
+  artist_name: 'Empty Show',
+  city: 'Nashville',
+  venue: 'The Bluebird',
+  show_time: '2026-06-01T20:00:00Z',
+  timezone: 'America/Chicago',
+  capacity: 100,
+  tickets_total: 100,
+  tickets_sold: 0,
+  currency: 'USD',
+  ticket_base_url: null,
+}
+
 export const defaultCycles = [
   {
     cycle_id: 'cycle-1',
@@ -33,13 +47,17 @@ export const defaultCycles = [
 
 export const handlers = [
   http.get(`${API_BASE_URL}/api/shows`, () => {
-    return HttpResponse.json([defaultShow])
+    return HttpResponse.json([defaultShow, emptyCyclesShow])
   }),
   http.get(`${API_BASE_URL}/api/shows/:showId`, ({ params }) => {
     const { showId } = params
 
     if (showId === defaultShow.show_id) {
       return HttpResponse.json(defaultShow)
+    }
+
+    if (showId === emptyCyclesShow.show_id) {
+      return HttpResponse.json(emptyCyclesShow)
     }
 
     return HttpResponse.json({ detail: 'Show not found' }, { status: 404 })
@@ -49,6 +67,10 @@ export const handlers = [
 
     if (showId === defaultShow.show_id) {
       return HttpResponse.json(defaultCycles)
+    }
+
+    if (showId === emptyCyclesShow.show_id) {
+      return HttpResponse.json([])
     }
 
     return HttpResponse.json({ detail: 'Show not found' }, { status: 404 })

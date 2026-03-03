@@ -21,6 +21,13 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000'
 
 describe('shows API integration (MSW)', () => {
   it('lists shows via apiClient + validator stack', async () => {
+    // Override handler to return single show for this test
+    server.use(
+      http.get(`${API_BASE_URL}/api/shows`, () =>
+        HttpResponse.json([validShow])
+      )
+    )
+
     const shows = await listShows()
 
     expect(shows).toEqual([validShow])
