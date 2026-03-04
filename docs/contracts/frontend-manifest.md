@@ -12,7 +12,7 @@ Do not try to import planned items.
 Flip `planned` → `exists` when you create the file. Add new rows for items
 not yet listed. This is part of the definition of done.
 
-Last updated: 2026-03-03
+Last updated: 2026-03-04
 
 ---
 
@@ -36,7 +36,7 @@ These are called for in `docs/designs/frontend-architecture.md`:
 | Function           | Path                    | Status  | Purpose                         |
 |--------------------|-------------------------|---------|---------------------------------|
 | cn()               | shared/lib/utils.ts     | exists  | Tailwind class merging          |
-| getCycleProgress() | shared/lib/progress.ts  | planned | Derive workflow step completion |
+| getCycleProgress() | features/cycles/getCycleProgress.ts | exists  | Derive workflow step completion |
 | getActiveCycle()   | shared/lib/cycles.ts    | exists  | Return most recently started cycle from list |
 | query key factories | shared/queryKeys.ts     | exists  | Canonical query key builders by domain |
 
@@ -80,8 +80,8 @@ App shell and navigation components for cycle-scoped routes:
 
 | Component     | Path                        | Status  | Purpose                       |
 |---------------|-----------------------------|---------|-------------------------------|
-| ShowHeader    | features/shows/ui/ShowHeader.tsx    | planned | Show name, phase, dates       |
-| CycleStepper  | features/cycles/ui/CycleStepper.tsx  | planned | Workflow progress indicator   |
+| ShowHeader    | features/shows/ui/ShowHeader.tsx    | exists  | Show name, phase, dates       |
+| CycleStepper  | features/cycles/ui/CycleStepper.tsx  | exists  | Workflow progress indicator   |
 
 ## API Client (`shared/api/`)
 
@@ -109,7 +109,7 @@ Update this table as feature modules are built.
 
 | Feature       | Status      | api | queries | mutations | ui  |
 |---------------|-------------|-----|---------|-----------|-----|
-| shows         | in progress | exists | exists  | -         | -   |
+| shows         | in progress | exists | exists  | -         | exists |
 | cycles        | in progress | exists | exists  | -         | -   |
 | layout        | exists      | -    | -       | -         | exists |
 | segments      | in progress | -   | exists  | -         | -   |
