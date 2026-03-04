@@ -3,7 +3,9 @@
 import React from 'react'
 import { Sidebar } from './Sidebar'
 import { TopBar, TopBarSkeleton } from './TopBar'
+import { CycleStepper, CycleStepperSkeleton } from '@/features/cycles/ui/CycleStepper'
 import type { components } from '@/shared/api/generated/schema'
+import type { CycleProgress } from '@/features/cycles/getCycleProgress'
 
 type ShowResponse = components['schemas']['ShowResponse']
 type CycleResponse = components['schemas']['CycleResponse']
@@ -16,16 +18,18 @@ interface AppShellProps {
   cycle?: CycleResponse | null
   isLoading?: boolean
   error?: Error | null
+  progress?: CycleProgress | null
 }
 
-export function AppShell({ 
-  children, 
-  showId, 
-  cycleId, 
-  show, 
-  cycle, 
+export function AppShell({
+  children,
+  showId,
+  cycleId,
+  show,
+  cycle,
   isLoading = false,
-  error = null 
+  error = null,
+  progress = null,
 }: AppShellProps) {
   return (
     <div className="flex h-screen w-full flex-col bg-bg">
@@ -42,6 +46,13 @@ export function AppShell({
         <TopBar show={show} cycle={cycle} />
       ) : (
         <TopBarSkeleton />
+      )}
+
+      {/* Cycle stepper */}
+      {isLoading ? (
+        <CycleStepperSkeleton />
+      ) : (
+        <CycleStepper showId={showId} cycleId={cycleId} progress={progress} />
       )}
 
       <div className="flex flex-1 overflow-hidden">

@@ -17,11 +17,12 @@ export default async function CycleLayout({ children, params }: CycleLayoutProps
   ])
 
   return (
-    <AppShell 
-      showId={showId} 
+    <AppShell
+      showId={showId}
       cycleId={cycleId}
       show={show}
       cycle={cycle}
+      progress={null}
     >
       {children}
     </AppShell>

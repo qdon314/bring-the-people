@@ -5,7 +5,7 @@ description: Fast-load codebase context for frontend-v2 tasks
 
 # Frontend V2 — Codebase Context
 
-last-verified: 2026-03-03 c74b22a
+last-verified: 2026-03-04 V2-024
 
 This is a fast-load reference. Do not use code-explorer for frontend-v2 tasks.
 Load this skill, then go directly to the files you need to modify.
@@ -116,8 +116,14 @@ queryKeys.cycles.list(showId)
 | validators | `shared/api/validators/` | Runtime response validation |
 | MSW server | `test/msw/server.ts` | Integration test server |
 | MSW handlers | `test/msw/handlers.ts` | Baseline API mocks |
+| `getCycleProgress()` | `features/cycles/getCycleProgress.ts` | Derive workflow step completion from snapshot |
+| `CycleStepper` | `features/cycles/ui/CycleStepper.tsx` | Horizontal step progress indicator (props: showId, cycleId, progress) |
+| `CycleStepperSkeleton` | `features/cycles/ui/CycleStepper.tsx` | Loading skeleton for CycleStepper |
+| `AppShell` | `features/layout/AppShell.tsx` | Cycle layout shell (TopBar + CycleStepper + Sidebar + content) |
+| `AppShellSkeleton` | `features/layout/AppShell.tsx` | Loading skeleton for AppShell |
+| `ShowHeader` | `features/shows/ui/ShowHeader.tsx` | Show name, phase badge, dates |
 
-**Planned (do not import yet):** `cn()`, `getCycleProgress()`, `AppShell`, `Sidebar`, `ShowHeader`, `CycleStepper`, `StatusBadge`, `ErrorBanner`, `EmptyState`, `SpinnerIcon`, `Dialog`, `useJobPoller`.
+**Planned (do not import yet):** `cn()`, `StatusBadge`, `ErrorBanner`, `EmptyState`, `SpinnerIcon`, `Dialog`, `useJobPoller`.
 See `docs/contracts/frontend-manifest.md` for full inventory.
 
 ---

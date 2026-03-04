@@ -1,8 +1,21 @@
 import React from 'react'
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { AppShell, AppShellSkeleton, TopBar, TopBarSkeleton } from './index'
 import type { components } from '@/shared/api/generated/schema'
+import type { CycleProgress } from '@/features/cycles/getCycleProgress'
+
+vi.mock('next/navigation', () => ({
+  usePathname: vi.fn(() => '/shows/show-123/cycles/cycle-456/overview'),
+}))
+
+vi.mock('next/link', () => ({
+  default: ({ href, children, ...props }: React.AnchorHTMLAttributes<HTMLAnchorElement> & { href: string }) => (
+    <a href={href} {...props}>
+      {children}
+    </a>
+  ),
+}))
 
 // Mock types
 const mockShow: components['schemas']['ShowResponse'] = {
@@ -91,6 +104,50 @@ describe('AppShell', () => {
     // Sidebar should have navigation items
     const nav = document.querySelector('nav')
     expect(nav).toBeInTheDocument()
+  })
+
+  it('renders CycleStepper with step labels', () => {
+    render(
+      <AppShell showId="show-123" cycleId="cycle-456">
+        <div>Content</div>
+      </AppShell>
+    )
+
+    const stepper = screen.getByRole('navigation', { name: /cycle workflow progress/i })
+    expect(stepper).toBeInTheDocument()
+    expect(stepper).toHaveTextContent('Plan')
+    expect(stepper).toHaveTextContent('Memo')
+  })
+
+  it('renders CycleStepper with completion state when progress is provided', () => {
+    const progress: CycleProgress = {
+      planComplete: true,
+      createComplete: false,
+      runComplete: false,
+      resultsComplete: false,
+      memoComplete: false,
+      nextAction: 'create',
+    }
+
+    render(
+      <AppShell showId="show-123" cycleId="cycle-456" progress={progress}>
+        <div>Content</div>
+      </AppShell>
+    )
+
+    expect(screen.getByLabelText('complete')).toBeInTheDocument()
+  })
+
+  it('renders CycleStepperSkeleton when isLoading is true', () => {
+    render(
+      <AppShell showId="show-123" cycleId="cycle-456" isLoading>
+        <div>Content</div>
+      </AppShell>
+    )
+
+    // Stepper skeleton is aria-hidden
+    const stepperSkeletons = document.querySelectorAll('[aria-hidden="true"] .animate-pulse')
+    expect(stepperSkeletons.length).toBeGreaterThan(0)
   })
 })
 
