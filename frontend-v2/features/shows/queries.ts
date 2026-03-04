@@ -1,8 +1,9 @@
 'use client'
 
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { queryKeys } from '@/shared/queryKeys'
-import { listShows, getShow } from './api'
+import { listShows, getShow, createShow } from './api'
+import type { components } from '@/shared/api/generated/schema'
 
 export function useShows() {
   return useQuery({
@@ -16,5 +17,15 @@ export function useShow(showId: string) {
     queryKey: queryKeys.shows.detail(showId),
     queryFn: () => getShow(showId),
     enabled: !!showId,
+  })
+}
+
+export function useCreateShow() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (body: components['schemas']['ShowCreate']) => createShow(body),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.shows.list() })
+    },
   })
 }
