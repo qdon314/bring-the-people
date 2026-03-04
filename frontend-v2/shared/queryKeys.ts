@@ -59,8 +59,7 @@ export const observationKeys = {
 export const decisionKeys = {
   all: () => ['decisions'] as const,
   lists: () => ['decisions', 'list'] as const,
-  list: (showId: string, cycleId?: string) =>
-    cycleId ? (['decisions', 'list', showId, cycleId] as const) : (['decisions', 'list', showId] as const),
+  list: (experimentId: string) => ['decisions', 'list', experimentId] as const,
 } as const
 
 export const memoKeys = {
