@@ -5,7 +5,7 @@ description: Fast-load codebase context for frontend-v2 tasks
 
 # Frontend V2 — Codebase Context
 
-last-verified: 2026-03-04 V2-024
+last-verified: 2026-03-04 V2-025
 
 This is a fast-load reference. Do not use code-explorer for frontend-v2 tasks.
 Load this skill, then go directly to the files you need to modify.
@@ -33,7 +33,7 @@ frontend-v2/
   features/                     # Feature modules — one folder per domain
     cycles/    shows/    segments/    frames/    variants/
     experiments/    observations/    decisions/    memos/
-    jobs/    events/
+    jobs/    events/    overview/
   shared/
     api/
       client.ts                 # Base fetch wrapper + ApiError class
@@ -112,7 +112,8 @@ queryKeys.cycles.list(showId)
 | `getActiveCycle()` | `shared/lib/cycles.ts` | Active cycle from list |
 | `mapApiError()` | `shared/errors/mapApiError.ts` | API error → UI copy |
 | `ApiError` | `shared/api/client.ts` | Typed API error class |
-| `useJobPolling` | `features/jobs/useJobPolling.ts` | Async job polling hook |
+| `useJobPolling` | `features/jobs/useJobPolling.ts` | Async job polling hook (uses useState/useEffect — not React Query) |
+| `useOverviewSnapshot` | `features/overview/useOverviewSnapshot.ts` | Multi-domain query aggregation → `CycleProgressSnapshot` + events (uses React Query) |
 | validators | `shared/api/validators/` | Runtime response validation |
 | MSW server | `test/msw/server.ts` | Integration test server |
 | MSW handlers | `test/msw/handlers.ts` | Baseline API mocks |
@@ -122,6 +123,9 @@ queryKeys.cycles.list(showId)
 | `AppShell` | `features/layout/AppShell.tsx` | Cycle layout shell (TopBar + CycleStepper + Sidebar + content) |
 | `AppShellSkeleton` | `features/layout/AppShell.tsx` | Loading skeleton for AppShell |
 | `ShowHeader` | `features/shows/ui/ShowHeader.tsx` | Show name, phase badge, dates |
+| Feature api.ts stubs | `features/{segments,frames,variants,experiments,observations,memos,events}/api.ts` | List functions for each domain (no validators — raw typed returns) |
+
+**React Query**: `@tanstack/react-query` IS installed. `QueryClientProvider` is in `app/providers.tsx` (wrapped in root layout). Use `useQuery`/`useQueries` for new data-fetching hooks.
 
 **Planned (do not import yet):** `cn()`, `StatusBadge`, `ErrorBanner`, `EmptyState`, `SpinnerIcon`, `Dialog`, `useJobPoller`.
 See `docs/contracts/frontend-manifest.md` for full inventory.

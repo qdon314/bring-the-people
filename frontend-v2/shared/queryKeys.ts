@@ -35,6 +35,7 @@ export const variantKeys = {
   lists: () => ['variants', 'list'] as const,
   list: (showId: string, cycleId?: string) =>
     cycleId ? (['variants', 'list', showId, cycleId] as const) : (['variants', 'list', showId] as const),
+  byFrame: (frameId: string) => ['variants', 'by-frame', frameId] as const,
   detail: (variantId: string) => ['variants', 'detail', variantId] as const,
 } as const
 

@@ -12,7 +12,7 @@ Do not try to import planned items.
 Flip `planned` → `exists` when you create the file. Add new rows for items
 not yet listed. This is part of the definition of done.
 
-Last updated: 2026-03-04
+Last updated: 2026-03-04 (V2-025)
 
 ---
 
@@ -54,9 +54,10 @@ These are called for in `docs/designs/frontend-architecture.md`:
 
 ## Feature Hooks (`features/*`)
 
-| Hook          | Path                               | Status  | Purpose                              |
-|---------------|------------------------------------|---------|--------------------------------------|
-| useJobPolling | features/jobs/useJobPolling.ts     | exists  | Adaptive job polling for async runs  |
+| Hook                  | Path                                           | Status  | Purpose                              |
+|-----------------------|------------------------------------------------|---------|--------------------------------------|
+| useJobPolling         | features/jobs/useJobPolling.ts                 | exists  | Adaptive job polling for async runs  |
+| useOverviewSnapshot   | features/overview/useOverviewSnapshot.ts       | exists  | Aggregate multi-domain queries into CycleProgressSnapshot + events |
 
 ## Shared Config (`shared/config/`)
 
@@ -112,12 +113,13 @@ Update this table as feature modules are built.
 | shows         | in progress | exists | exists  | -         | exists |
 | cycles        | in progress | exists | exists  | -         | -   |
 | layout        | exists      | -    | -       | -         | exists |
-| segments      | in progress | -   | exists  | -         | -   |
-| frames        | in progress | -   | exists  | -         | -   |
-| variants      | in progress | -   | exists  | -         | -   |
-| experiments   | in progress | -   | exists  | -         | -   |
-| observations  | in progress | -   | exists  | -         | -   |
+| overview      | in progress | -   | -       | -         | -   |
+| segments      | in progress | exists | exists  | -         | -   |
+| frames        | in progress | exists | exists  | -         | -   |
+| variants      | in progress | exists | exists  | -         | -   |
+| experiments   | in progress | exists | exists  | -         | -   |
+| observations  | in progress | exists | exists  | -         | -   |
 | decisions     | in progress | -   | exists  | -         | -   |
-| memos         | in progress | -   | exists  | -         | -   |
+| memos         | in progress | exists | exists  | -         | -   |
 | jobs          | in progress | exists | exists  | -         | -   |
-| events        | in progress | -   | exists  | -         | -   |
+| events        | in progress | exists | exists  | -         | -   |
