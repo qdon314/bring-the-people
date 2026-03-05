@@ -77,6 +77,12 @@ App shell and navigation components for cycle-scoped routes:
 | TopBar          | features/layout/TopBar.tsx    | exists | Show name, phase badge, sales       |
 | TopBarSkeleton  | features/layout/TopBar.tsx    | exists | Loading skeleton for TopBar        |
 
+## Show Entry Components (`features/shows/ui/`)
+
+| Component      | Path                                   | Status | Purpose                                    |
+|----------------|----------------------------------------|--------|--------------------------------------------|
+| StartCycleView | features/shows/ui/StartCycleView.tsx   | exists | No-cycle state: CTA to create first cycle  |
+
 ## Show/Cycle Components (`features/shows/ui/`, `features/cycles/ui/`)
 
 | Component     | Path                        | Status  | Purpose                       |
@@ -111,7 +117,7 @@ Update this table as feature modules are built.
 | Feature       | Status      | api | queries | mutations | ui  |
 |---------------|-------------|-----|---------|-----------|-----|
 | shows         | in progress | exists | exists  | -         | exists |
-| cycles        | in progress | exists | exists  | -         | -   |
+| cycles        | in progress | exists | exists  | useCreateCycle | -   |
 | layout        | exists      | -    | -       | -         | exists |
 | overview      | in progress | -   | -       | -         | -   |
 | segments      | in progress | exists | exists  | -         | -   |

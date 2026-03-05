@@ -40,6 +40,16 @@ All complete: cycle-scoped route tree (`/shows/[show_id]/cycles/[cycle_id]/[tab]
 
 ---
 
+## Stage 1b: Start Cycle Flow (gap)
+
+Discovered gap: the show page renders a dead-end placeholder when no cycles exist. Backend `POST /api/shows/{show_id}/cycles` exists but frontend has no mutation or UI for it.
+
+| ID | Size | Work item | Deliverables | Depends on |
+|---|---|---|---|---|
+| V2-019 | S | Start cycle flow | `features/cycles/api.ts` createCycle, `useCreateCycle` mutation, `StartCycleView` client component, show page wired | - |
+
+---
+
 ## Stage 2: Overview UI
 
 Data layers exist (`useOverviewSnapshot`, `getCycleProgress`). This stage is UI only.

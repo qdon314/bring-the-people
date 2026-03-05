@@ -55,7 +55,7 @@ customModes:
     customInstructions: |
       Prioritize correctness, regressions, contract mismatches, and missing tests.
       Provide actionable, file-specific findings.
-      For frontend reviews, check compliance with docs/contracts/frontend-contract.md.
+      For frontend reviews, check compliance with docs/contracts/frontend-contract.md (index links to sections).
     source: project
 
   - slug: planning
@@ -124,11 +124,9 @@ customModes:
     whenToUse: >
       Use for v1 dashboard maintenance, bug fixes, and minor polish. For new feature work, use frontend-build.
     customInstructions: |-
-      - BEFORE writing code, read docs/contracts/frontend-contract.md and docs/contracts/frontend-manifest.md.
+      - Read docs/contracts/frontend-contract.md (index). Load only relevant sections.
+      - Search docs/contracts/frontend-manifest.md for the component/hook name before creating new ones.
       - Preserve existing design tokens and visual direction.
-      - Include loading/empty/error/success states.
-      - Avoid backend contract changes unless explicitly requested.
-      - Status values: pending|approved|rejected (ReviewStatus), queued|running|completed|failed (JobStatus). No other values.
     source: project
 
   - slug: frontend-build
@@ -147,14 +145,7 @@ customModes:
     whenToUse: >
       Use for all frontend-v2 implementation work — components, hooks, API clients, and feature modules.
     customInstructions: |-
-      - BEFORE writing code, read docs/contracts/frontend-contract.md and docs/contracts/frontend-manifest.md.
-      - Status values: pending|approved|rejected (ReviewStatus), queued|running|completed|failed (JobStatus). No other values.
-      - Every component must handle: loading, empty, error, success states.
-      - Use existing shared/ utilities. Do not create duplicates — check the manifest first.
-      - All API calls go through shared/api/client.ts. No raw fetch().
-      - Query keys use factories from features/*/queries.ts, never inline strings.
-      - Mutations own their cache invalidation in features/*/mutations.ts.
-      - No setTimeout for data consistency. Use the useJobPoller hook.
-      - After adding shared components/utilities/hooks, update docs/contracts/frontend-manifest.md.
-      - Run: cd frontend-v2 && npm run lint && npm run build
+      - Read docs/contracts/frontend-contract.md (index). Load only relevant sections.
+      - Search docs/contracts/frontend-manifest.md for the component/hook name before creating new ones.
+      - Run: cd frontend-v2 && npm run lint && npm run test && npm run build
     source: project

@@ -5,7 +5,7 @@ description: Fast-load codebase context for frontend-v2 tasks
 
 # Frontend V2 — Codebase Context
 
-last-verified: 2026-03-04 react-query-refactor
+last-verified: 2026-03-04 9786b17
 
 This is a fast-load reference. Do not use code-explorer for frontend-v2 tasks.
 Load this skill, then go directly to the files you need to modify.
@@ -141,7 +141,7 @@ queryKeys.cycles.list(showId)
 - `useMemos(showId)` — memos for a show
 - `useEvents(showId, cycleId?)` — events, cycle-scoped
 - `useJob(jobId | null)` — single job by ID (use `useJobPolling` for active polling)
-- `useDecisions` — **stub only**, pending V2-012 (API takes `experiment_id`, key factory mismatch)
+- `useDecisions(experimentId)` — decisions for an experiment
 
 **Planned (do not import yet):** `cn()`, `StatusBadge`, `ErrorBanner`, `EmptyState`, `SpinnerIcon`, `Dialog`, `useJobPoller`.
 See `docs/contracts/frontend-manifest.md` for full inventory.
@@ -163,10 +163,13 @@ E2E: Playwright (`tests/e2e/`).
 
 ## Contract Pointers
 
-- **Rules and forbidden patterns** → `docs/contracts/frontend-contract.md`
-- **Component/utility inventory** → `docs/contracts/frontend-manifest.md`
+- **Frontend contract (index)** → `docs/contracts/frontend-contract.md` — load only the section(s) you need:
+  - §1 canonical-values.md — status enums, action mappings
+  - §3 component-patterns.md — structure, states, naming
+  - §4 api-integration.md — query keys, mutations, polling
+  - §6 forbidden-patterns.md — what NOT to do
+  - §7 testing.md — test requirements and conventions
+- **Component/utility inventory** → `docs/contracts/frontend-manifest.md` — search for specific names, don't read in full
 - **Architecture decisions** → `docs/designs/frontend-architecture.md`
 - **Dashboard design** → `docs/designs/dashboard.md`
 - **Work items / ticket backlog** → `docs/plans/2026-02-27-frontend-v2-concrete-work-items.md`
-
-Read only the relevant section of `frontend-contract.md`, not the full 588 lines.

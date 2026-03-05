@@ -160,7 +160,7 @@ Configuration in [`config/policy.toml`](config/policy.toml).
 
 ```bash
 # Start the server
-uv run python -m uvicorn growth.app.main:app --reload
+python -m uvicorn growth.app.main:app --reload
 
 # Health check
 curl http://localhost:8000/health

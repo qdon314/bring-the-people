@@ -1,12 +1,4 @@
-# AGENTS.md — Architect Mode (Bring The People)
-
-## Architectural baseline
-
-This repo follows a ports-and-adapters style around `src/growth`:
-- Domain: business rules and models (`src/growth/domain`)
-- Ports: repository/event interfaces (`src/growth/ports`)
-- Adapters: SQLAlchemy + integrations (`src/growth/adapters`)
-- App layer: FastAPI routes/services/container (`src/growth/app`)
+# Architect Mode — Bring The People
 
 ## Review priorities
 
