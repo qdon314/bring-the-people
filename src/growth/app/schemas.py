@@ -8,7 +8,7 @@ from uuid import UUID
 
 from pydantic import BaseModel, Field, model_validator
 
-from growth.domain.models import ExperimentRun, ReviewStatus, RunStatus
+from growth.domain.models import ExperimentRun, ReviewStatus
 
 
 # --- Show schemas ---
@@ -112,7 +112,6 @@ class ExperimentResponse(BaseModel):
 class RunCreate(BaseModel):
     experiment_id: UUID
     cycle_id: UUID
-    status: RunStatus = RunStatus.DRAFT
     budget_cap_cents_override: Optional[int] = Field(default=None, gt=0)
     channel_config: dict[str, Any] = Field(default_factory=dict)
     variant_snapshot: dict[str, Any] = Field(default_factory=dict)

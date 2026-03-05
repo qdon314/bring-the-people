@@ -52,7 +52,7 @@ def create_run(body: RunCreate, request: Request):
         run_id=uuid4(),
         experiment_id=body.experiment_id,
         cycle_id=body.cycle_id,
-        status=body.status,
+        status=RunStatus.DRAFT,
         start_time=None,
         end_time=None,
         budget_cap_cents_override=body.budget_cap_cents_override,
