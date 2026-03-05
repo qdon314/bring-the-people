@@ -14,6 +14,17 @@ This file contains only Claude Code-specific additions.
 For `frontend-v2` tasks, use the `frontend-v2-task` skill.
 The skill handles context loading — do not read contract files in full upfront.
 
+## Implementation workflow
+
+Scale the process to the task:
+
+- **Single task / small change:** Just implement. Use `superpowers:verification-before-completion` before claiming done.
+- **2–4 loosely related tasks:** Brief inline plan (bullet list), then `superpowers:subagent-driven-development` to execute.
+- **5+ tasks, cross-cutting changes, or schema/API additions:** Use `superpowers:writing-plans` for a full plan, then `superpowers:subagent-driven-development`.
+
+Use `superpowers:dispatching-parallel-agents` when tasks are independent and touch different files.
+Use `superpowers:using-git-worktrees` for any feature branch work.
+
 ## Delivery checklist
 
 Before: brief plan + files to modify + API assumptions.
