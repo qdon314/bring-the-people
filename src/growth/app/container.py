@@ -114,6 +114,7 @@ class SessionContainer:
     def decision_service(self):
         from growth.app.services.decision_service import DecisionService
         return DecisionService(
+            run_repo=self.run_repo(),
             experiment_repo=self.experiment_repo(),
             event_log=self.event_log(),
             policy=self.policy_config(),

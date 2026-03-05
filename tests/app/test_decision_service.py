@@ -56,6 +56,7 @@ def service_setup(tmp_path):
 
     service = DecisionService(
         run_repo=run_repo,
+        experiment_repo=exp_repo,
         event_log=event_log,
         policy=policy,
     )
