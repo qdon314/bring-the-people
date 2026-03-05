@@ -178,6 +178,40 @@
             }
           }
         }
+      },
+      "delete": {
+        "tags": [
+          "shows"
+        ],
+        "summary": "Delete Show",
+        "operationId": "delete_show_api_shows__show_id__delete",
+        "parameters": [
+          {
+            "name": "show_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Show Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/api/experiments": {
@@ -309,13 +343,13 @@
         }
       }
     },
-    "/api/experiments/{experiment_id}/submit": {
+    "/api/experiments/{experiment_id}/launch": {
       "post": {
         "tags": [
           "experiments"
         ],
-        "summary": "Submit For Approval",
-        "operationId": "submit_for_approval_api_experiments__experiment_id__submit_post",
+        "summary": "Launch Experiment",
+        "operationId": "launch_experiment_api_experiments__experiment_id__launch_post",
         "parameters": [
           {
             "name": "experiment_id",
@@ -329,13 +363,11 @@
           }
         ],
         "responses": {
-          "200": {
+          "410": {
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ExperimentResponse"
-                }
+                "schema": {}
               }
             }
           },
@@ -352,66 +384,13 @@
         }
       }
     },
-    "/api/experiments/{experiment_id}/approve": {
+    "/api/experiments/{experiment_id}/request-reapproval": {
       "post": {
         "tags": [
           "experiments"
         ],
-        "summary": "Approve Experiment",
-        "operationId": "approve_experiment_api_experiments__experiment_id__approve_post",
-        "parameters": [
-          {
-            "name": "experiment_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid",
-              "title": "Experiment Id"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ApprovalRequest"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ExperimentResponse"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/experiments/{experiment_id}/start": {
-      "post": {
-        "tags": [
-          "experiments"
-        ],
-        "summary": "Start Experiment",
-        "operationId": "start_experiment_api_experiments__experiment_id__start_post",
+        "summary": "Request Reapproval",
+        "operationId": "request_reapproval_api_experiments__experiment_id__request_reapproval_post",
         "parameters": [
           {
             "name": "experiment_id",
@@ -425,99 +404,11 @@
           }
         ],
         "responses": {
-          "200": {
+          "410": {
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ExperimentResponse"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/experiments/{experiment_id}/complete": {
-      "post": {
-        "tags": [
-          "experiments"
-        ],
-        "summary": "Complete Experiment",
-        "operationId": "complete_experiment_api_experiments__experiment_id__complete_post",
-        "parameters": [
-          {
-            "name": "experiment_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid",
-              "title": "Experiment Id"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ExperimentResponse"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/experiments/{experiment_id}/stop": {
-      "post": {
-        "tags": [
-          "experiments"
-        ],
-        "summary": "Stop Experiment",
-        "operationId": "stop_experiment_api_experiments__experiment_id__stop_post",
-        "parameters": [
-          {
-            "name": "experiment_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid",
-              "title": "Experiment Id"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ExperimentResponse"
-                }
+                "schema": {}
               }
             }
           },
@@ -554,13 +445,11 @@
           }
         ],
         "responses": {
-          "200": {
+          "410": {
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ExperimentMetrics"
-                }
+                "schema": {}
               }
             }
           },
@@ -625,13 +514,13 @@
         "operationId": "list_observations_api_observations_get",
         "parameters": [
           {
-            "name": "experiment_id",
+            "name": "run_id",
             "in": "query",
             "required": true,
             "schema": {
               "type": "string",
               "format": "uuid",
-              "title": "Experiment Id"
+              "title": "Run Id"
             }
           }
         ],
@@ -708,23 +597,22 @@
         }
       }
     },
-    "/api/decisions/evaluate/{experiment_id}": {
+    "/api/decisions/evaluate/{run_id}": {
       "post": {
         "tags": [
           "decisions"
         ],
-        "summary": "Evaluate Experiment",
-        "description": "Evaluate an experiment and return a decision.",
-        "operationId": "evaluate_experiment_api_decisions_evaluate__experiment_id__post",
+        "summary": "Evaluate Run",
+        "operationId": "evaluate_run_api_decisions_evaluate__run_id__post",
         "parameters": [
           {
-            "name": "experiment_id",
+            "name": "run_id",
             "in": "path",
             "required": true,
             "schema": {
               "type": "string",
               "format": "uuid",
-              "title": "Experiment Id"
+              "title": "Run Id"
             }
           }
         ],
@@ -758,17 +646,16 @@
           "decisions"
         ],
         "summary": "List Decisions",
-        "description": "Get all decisions for an experiment.",
         "operationId": "list_decisions_api_decisions_get",
         "parameters": [
           {
-            "name": "experiment_id",
+            "name": "run_id",
             "in": "query",
             "required": true,
             "schema": {
               "type": "string",
               "format": "uuid",
-              "title": "Experiment Id"
+              "title": "Run Id"
             }
           }
         ],
@@ -1087,6 +974,47 @@
             }
           }
         }
+      },
+      "post": {
+        "tags": [
+          "cycles"
+        ],
+        "summary": "Create Cycle",
+        "operationId": "create_cycle_api_shows__show_id__cycles_post",
+        "parameters": [
+          {
+            "name": "show_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Show Id"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CycleResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/api/shows/cycles/{cycle_id}": {
@@ -1162,6 +1090,47 @@
                     "$ref": "#/components/schemas/CycleResponse"
                   },
                   "title": "Response List Cycles Api  Show Id  Cycles Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "cycles"
+        ],
+        "summary": "Create Cycle",
+        "operationId": "create_cycle_api__show_id__cycles_post",
+        "parameters": [
+          {
+            "name": "show_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Show Id"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CycleResponse"
                 }
               }
             }
@@ -1305,6 +1274,57 @@
             }
           }
         ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SegmentResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "segments"
+        ],
+        "summary": "Update Segment",
+        "operationId": "update_segment_api_segments__segment_id__patch",
+        "parameters": [
+          {
+            "name": "segment_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Segment Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SegmentUpdate"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -1504,6 +1524,57 @@
             }
           }
         }
+      },
+      "patch": {
+        "tags": [
+          "frames"
+        ],
+        "summary": "Update Frame",
+        "operationId": "update_frame_api_frames__frame_id__patch",
+        "parameters": [
+          {
+            "name": "frame_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Frame Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FrameUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FrameResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/api/frames/{frame_id}/review": {
@@ -1647,6 +1718,57 @@
             }
           }
         }
+      },
+      "patch": {
+        "tags": [
+          "variants"
+        ],
+        "summary": "Update Variant",
+        "operationId": "update_variant_api_variants__variant_id__patch",
+        "parameters": [
+          {
+            "name": "variant_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Variant Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VariantUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VariantResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/api/variants/{variant_id}/review": {
@@ -1745,6 +1867,288 @@
         }
       }
     },
+    "/api/runs": {
+      "post": {
+        "tags": [
+          "runs"
+        ],
+        "summary": "Create Run",
+        "operationId": "create_run_api_runs_post",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RunCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RunResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "runs"
+        ],
+        "summary": "List Runs",
+        "operationId": "list_runs_api_runs_get",
+        "parameters": [
+          {
+            "name": "cycle_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cycle Id"
+            }
+          },
+          {
+            "name": "experiment_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Experiment Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/RunResponse"
+                  },
+                  "title": "Response List Runs Api Runs Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/runs/{run_id}": {
+      "get": {
+        "tags": [
+          "runs"
+        ],
+        "summary": "Get Run",
+        "operationId": "get_run_api_runs__run_id__get",
+        "parameters": [
+          {
+            "name": "run_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Run Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RunResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/runs/{run_id}/launch": {
+      "post": {
+        "tags": [
+          "runs"
+        ],
+        "summary": "Launch Run",
+        "operationId": "launch_run_api_runs__run_id__launch_post",
+        "parameters": [
+          {
+            "name": "run_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Run Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RunResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/runs/{run_id}/request-reapproval": {
+      "post": {
+        "tags": [
+          "runs"
+        ],
+        "summary": "Request Reapproval",
+        "operationId": "request_reapproval_api_runs__run_id__request_reapproval_post",
+        "parameters": [
+          {
+            "name": "run_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Run Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RunResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/runs/{run_id}/metrics": {
+      "get": {
+        "tags": [
+          "runs"
+        ],
+        "summary": "Get Run Metrics",
+        "operationId": "get_run_metrics_api_runs__run_id__metrics_get",
+        "parameters": [
+          {
+            "name": "run_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Run Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RunMetricsResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/events": {
       "get": {
         "tags": [
@@ -1820,25 +2224,6 @@
   },
   "components": {
     "schemas": {
-      "ApprovalRequest": {
-        "properties": {
-          "approved": {
-            "type": "boolean",
-            "title": "Approved"
-          },
-          "notes": {
-            "type": "string",
-            "maxLength": 1000,
-            "title": "Notes",
-            "default": ""
-          }
-        },
-        "type": "object",
-        "required": [
-          "approved"
-        ],
-        "title": "ApprovalRequest"
-      },
       "CycleResponse": {
         "properties": {
           "cycle_id": {
@@ -1884,10 +2269,10 @@
             "format": "uuid",
             "title": "Decision Id"
           },
-          "experiment_id": {
+          "run_id": {
             "type": "string",
             "format": "uuid",
-            "title": "Experiment Id"
+            "title": "Run Id"
           },
           "action": {
             "type": "string",
@@ -1914,7 +2299,7 @@
         "type": "object",
         "required": [
           "decision_id",
-          "experiment_id",
+          "run_id",
           "action",
           "confidence",
           "rationale",
@@ -2004,6 +2389,11 @@
             "format": "uuid",
             "title": "Show Id"
           },
+          "origin_cycle_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Origin Cycle Id"
+          },
           "segment_id": {
             "type": "string",
             "format": "uuid",
@@ -2040,121 +2430,13 @@
         "type": "object",
         "required": [
           "show_id",
+          "origin_cycle_id",
           "segment_id",
           "frame_id",
           "channel",
           "budget_cap_cents"
         ],
         "title": "ExperimentCreate"
-      },
-      "ExperimentMetrics": {
-        "properties": {
-          "experiment_id": {
-            "type": "string",
-            "format": "uuid",
-            "title": "Experiment Id"
-          },
-          "total_spend_cents": {
-            "type": "integer",
-            "title": "Total Spend Cents"
-          },
-          "total_impressions": {
-            "type": "integer",
-            "title": "Total Impressions"
-          },
-          "total_clicks": {
-            "type": "integer",
-            "title": "Total Clicks"
-          },
-          "total_purchases": {
-            "type": "integer",
-            "title": "Total Purchases"
-          },
-          "total_revenue_cents": {
-            "type": "integer",
-            "title": "Total Revenue Cents"
-          },
-          "windows_count": {
-            "type": "integer",
-            "title": "Windows Count"
-          },
-          "ctr": {
-            "anyOf": [
-              {
-                "type": "number"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Ctr"
-          },
-          "cpc_cents": {
-            "anyOf": [
-              {
-                "type": "number"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Cpc Cents"
-          },
-          "cpa_cents": {
-            "anyOf": [
-              {
-                "type": "number"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Cpa Cents"
-          },
-          "roas": {
-            "anyOf": [
-              {
-                "type": "number"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Roas"
-          },
-          "conversion_rate": {
-            "anyOf": [
-              {
-                "type": "number"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Conversion Rate"
-          },
-          "evidence_sufficient": {
-            "type": "boolean",
-            "title": "Evidence Sufficient"
-          }
-        },
-        "type": "object",
-        "required": [
-          "experiment_id",
-          "total_spend_cents",
-          "total_impressions",
-          "total_clicks",
-          "total_purchases",
-          "total_revenue_cents",
-          "windows_count",
-          "ctr",
-          "cpc_cents",
-          "cpa_cents",
-          "roas",
-          "conversion_rate",
-          "evidence_sufficient"
-        ],
-        "title": "ExperimentMetrics"
       },
       "ExperimentResponse": {
         "properties": {
@@ -2168,17 +2450,10 @@
             "format": "uuid",
             "title": "Show Id"
           },
-          "cycle_id": {
-            "anyOf": [
-              {
-                "type": "string",
-                "format": "uuid"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Cycle Id"
+          "origin_cycle_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Origin Cycle Id"
           },
           "segment_id": {
             "type": "string",
@@ -2202,34 +2477,6 @@
             "type": "integer",
             "title": "Budget Cap Cents"
           },
-          "status": {
-            "type": "string",
-            "title": "Status"
-          },
-          "start_time": {
-            "anyOf": [
-              {
-                "type": "string",
-                "format": "date-time"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Start Time"
-          },
-          "end_time": {
-            "anyOf": [
-              {
-                "type": "string",
-                "format": "date-time"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "End Time"
-          },
           "baseline_snapshot": {
             "additionalProperties": true,
             "type": "object",
@@ -2240,15 +2487,12 @@
         "required": [
           "experiment_id",
           "show_id",
-          "cycle_id",
+          "origin_cycle_id",
           "segment_id",
           "frame_id",
           "channel",
           "objective",
           "budget_cap_cents",
-          "status",
-          "start_time",
-          "end_time",
           "baseline_snapshot"
         ],
         "title": "ExperimentResponse"
@@ -2356,6 +2600,75 @@
           "reviewed_by"
         ],
         "title": "FrameResponse"
+      },
+      "FrameUpdate": {
+        "properties": {
+          "hypothesis": {
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Hypothesis"
+          },
+          "promise": {
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Promise"
+          },
+          "evidence_refs": {
+            "anyOf": [
+              {
+                "items": {
+                  "additionalProperties": true,
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Evidence Refs"
+          },
+          "channel": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 50,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Channel"
+          },
+          "risk_notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Risk Notes"
+          }
+        },
+        "type": "object",
+        "title": "FrameUpdate"
       },
       "HTTPValidationError": {
         "properties": {
@@ -2525,10 +2838,10 @@
       },
       "ObservationCreate": {
         "properties": {
-          "experiment_id": {
+          "run_id": {
             "type": "string",
             "format": "uuid",
-            "title": "Experiment Id"
+            "title": "Run Id"
           },
           "window_start": {
             "type": "string",
@@ -2612,7 +2925,7 @@
         },
         "type": "object",
         "required": [
-          "experiment_id",
+          "run_id",
           "window_start",
           "window_end",
           "spend_cents",
@@ -2635,10 +2948,10 @@
             "format": "uuid",
             "title": "Observation Id"
           },
-          "experiment_id": {
+          "run_id": {
             "type": "string",
             "format": "uuid",
-            "title": "Experiment Id"
+            "title": "Run Id"
           },
           "window_start": {
             "type": "string",
@@ -2709,7 +3022,7 @@
         "type": "object",
         "required": [
           "observation_id",
-          "experiment_id",
+          "run_id",
           "window_start",
           "window_end",
           "spend_cents",
@@ -2765,6 +3078,238 @@
           "rejected"
         ],
         "title": "ReviewStatus"
+      },
+      "RunCreate": {
+        "properties": {
+          "experiment_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Experiment Id"
+          },
+          "cycle_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Cycle Id"
+          },
+          "budget_cap_cents_override": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Budget Cap Cents Override"
+          },
+          "channel_config": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Channel Config"
+          },
+          "variant_snapshot": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Variant Snapshot"
+          }
+        },
+        "type": "object",
+        "required": [
+          "experiment_id",
+          "cycle_id"
+        ],
+        "title": "RunCreate"
+      },
+      "RunMetricsResponse": {
+        "properties": {
+          "run_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Run Id"
+          },
+          "total_spend_cents": {
+            "type": "integer",
+            "title": "Total Spend Cents"
+          },
+          "total_impressions": {
+            "type": "integer",
+            "title": "Total Impressions"
+          },
+          "total_clicks": {
+            "type": "integer",
+            "title": "Total Clicks"
+          },
+          "total_purchases": {
+            "type": "integer",
+            "title": "Total Purchases"
+          },
+          "total_revenue_cents": {
+            "type": "integer",
+            "title": "Total Revenue Cents"
+          },
+          "windows_count": {
+            "type": "integer",
+            "title": "Windows Count"
+          },
+          "ctr": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ctr"
+          },
+          "cpc_cents": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cpc Cents"
+          },
+          "cpa_cents": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cpa Cents"
+          },
+          "roas": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Roas"
+          },
+          "conversion_rate": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Conversion Rate"
+          },
+          "evidence_sufficient": {
+            "type": "boolean",
+            "title": "Evidence Sufficient"
+          }
+        },
+        "type": "object",
+        "required": [
+          "run_id",
+          "total_spend_cents",
+          "total_impressions",
+          "total_clicks",
+          "total_purchases",
+          "total_revenue_cents",
+          "windows_count",
+          "ctr",
+          "cpc_cents",
+          "cpa_cents",
+          "roas",
+          "conversion_rate",
+          "evidence_sufficient"
+        ],
+        "title": "RunMetricsResponse"
+      },
+      "RunResponse": {
+        "properties": {
+          "run_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Run Id"
+          },
+          "experiment_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Experiment Id"
+          },
+          "cycle_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Cycle Id"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "start_time": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Start Time"
+          },
+          "end_time": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "End Time"
+          },
+          "budget_cap_cents_override": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Budget Cap Cents Override"
+          },
+          "channel_config": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Channel Config"
+          },
+          "variant_snapshot": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Variant Snapshot"
+          }
+        },
+        "type": "object",
+        "required": [
+          "run_id",
+          "experiment_id",
+          "cycle_id",
+          "status",
+          "start_time",
+          "end_time",
+          "budget_cap_cents_override",
+          "channel_config",
+          "variant_snapshot"
+        ],
+        "title": "RunResponse"
       },
       "SegmentResponse": {
         "properties": {
@@ -2855,6 +3400,49 @@
           "reviewed_by"
         ],
         "title": "SegmentResponse"
+      },
+      "SegmentUpdate": {
+        "properties": {
+          "name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 255,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "definition_json": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Definition Json"
+          },
+          "estimated_size": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Estimated Size"
+          }
+        },
+        "type": "object",
+        "title": "SegmentUpdate"
       },
       "ShowCreate": {
         "properties": {
@@ -3239,6 +3827,48 @@
           "reviewed_by"
         ],
         "title": "VariantResponse"
+      },
+      "VariantUpdate": {
+        "properties": {
+          "hook": {
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Hook"
+          },
+          "body": {
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Body"
+          },
+          "cta": {
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cta"
+          }
+        },
+        "type": "object",
+        "title": "VariantUpdate"
       }
     }
   }
