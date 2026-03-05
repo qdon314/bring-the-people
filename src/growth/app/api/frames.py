@@ -72,11 +72,19 @@ def review_frame(frame_id: UUID, body: ReviewRequest, request: Request):
 
     from growth.domain.models import CreativeFrame
 
-    new_status = (
-        ReviewStatus.APPROVED
-        if body.action == ReviewAction.APPROVE
-        else ReviewStatus.REJECTED
-    )
+    if body.action == ReviewAction.UNDO:
+        new_status = ReviewStatus.PENDING
+        reviewed_at = None
+        reviewed_by = None
+    elif body.action == ReviewAction.APPROVE:
+        new_status = ReviewStatus.APPROVED
+        reviewed_at = datetime.now(timezone.utc)
+        reviewed_by = body.reviewed_by
+    else:
+        new_status = ReviewStatus.REJECTED
+        reviewed_at = datetime.now(timezone.utc)
+        reviewed_by = body.reviewed_by
+
     updated = CreativeFrame(
         frame_id=frame.frame_id,
         show_id=frame.show_id,
@@ -88,8 +96,8 @@ def review_frame(frame_id: UUID, body: ReviewRequest, request: Request):
         risk_notes=frame.risk_notes,
         cycle_id=frame.cycle_id,
         review_status=new_status,
-        reviewed_at=datetime.now(timezone.utc),
-        reviewed_by=body.reviewed_by,
+        reviewed_at=reviewed_at,
+        reviewed_by=reviewed_by,
     )
     repo.save(updated)
     return FrameResponse.from_domain(updated)

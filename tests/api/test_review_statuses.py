@@ -122,3 +122,64 @@ def test_review_rejects_status_values_as_actions(client, container, resource: st
         json={"action": "approved", "notes": "", "reviewed_by": "producer"},
     )
     assert resp.status_code == 422
+
+
+@pytest.mark.parametrize(
+    "resource,initial_action",
+    [
+        ("segment", "approve"),
+        ("segment", "reject"),
+        ("frame", "approve"),
+        ("frame", "reject"),
+    ],
+)
+def test_undo_resets_review_to_pending(
+    client, container, resource: str, initial_action: str
+):
+    """Undo resets review_status to pending and clears reviewed_at/reviewed_by."""
+    segment_id, frame_id, variant_id = _seed_review_chain(container)
+    routes = _build_resource_routes(segment_id, frame_id, variant_id)
+
+    # First apply an approve or reject
+    resp = client.post(
+        routes[resource]["review"],
+        json={"action": initial_action, "notes": "", "reviewed_by": "producer"},
+    )
+    assert resp.status_code == 200
+    assert resp.json()["review_status"] != "pending"
+
+    # Then undo it
+    resp = client.post(
+        routes[resource]["review"],
+        json={"action": "undo", "notes": "", "reviewed_by": "producer"},
+    )
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["review_status"] == "pending"
+    assert data["reviewed_at"] is None
+    assert data["reviewed_by"] is None
+
+    # Verify persistence
+    persisted = client.get(routes[resource]["get"])
+    assert persisted.status_code == 200
+    persisted_data = persisted.json()
+    assert persisted_data["review_status"] == "pending"
+    assert persisted_data["reviewed_at"] is None
+    assert persisted_data["reviewed_by"] is None
+
+
+@pytest.mark.parametrize("resource", ["segment", "frame"])
+def test_undo_on_already_pending_resets_cleanly(client, container, resource: str):
+    """Undo on a pending resource is idempotent — stays pending."""
+    segment_id, frame_id, variant_id = _seed_review_chain(container)
+    routes = _build_resource_routes(segment_id, frame_id, variant_id)
+
+    resp = client.post(
+        routes[resource]["review"],
+        json={"action": "undo", "notes": "", "reviewed_by": "producer"},
+    )
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["review_status"] == "pending"
+    assert data["reviewed_at"] is None
+    assert data["reviewed_by"] is None

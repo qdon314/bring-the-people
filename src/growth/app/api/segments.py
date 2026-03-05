@@ -65,11 +65,19 @@ def review_segment(segment_id: UUID, body: ReviewRequest, request: Request):
 
     from growth.domain.models import AudienceSegment
 
-    new_status = (
-        ReviewStatus.APPROVED
-        if body.action == ReviewAction.APPROVE
-        else ReviewStatus.REJECTED
-    )
+    if body.action == ReviewAction.UNDO:
+        new_status = ReviewStatus.PENDING
+        reviewed_at = None
+        reviewed_by = None
+    elif body.action == ReviewAction.APPROVE:
+        new_status = ReviewStatus.APPROVED
+        reviewed_at = datetime.now(timezone.utc)
+        reviewed_by = body.reviewed_by
+    else:
+        new_status = ReviewStatus.REJECTED
+        reviewed_at = datetime.now(timezone.utc)
+        reviewed_by = body.reviewed_by
+
     updated = AudienceSegment(
         segment_id=segment.segment_id,
         show_id=segment.show_id,
@@ -79,8 +87,8 @@ def review_segment(segment_id: UUID, body: ReviewRequest, request: Request):
         created_by=segment.created_by,
         cycle_id=segment.cycle_id,
         review_status=new_status,
-        reviewed_at=datetime.now(timezone.utc),
-        reviewed_by=body.reviewed_by,
+        reviewed_at=reviewed_at,
+        reviewed_by=reviewed_by,
     )
     repo.save(updated)
     return SegmentResponse.from_domain(updated)
