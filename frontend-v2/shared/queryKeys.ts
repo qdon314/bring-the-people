@@ -70,6 +70,14 @@ export const memoKeys = {
   detail: (memoId: string) => ['memos', 'detail', memoId] as const,
 } as const
 
+export const runKeys = {
+  all: () => ['runs'] as const,
+  listByCycle: (cycleId: string) => ['runs', 'list', 'cycle', cycleId] as const,
+  listByExperiment: (experimentId: string) => ['runs', 'list', 'experiment', experimentId] as const,
+  detail: (runId: string) => ['runs', 'detail', runId] as const,
+  metrics: (runId: string) => ['runs', 'metrics', runId] as const,
+} as const
+
 export const jobKeys = {
   all: () => ['jobs'] as const,
   lists: () => ['jobs', 'list'] as const,
@@ -94,6 +102,7 @@ export const queryKeys = {
   observations: observationKeys,
   decisions: decisionKeys,
   memos: memoKeys,
+  runs: runKeys,
   jobs: jobKeys,
   events: eventKeys,
 } as const
