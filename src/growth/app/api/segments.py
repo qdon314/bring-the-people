@@ -16,9 +16,9 @@ router = APIRouter()
 
 @router.get("", response_model=list[SegmentResponse])
 def list_segments(
+    request: Request,
     show_id: UUID,
     cycle_id: Optional[UUID] = None,
-    request: Request = ...,
 ):
     repo = request.state.container.segment_repo()
     segments = repo.get_by_show(show_id)

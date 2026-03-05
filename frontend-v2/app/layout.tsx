@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import './globals.css'
 import { Providers } from './providers'
+import { ToastContainer } from '@/shared/ui/ToastContainer'
 
 export const metadata: Metadata = {
   title: 'Bring the People V2',
@@ -12,6 +13,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en">
       <body>
         <Providers>{children}</Providers>
+        <ToastContainer />
       </body>
     </html>
   )

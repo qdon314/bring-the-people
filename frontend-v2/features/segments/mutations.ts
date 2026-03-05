@@ -10,6 +10,36 @@ interface ReviewVariables {
   notes?: string
 }
 
+interface UpdateVariables {
+  segmentId: string
+  name?: string
+  estimatedSize?: number | null
+}
+
+/**
+ * Update editable fields on a pending segment.
+ * Invalidates the segment list on success.
+ */
+export function useUpdateSegment(showId: string) {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({ segmentId, name, estimatedSize }: UpdateVariables) => {
+      const body: Record<string, unknown> = {}
+      if (name !== undefined) body.name = name
+      if (estimatedSize !== undefined) body.estimated_size = estimatedSize
+      return apiClient.patch('/api/segments/{segment_id}', {
+        path: { segment_id: segmentId },
+        body,
+      })
+    },
+
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.segments.list(showId) })
+    },
+  })
+}
+
 /**
  * Approve a segment with optimistic update.
  * Reverts cache on error.
@@ -47,7 +77,7 @@ export function useApproveSegment(showId: string) {
       }
     },
 
-    onSettled: () => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.segments.list(showId) })
     },
   })
@@ -90,7 +120,7 @@ export function useRejectSegment(showId: string) {
       }
     },
 
-    onSettled: () => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.segments.list(showId) })
     },
   })

@@ -12,7 +12,7 @@ Do not try to import planned items.
 Flip `planned` → `exists` when you create the file. Add new rows for items
 not yet listed. This is part of the definition of done.
 
-Last updated: 2026-03-05 (V2-031-shared-ui-segments)
+Last updated: 2026-03-05 (V2-033-segment-edit-modal)
 
 ---
 
@@ -28,6 +28,7 @@ These are called for in `docs/designs/dashboard.md`:
 | EmptyState    | shared/ui/EmptyState.tsx    | exists  | Descriptive empty state with CTA     |
 | SpinnerIcon   | shared/ui/SpinnerIcon.tsx   | exists  | Inline loading indicator             |
 | Dialog        | shared/ui/dialog.tsx        | exists  | Accessible modal (focus trap, Escape/overlay close) |
+| ToastContainer | shared/ui/ToastContainer.tsx | exists | Listens for app:toast events and renders dismissible toasts |
 
 ## Shared Utilities (`shared/lib/`)
 
@@ -120,7 +121,7 @@ Update this table as feature modules are built.
 | cycles        | in progress | exists | exists  | useCreateCycle | -   |
 | layout        | exists      | -    | -       | -         | exists |
 | overview      | in progress | -   | -       | -         | exists (NextActionPanel, KPIGrid, OverviewDashboard) |
-| segments      | in progress | exists | exists  | useApproveSegment, useRejectSegment | SegmentCard, SegmentList (with skeletons) |
+| segments      | in progress | exists | exists  | useApproveSegment, useRejectSegment, useUpdateSegment | SegmentCard, SegmentList (with skeletons), SegmentEditModal |
 | frames        | in progress | exists | exists  | -         | -   |
 | variants      | in progress | exists | exists  | -         | -   |
 | experiments   | in progress | exists | exists  | -         | -   |

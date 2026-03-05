@@ -30,7 +30,8 @@ export function SegmentList({ showId, cycleId }: SegmentListProps) {
   if (!data || data.length === 0) {
     return (
       <EmptyState
-        title="No segments yet. Run the strategy agent to generate audience segments."
+        title="No segments yet."
+        description="Run the strategy agent to generate audience segments."
       />
     )
   }

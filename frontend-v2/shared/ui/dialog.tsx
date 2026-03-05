@@ -8,6 +8,8 @@ interface DialogProps {
   open: boolean
   onClose: () => void
   title: string
+  /** Optional accessible description announced to screen readers. */
+  description?: string
   children: React.ReactNode
   className?: string
 }
@@ -15,8 +17,9 @@ interface DialogProps {
 /**
  * Accessible modal dialog built on Radix UI Dialog primitive.
  * Provides focus trap, Escape key, and overlay click to close.
+ * Renders aria-describedby via RadixDialog.Description for screen-reader support.
  */
-export function Dialog({ open, onClose, title, children, className }: DialogProps) {
+export function Dialog({ open, onClose, title, description, children, className }: DialogProps) {
   return (
     <RadixDialog.Root open={open} onOpenChange={(isOpen) => { if (!isOpen) onClose() }}>
       <RadixDialog.Portal>
@@ -39,6 +42,10 @@ export function Dialog({ open, onClose, title, children, className }: DialogProp
               <CloseIcon className="h-5 w-5" />
             </RadixDialog.Close>
           </div>
+          {/* RadixDialog.Description wires aria-describedby automatically */}
+          <RadixDialog.Description className={cn(!description && 'sr-only')}>
+            {description ?? title}
+          </RadixDialog.Description>
           <div className="px-6 py-5">{children}</div>
         </RadixDialog.Content>
       </RadixDialog.Portal>

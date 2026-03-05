@@ -3,7 +3,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { createElement } from 'react'
 import { http, HttpResponse } from 'msw'
 import { server } from '@/test/msw/server'
-import { useApproveSegment, useRejectSegment } from './mutations'
+import { useApproveSegment, useRejectSegment, useUpdateSegment } from './mutations'
 import { queryKeys } from '@/shared/queryKeys'
 import type { SegmentResponse } from './api'
 
@@ -187,5 +187,95 @@ describe('useRejectSegment', () => {
     expect(invalidateSpy).toHaveBeenCalledWith(
       expect.objectContaining({ queryKey: queryKeys.segments.list(SHOW_ID) })
     )
+  })
+})
+
+describe('useUpdateSegment', () => {
+  const updatedSegment: SegmentResponse = {
+    ...mockSegment,
+    name: 'Updated Name',
+    estimated_size: 9000,
+  }
+
+  it('calls PATCH /api/segments/{segment_id} with updated fields', async () => {
+    let capturedBody: unknown = null
+
+    server.use(
+      http.patch(`${API_BASE_URL}/api/segments/${SEGMENT_ID}`, async ({ request }) => {
+        capturedBody = await request.json()
+        return HttpResponse.json(updatedSegment)
+      })
+    )
+
+    const { wrapper } = makeWrapper()
+    const { result } = renderHook(() => useUpdateSegment(SHOW_ID), { wrapper })
+
+    act(() => {
+      result.current.mutate({ segmentId: SEGMENT_ID, name: 'Updated Name', estimatedSize: 9000 })
+    })
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true))
+    expect(capturedBody).toMatchObject({ name: 'Updated Name', estimated_size: 9000 })
+  })
+
+  it('omits undefined fields from the PATCH body', async () => {
+    let capturedBody: unknown = null
+
+    server.use(
+      http.patch(`${API_BASE_URL}/api/segments/${SEGMENT_ID}`, async ({ request }) => {
+        capturedBody = await request.json()
+        return HttpResponse.json(updatedSegment)
+      })
+    )
+
+    const { wrapper } = makeWrapper()
+    const { result } = renderHook(() => useUpdateSegment(SHOW_ID), { wrapper })
+
+    act(() => {
+      result.current.mutate({ segmentId: SEGMENT_ID, name: 'Only Name' })
+    })
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true))
+    expect(capturedBody).toMatchObject({ name: 'Only Name' })
+    expect(capturedBody).not.toHaveProperty('estimated_size')
+  })
+
+  it('invalidates segment list on success', async () => {
+    server.use(
+      http.patch(`${API_BASE_URL}/api/segments/${SEGMENT_ID}`, () =>
+        HttpResponse.json(updatedSegment)
+      )
+    )
+
+    const { wrapper, queryClient } = makeWrapper()
+    const invalidateSpy = vi.spyOn(queryClient, 'invalidateQueries')
+
+    const { result } = renderHook(() => useUpdateSegment(SHOW_ID), { wrapper })
+
+    act(() => {
+      result.current.mutate({ segmentId: SEGMENT_ID, name: 'Updated Name' })
+    })
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true))
+    expect(invalidateSpy).toHaveBeenCalledWith(
+      expect.objectContaining({ queryKey: queryKeys.segments.list(SHOW_ID) })
+    )
+  })
+
+  it('surfaces error on 422', async () => {
+    server.use(
+      http.patch(`${API_BASE_URL}/api/segments/${SEGMENT_ID}`, () =>
+        HttpResponse.json({ detail: 'Validation error' }, { status: 422 })
+      )
+    )
+
+    const { wrapper } = makeWrapper()
+    const { result } = renderHook(() => useUpdateSegment(SHOW_ID), { wrapper })
+
+    act(() => {
+      result.current.mutate({ segmentId: SEGMENT_ID, name: 'x'.repeat(300) })
+    })
+
+    await waitFor(() => expect(result.current.isError).toBe(true))
   })
 })

@@ -63,6 +63,21 @@ describe('Dialog', () => {
 
   it('renders the dialog title', () => {
     renderDialog({ title: 'My Custom Title' })
-    expect(screen.getByText('My Custom Title')).toBeInTheDocument()
+    // Title appears in both the visible heading and the sr-only description fallback
+    const matches = screen.getAllByText('My Custom Title')
+    expect(matches.length).toBeGreaterThanOrEqual(1)
+  })
+
+  it('renders an explicit description when provided', () => {
+    renderDialog({ description: 'This action cannot be undone.' })
+    expect(screen.getByText('This action cannot be undone.')).toBeInTheDocument()
+  })
+
+  it('has aria-describedby wired to the description element', () => {
+    renderDialog({ description: 'Accessible description' })
+    const dialog = screen.getByRole('dialog')
+    const describedById = dialog.getAttribute('aria-describedby')
+    expect(describedById).toBeTruthy()
+    expect(document.getElementById(describedById!)).toHaveTextContent('Accessible description')
   })
 })

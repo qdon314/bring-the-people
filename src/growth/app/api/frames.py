@@ -16,10 +16,10 @@ router = APIRouter()
 
 @router.get("", response_model=list[FrameResponse])
 def list_frames(
+    request: Request,
     show_id: UUID,
     cycle_id: Optional[UUID] = None,
     segment_id: Optional[UUID] = None,
-    request: Request = ...,
 ):
     repo = request.state.container.frame_repo()
     frames = repo.get_by_show(show_id)
