@@ -112,9 +112,12 @@ class TestShowsAPI:
         })
         show_id = create_resp.json()["show_id"]
 
+        cycle_resp = client.post(f"/api/shows/{show_id}/cycles", json={})
+        cycle_id = cycle_resp.json()["cycle_id"]
+
         exp_resp = client.post("/api/experiments", json={
             "show_id": show_id,
-            "cycle_id": str(uuid4()),
+            "origin_cycle_id": cycle_id,
             "segment_id": str(uuid4()),
             "frame_id": str(uuid4()),
             "channel": "meta",

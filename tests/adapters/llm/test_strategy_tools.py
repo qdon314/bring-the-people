@@ -13,6 +13,7 @@ from growth.adapters.llm.strategy_tools import (
 from growth.adapters.orm import create_tables, get_engine, get_session_maker
 from growth.adapters.repositories import (
     SQLAlchemyExperimentRepository,
+    SQLAlchemyExperimentRunRepository,
     SQLAlchemyFrameRepository,
     SQLAlchemySegmentRepository,
     SQLAlchemyShowRepository,
@@ -23,8 +24,9 @@ from growth.domain.models import (
     Decision,
     DecisionAction,
     Experiment,
-    ExperimentStatus,
+    ExperimentRun,
     Observation,
+    RunStatus,
     Show,
 )
 from growth.domain.policy_config import PolicyConfig
@@ -56,6 +58,7 @@ def repos(tmp_path):
     yield {
         "show_repo": SQLAlchemyShowRepository(session),
         "exp_repo": SQLAlchemyExperimentRepository(session),
+        "run_repo": SQLAlchemyExperimentRunRepository(session),
         "seg_repo": SQLAlchemySegmentRepository(session),
         "frame_repo": SQLAlchemyFrameRepository(session),
     }
@@ -78,6 +81,36 @@ def _create_show(show_repo, **overrides) -> Show:
     show = Show(**defaults)
     show_repo.save(show)
     return show
+
+
+def _make_experiment(exp_repo, show_id, seg_id=None, frame_id=None, **overrides):
+    exp = Experiment(
+        experiment_id=uuid4(),
+        show_id=show_id,
+        origin_cycle_id=uuid4(),
+        segment_id=seg_id or uuid4(),
+        frame_id=frame_id or uuid4(),
+        channel="meta",
+        objective="ticket_sales",
+        budget_cap_cents=5000,
+        baseline_snapshot={},
+        **overrides,
+    )
+    exp_repo.save(exp)
+    return exp
+
+
+def _make_run(run_repo, experiment_id, status=RunStatus.ACTIVE, start_time=None, end_time=None):
+    run = ExperimentRun(
+        run_id=uuid4(),
+        experiment_id=experiment_id,
+        cycle_id=uuid4(),
+        status=status,
+        start_time=start_time or datetime.now(timezone.utc),
+        end_time=end_time,
+    )
+    run_repo.save(run)
+    return run
 
 
 class TestGetShowDetails:
@@ -128,21 +161,18 @@ class TestGetActiveExperiments:
         )
         repos["frame_repo"].save(frame)
 
-        exp = Experiment(
-            experiment_id=uuid4(), show_id=show.show_id,
-            segment_id=seg.segment_id, frame_id=frame.frame_id,
-            channel="meta", objective="ticket_sales",
-            budget_cap_cents=5000, status=ExperimentStatus.ACTIVE,
-            start_time=datetime.now(timezone.utc), end_time=None,
-            baseline_snapshot={},
+        exp = _make_experiment(
+            repos["exp_repo"], show.show_id,
+            seg_id=seg.segment_id, frame_id=frame.frame_id,
         )
-        repos["exp_repo"].save(exp)
+        _make_run(repos["run_repo"], exp.experiment_id, status=RunStatus.ACTIVE)
 
         result = get_active_experiments(
             show_id=show.show_id,
             exp_repo=repos["exp_repo"],
             seg_repo=repos["seg_repo"],
             frame_repo=repos["frame_repo"],
+            run_repo=repos["run_repo"],
         )
         assert len(result["experiments"]) == 1
         assert result["experiments"][0]["segment_name"] == "Test Segment"
@@ -150,18 +180,12 @@ class TestGetActiveExperiments:
 
     def test_excludes_completed_experiments(self, repos):
         show = _create_show(repos["show_repo"])
-        exp = Experiment(
-            experiment_id=uuid4(), show_id=show.show_id,
-            segment_id=uuid4(), frame_id=uuid4(),
-            channel="meta", objective="ticket_sales",
-            budget_cap_cents=5000, status=ExperimentStatus.DECIDED,
-            start_time=datetime.now(timezone.utc), end_time=None,
-            baseline_snapshot={},
-        )
-        repos["exp_repo"].save(exp)
+        exp = _make_experiment(repos["exp_repo"], show.show_id)
+        _make_run(repos["run_repo"], exp.experiment_id, status=RunStatus.DECIDED)
 
         result = get_active_experiments(
             show.show_id, repos["exp_repo"], repos["seg_repo"], repos["frame_repo"],
+            run_repo=repos["run_repo"],
         )
         assert len(result["experiments"]) == 0
 
@@ -169,6 +193,7 @@ class TestGetActiveExperiments:
         show = _create_show(repos["show_repo"])
         result = get_active_experiments(
             show.show_id, repos["exp_repo"], repos["seg_repo"], repos["frame_repo"],
+            run_repo=repos["run_repo"],
         )
         assert result["experiments"] == []
 
@@ -176,17 +201,10 @@ class TestGetActiveExperiments:
 class TestGetBudgetStatus:
     def test_computes_remaining_budget(self, repos):
         show = _create_show(repos["show_repo"])
-        exp = Experiment(
-            experiment_id=uuid4(), show_id=show.show_id,
-            segment_id=uuid4(), frame_id=uuid4(),
-            channel="meta", objective="ticket_sales",
-            budget_cap_cents=5000, status=ExperimentStatus.ACTIVE,
-            start_time=datetime.now(timezone.utc), end_time=None,
-            baseline_snapshot={},
-        )
-        repos["exp_repo"].save(exp)
+        exp = _make_experiment(repos["exp_repo"], show.show_id)
+        run = _make_run(repos["run_repo"], exp.experiment_id, status=RunStatus.ACTIVE)
         obs = Observation(
-            observation_id=uuid4(), experiment_id=exp.experiment_id,
+            observation_id=uuid4(), run_id=run.run_id,
             window_start=datetime.now(timezone.utc) - timedelta(days=1),
             window_end=datetime.now(timezone.utc),
             spend_cents=2000, impressions=5000, clicks=100,
@@ -195,7 +213,7 @@ class TestGetBudgetStatus:
             complaints=0, negative_comment_rate=0.01,
             attribution_model="last_click_utm", raw_json={},
         )
-        repos["exp_repo"].add_observation(obs)
+        repos["run_repo"].add_observation(obs)
 
         result = get_budget_status(
             show_id=show.show_id,
@@ -203,6 +221,7 @@ class TestGetBudgetStatus:
             exp_repo=repos["exp_repo"],
             policy=_test_policy(),
             total_budget_cents=50000,
+            run_repo=repos["run_repo"],
         )
         assert result["total_budget_cents"] == 50000
         assert result["spent_cents"] == 2000
@@ -215,6 +234,7 @@ class TestGetBudgetStatus:
         result = get_budget_status(
             show.show_id, repos["show_repo"], repos["exp_repo"],
             _test_policy(), total_budget_cents=50000,
+            run_repo=repos["run_repo"],
         )
         assert result["spent_cents"] == 0
         assert result["remaining_cents"] == 50000
@@ -243,23 +263,18 @@ class TestQueryKnowledgeBase:
         )
         repos["frame_repo"].save(frame)
 
-        exp = Experiment(
-            experiment_id=uuid4(), show_id=show.show_id,
-            segment_id=seg.segment_id, frame_id=frame.frame_id,
-            channel="meta", objective="ticket_sales",
-            budget_cap_cents=5000, status=ExperimentStatus.DECIDED,
-            start_time=datetime.now(timezone.utc) - timedelta(days=14),
-            end_time=datetime.now(timezone.utc) - timedelta(days=7),
-            baseline_snapshot={"cac_cents": 800},
+        exp = _make_experiment(
+            repos["exp_repo"], show.show_id,
+            seg_id=seg.segment_id, frame_id=frame.frame_id,
         )
-        repos["exp_repo"].save(exp)
+        run = _make_run(repos["run_repo"], exp.experiment_id, status=RunStatus.DECIDED)
         decision = Decision(
-            decision_id=uuid4(), experiment_id=exp.experiment_id,
+            decision_id=uuid4(), run_id=run.run_id,
             action=DecisionAction.SCALE, confidence=0.85,
             rationale="Good performance", policy_version="v1",
             metrics_snapshot={"cac_cents": 350},
         )
-        repos["exp_repo"].save_decision(decision)
+        repos["run_repo"].save_decision(decision)
 
         result = query_knowledge_base(
             show_id=show.show_id,
@@ -267,6 +282,7 @@ class TestQueryKnowledgeBase:
             exp_repo=repos["exp_repo"],
             seg_repo=repos["seg_repo"],
             frame_repo=repos["frame_repo"],
+            run_repo=repos["run_repo"],
         )
         assert len(result["experiments"]) == 1
         assert result["experiments"][0]["segment_name"] == "Past Segment"
@@ -275,14 +291,8 @@ class TestQueryKnowledgeBase:
 
     def test_filters_by_matching_city(self, repos):
         show = _create_show(repos["show_repo"], city="Austin")
-        exp = Experiment(
-            experiment_id=uuid4(), show_id=show.show_id,
-            segment_id=uuid4(), frame_id=uuid4(),
-            channel="meta", objective="ticket_sales",
-            budget_cap_cents=5000, status=ExperimentStatus.DECIDED,
-            start_time=None, end_time=None, baseline_snapshot={},
-        )
-        repos["exp_repo"].save(exp)
+        exp = _make_experiment(repos["exp_repo"], show.show_id)
+        _make_run(repos["run_repo"], exp.experiment_id, status=RunStatus.DECIDED)
 
         result = query_knowledge_base(
             show_id=show.show_id,
@@ -290,20 +300,15 @@ class TestQueryKnowledgeBase:
             exp_repo=repos["exp_repo"],
             seg_repo=repos["seg_repo"],
             frame_repo=repos["frame_repo"],
+            run_repo=repos["run_repo"],
             filters={"city": "Austin"},
         )
         assert len(result["experiments"]) == 1
 
     def test_city_filter_mismatch_returns_empty(self, repos):
         show = _create_show(repos["show_repo"], city="Austin")
-        exp = Experiment(
-            experiment_id=uuid4(), show_id=show.show_id,
-            segment_id=uuid4(), frame_id=uuid4(),
-            channel="meta", objective="ticket_sales",
-            budget_cap_cents=5000, status=ExperimentStatus.DECIDED,
-            start_time=None, end_time=None, baseline_snapshot={},
-        )
-        repos["exp_repo"].save(exp)
+        exp = _make_experiment(repos["exp_repo"], show.show_id)
+        _make_run(repos["run_repo"], exp.experiment_id, status=RunStatus.DECIDED)
 
         result = query_knowledge_base(
             show_id=show.show_id,
@@ -311,6 +316,7 @@ class TestQueryKnowledgeBase:
             exp_repo=repos["exp_repo"],
             seg_repo=repos["seg_repo"],
             frame_repo=repos["frame_repo"],
+            run_repo=repos["run_repo"],
             filters={"city": "Dallas"},
         )
         assert result["experiments"] == []
@@ -320,6 +326,7 @@ class TestQueryKnowledgeBase:
         result = query_knowledge_base(
             show.show_id, repos["show_repo"], repos["exp_repo"],
             repos["seg_repo"], repos["frame_repo"],
+            run_repo=repos["run_repo"],
         )
         assert result["experiments"] == []
 

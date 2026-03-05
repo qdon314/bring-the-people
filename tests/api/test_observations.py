@@ -2,8 +2,8 @@
 from uuid import uuid4
 
 
-def _create_running_experiment(client) -> tuple[str, str]:
-    """Helper: create a show + experiment in RUNNING state. Returns (show_id, exp_id)."""
+def _create_active_run(client) -> tuple[str, str]:
+    """Helper: create show + cycle + experiment + run in ACTIVE state. Returns (show_id, run_id)."""
     show_resp = client.post("/api/shows", json={
         "artist_name": "Test Artist",
         "city": "Austin",
@@ -16,9 +16,12 @@ def _create_running_experiment(client) -> tuple[str, str]:
     })
     show_id = show_resp.json()["show_id"]
 
+    cycle_resp = client.post(f"/api/shows/{show_id}/cycles", json={})
+    cycle_id = cycle_resp.json()["cycle_id"]
+
     exp_resp = client.post("/api/experiments", json={
         "show_id": show_id,
-        "cycle_id": str(uuid4()),
+        "origin_cycle_id": cycle_id,
         "segment_id": str(uuid4()),
         "frame_id": str(uuid4()),
         "channel": "meta",
@@ -27,19 +30,22 @@ def _create_running_experiment(client) -> tuple[str, str]:
     })
     exp_id = exp_resp.json()["experiment_id"]
 
-    # Move to running
-    client.post(f"/api/experiments/{exp_id}/submit")
-    client.post(f"/api/experiments/{exp_id}/approve", json={"approved": True, "notes": ""})
-    client.post(f"/api/experiments/{exp_id}/start")
+    # Create a run and launch it
+    run_resp = client.post("/api/runs", json={
+        "experiment_id": exp_id,
+        "cycle_id": cycle_id,
+    })
+    run_id = run_resp.json()["run_id"]
+    client.post(f"/api/runs/{run_id}/launch")
 
-    return show_id, exp_id
+    return show_id, run_id
 
 
 class TestObservationsAPI:
     def test_add_single_observation(self, client):
-        _, exp_id = _create_running_experiment(client)
+        _, run_id = _create_active_run(client)
         resp = client.post("/api/observations", json={
-            "experiment_id": exp_id,
+            "run_id": run_id,
             "window_start": "2026-04-01T00:00:00Z",
             "window_end": "2026-04-02T00:00:00Z",
             "spend_cents": 2500,
@@ -61,11 +67,11 @@ class TestObservationsAPI:
         assert "observation_id" in data
 
     def test_add_bulk_observations(self, client):
-        _, exp_id = _create_running_experiment(client)
+        _, run_id = _create_active_run(client)
         obs_list = []
         for day in range(1, 4):
             obs_list.append({
-                "experiment_id": exp_id,
+                "run_id": run_id,
                 "window_start": f"2026-04-0{day}T00:00:00Z",
                 "window_end": f"2026-04-0{day + 1}T00:00:00Z",
                 "spend_cents": 1000,
@@ -88,12 +94,12 @@ class TestObservationsAPI:
         data = resp.json()
         assert len(data) == 3
 
-    def test_list_observations_for_experiment(self, client):
-        _, exp_id = _create_running_experiment(client)
+    def test_list_observations_for_run(self, client):
+        _, run_id = _create_active_run(client)
         # Add two observations
         for day in [1, 2]:
             client.post("/api/observations", json={
-                "experiment_id": exp_id,
+                "run_id": run_id,
                 "window_start": f"2026-04-0{day}T00:00:00Z",
                 "window_end": f"2026-04-0{day + 1}T00:00:00Z",
                 "spend_cents": 1000,
@@ -108,14 +114,14 @@ class TestObservationsAPI:
                 "complaints": 0,
                 "attribution_model": "last_click_utm",
             })
-        resp = client.get(f"/api/observations?experiment_id={exp_id}")
+        resp = client.get(f"/api/observations?run_id={run_id}")
         assert resp.status_code == 200
         assert len(resp.json()) == 2
 
     def test_add_observation_invalid_window(self, client):
-        _, exp_id = _create_running_experiment(client)
+        _, run_id = _create_active_run(client)
         resp = client.post("/api/observations", json={
-            "experiment_id": exp_id,
+            "run_id": run_id,
             "window_start": "2026-04-02T00:00:00Z",
             "window_end": "2026-04-01T00:00:00Z",  # end before start
             "spend_cents": 1000,

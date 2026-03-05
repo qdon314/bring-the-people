@@ -8,6 +8,7 @@ from growth.adapters.llm.memo_tools import get_cycle_experiments
 from growth.adapters.orm import create_tables, get_engine, get_session_maker
 from growth.adapters.repositories import (
     SQLAlchemyExperimentRepository,
+    SQLAlchemyExperimentRunRepository,
     SQLAlchemyFrameRepository,
     SQLAlchemySegmentRepository,
     SQLAlchemyShowRepository,
@@ -18,8 +19,9 @@ from growth.domain.models import (
     Decision,
     DecisionAction,
     Experiment,
-    ExperimentStatus,
+    ExperimentRun,
     Observation,
+    RunStatus,
     Show,
 )
 
@@ -34,6 +36,7 @@ def repos(tmp_path):
     yield {
         "show_repo": SQLAlchemyShowRepository(session),
         "exp_repo": SQLAlchemyExperimentRepository(session),
+        "run_repo": SQLAlchemyExperimentRunRepository(session),
         "seg_repo": SQLAlchemySegmentRepository(session),
         "frame_repo": SQLAlchemyFrameRepository(session),
     }
@@ -71,15 +74,25 @@ def _setup_cycle_data(repos):
     cycle_end = datetime(2026, 2, 22, tzinfo=timezone.utc)
 
     repos["exp_repo"].save(Experiment(
-        experiment_id=exp_id, show_id=show_id, segment_id=seg_id,
-        frame_id=frame_id, channel="meta", objective="ticket_sales",
-        budget_cap_cents=15000, status=ExperimentStatus.DECIDED,
-        start_time=cycle_start, end_time=cycle_end,
+        experiment_id=exp_id, show_id=show_id, origin_cycle_id=uuid4(),
+        segment_id=seg_id, frame_id=frame_id, channel="meta",
+        objective="ticket_sales", budget_cap_cents=15000,
         baseline_snapshot={"tickets_sold": 50},
     ))
 
-    repos["exp_repo"].add_observation(Observation(
-        observation_id=uuid4(), experiment_id=exp_id,
+    # Create a run that overlaps the cycle window
+    run = ExperimentRun(
+        run_id=uuid4(),
+        experiment_id=exp_id,
+        cycle_id=uuid4(),
+        status=RunStatus.DECIDED,
+        start_time=cycle_start,
+        end_time=cycle_end,
+    )
+    repos["run_repo"].save(run)
+
+    repos["run_repo"].add_observation(Observation(
+        observation_id=uuid4(), run_id=run.run_id,
         window_start=cycle_start, window_end=cycle_start + timedelta(days=3),
         spend_cents=5000, impressions=2000, clicks=100, sessions=80,
         checkouts=10, purchases=5, revenue_cents=12500, refunds=0,
@@ -87,8 +100,8 @@ def _setup_cycle_data(repos):
         attribution_model="last_click_utm", raw_json={},
     ))
 
-    repos["exp_repo"].save_decision(Decision(
-        decision_id=uuid4(), experiment_id=exp_id,
+    repos["run_repo"].save_decision(Decision(
+        decision_id=uuid4(), run_id=run.run_id,
         action=DecisionAction.SCALE, confidence=0.8,
         rationale="Strong conversion rate", policy_version="1.0",
         metrics_snapshot={"cac_cents": 1000},
@@ -107,6 +120,7 @@ class TestGetCycleExperiments:
             exp_repo=repos["exp_repo"],
             seg_repo=repos["seg_repo"],
             frame_repo=repos["frame_repo"],
+            run_repo=repos["run_repo"],
         )
         assert len(result["experiments"]) == 1
         exp = result["experiments"][0]
@@ -132,5 +146,6 @@ class TestGetCycleExperiments:
             exp_repo=repos["exp_repo"],
             seg_repo=repos["seg_repo"],
             frame_repo=repos["frame_repo"],
+            run_repo=repos["run_repo"],
         )
         assert result["experiments"] == []
