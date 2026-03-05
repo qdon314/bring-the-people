@@ -223,3 +223,4 @@ settings.json
 frontend/tsconfig.tsbuildinfo
 frontend-v2/tsconfig.tsbuildinfo
 .worktrees/
+.DS_Store

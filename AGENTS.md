@@ -27,6 +27,8 @@ Frontend (v2):
 - Small, vertical slices. Include loading/empty/error states in UI changes.
 - Every code change must include or update tests. No deferred "test later" unless approved.
 - Never auto-commit. Never revert unrelated changes. Provide suggested commits.
+- For any new plan or feature branch, create a worktree under `.worktrees/` (e.g. `.worktrees/my-feature`). Do not work directly on `main`.
+- After implementation, produce a suggested pull request description. When the user approves, use `gh pr create` to push the branch and open the PR.
 
 ## Key architectural decisions
 
