@@ -15,7 +15,7 @@ class ShowPhase(Enum):
     LATE = "late"      # T-7..T-0
 
 
-class RunStatus(Enum):
+class RunStatus(str, Enum):
     DRAFT = "draft"
     ACTIVE = "active"
     AWAITING_APPROVAL = "awaiting_approval"
