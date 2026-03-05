@@ -61,25 +61,39 @@ class ExperimentORM(Base):
 
     experiment_id: Mapped[str] = mapped_column(String(36), primary_key=True)
     show_id: Mapped[str] = mapped_column(ForeignKey("shows.show_id"))
+    origin_cycle_id: Mapped[str] = mapped_column(String(36), ForeignKey("cycles.cycle_id"))
     segment_id: Mapped[str] = mapped_column(String(36))
     frame_id: Mapped[str] = mapped_column(String(36))
     channel: Mapped[str] = mapped_column(String(50))
     objective: Mapped[str] = mapped_column(String(100))
     budget_cap_cents: Mapped[int] = mapped_column(Integer)
+    baseline_snapshot: Mapped[dict[str, Any]] = mapped_column(JSON)
+
+    show: Mapped["ShowORM"] = relationship(back_populates="experiments")
+    runs: Mapped[list["ExperimentRunORM"]] = relationship(
+        back_populates="experiment", cascade="all, delete-orphan"
+    )
+
+
+class ExperimentRunORM(Base):
+    __tablename__ = "experiment_runs"
+
+    run_id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    experiment_id: Mapped[str] = mapped_column(ForeignKey("experiments.experiment_id"))
+    cycle_id: Mapped[str] = mapped_column(String(36), ForeignKey("cycles.cycle_id"))
     status: Mapped[str] = mapped_column(String(50))
     start_time: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
     end_time: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
-    baseline_snapshot: Mapped[dict[str, Any]] = mapped_column(JSON)
-    cycle_id: Mapped[Optional[str]] = mapped_column(
-        String(36), ForeignKey("cycles.cycle_id"), nullable=True
-    )
+    budget_cap_cents_override: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    channel_config: Mapped[dict[str, Any]] = mapped_column(JSON)
+    variant_snapshot: Mapped[dict[str, Any]] = mapped_column(JSON)
 
-    show: Mapped["ShowORM"] = relationship(back_populates="experiments")
+    experiment: Mapped["ExperimentORM"] = relationship(back_populates="runs")
     observations: Mapped[list["ObservationORM"]] = relationship(
-        back_populates="experiment", cascade="all, delete-orphan"
+        back_populates="run", cascade="all, delete-orphan"
     )
     decisions: Mapped[list["DecisionORM"]] = relationship(
-        back_populates="experiment", cascade="all, delete-orphan"
+        back_populates="run", cascade="all, delete-orphan"
     )
 
 
@@ -87,7 +101,7 @@ class ObservationORM(Base):
     __tablename__ = "observations"
 
     observation_id: Mapped[str] = mapped_column(String(36), primary_key=True)
-    experiment_id: Mapped[str] = mapped_column(ForeignKey("experiments.experiment_id"))
+    run_id: Mapped[str] = mapped_column(ForeignKey("experiment_runs.run_id"))
     window_start: Mapped[datetime] = mapped_column(DateTime)
     window_end: Mapped[datetime] = mapped_column(DateTime)
     spend_cents: Mapped[int] = mapped_column(Integer)
@@ -104,21 +118,21 @@ class ObservationORM(Base):
     attribution_model: Mapped[str] = mapped_column(String(50))
     raw_json: Mapped[dict[str, Any]] = mapped_column(JSON)
 
-    experiment: Mapped["ExperimentORM"] = relationship(back_populates="observations")
+    run: Mapped["ExperimentRunORM"] = relationship(back_populates="observations")
 
 
 class DecisionORM(Base):
     __tablename__ = "decisions"
 
     decision_id: Mapped[str] = mapped_column(String(36), primary_key=True)
-    experiment_id: Mapped[str] = mapped_column(ForeignKey("experiments.experiment_id"))
+    run_id: Mapped[str] = mapped_column(ForeignKey("experiment_runs.run_id"))
     action: Mapped[str] = mapped_column(String(20))
     confidence: Mapped[float] = mapped_column()
     rationale: Mapped[str] = mapped_column(String(500))
     policy_version: Mapped[str] = mapped_column(String(20))
     metrics_snapshot: Mapped[dict[str, Any]] = mapped_column(JSON)
 
-    experiment: Mapped["ExperimentORM"] = relationship(back_populates="decisions")
+    run: Mapped["ExperimentRunORM"] = relationship(back_populates="decisions")
 
 
 class AudienceSegmentORM(Base):

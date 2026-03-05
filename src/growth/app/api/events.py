@@ -63,7 +63,7 @@ def _to_event_response(event: dict) -> EventResponse:
 @router.get("", response_model=list[EventResponse])
 def list_events(
     show_id: str,
-    cycle_id: str | None = None,
+    cycle_id: Optional[str] = None,
     limit: int = 50,
     request: Request = ...,
 ):

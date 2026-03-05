@@ -64,7 +64,7 @@ class TestShowSchemas:
 class TestObservationSchemas:
     def test_observation_create_valid(self):
         data = ObservationCreate(
-            experiment_id=uuid4(),
+            run_id=uuid4(),
             window_start=datetime(2026, 4, 1, 0, 0, tzinfo=timezone.utc),
             window_end=datetime(2026, 4, 2, 0, 0, tzinfo=timezone.utc),
             spend_cents=2500,
@@ -85,7 +85,7 @@ class TestObservationSchemas:
     def test_observation_rejects_negative_spend(self):
         with pytest.raises(ValidationError):
             ObservationCreate(
-                experiment_id=uuid4(),
+                run_id=uuid4(),
                 window_start=datetime(2026, 4, 1, 0, 0, tzinfo=timezone.utc),
                 window_end=datetime(2026, 4, 2, 0, 0, tzinfo=timezone.utc),
                 spend_cents=-100,
@@ -105,7 +105,7 @@ class TestObservationSchemas:
     def test_observation_rejects_window_end_before_start(self):
         with pytest.raises(ValidationError):
             ObservationCreate(
-                experiment_id=uuid4(),
+                run_id=uuid4(),
                 window_start=datetime(2026, 4, 2, 0, 0, tzinfo=timezone.utc),
                 window_end=datetime(2026, 4, 1, 0, 0, tzinfo=timezone.utc),
                 spend_cents=100,

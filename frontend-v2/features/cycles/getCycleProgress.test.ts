@@ -5,7 +5,7 @@ function makeSnapshot(overrides: Partial<CycleProgressSnapshot> = {}): CycleProg
     segments: [],
     frames: [],
     variants: [],
-    experiments: [],
+    runs: [],
     observations: [],
     memos: [],
     ...overrides,
@@ -56,39 +56,39 @@ describe('getCycleProgress', () => {
     expect(progress.nextAction).toBe('run')
   })
 
-  it('marks run complete for active experiments', () => {
+  it('marks run complete for active runs', () => {
     const progress = getCycleProgress(
       makeSnapshot({
         segments: [{ review_status: 'approved' }],
         frames: [{ frame_id: 'frame-1', review_status: 'approved' }],
         variants: [{ frame_id: 'frame-1', review_status: 'approved' }],
-        experiments: [{ experiment_id: 'exp-1', status: 'active' }],
+        runs: [{ run_id: 'run-1', experiment_id: 'exp-1', status: 'active' }],
       })
     )
 
     expect(progress.runComplete).toBe(true)
   })
 
-  it('marks run complete for decided experiments', () => {
+  it('marks run complete for decided runs', () => {
     const progress = getCycleProgress(
       makeSnapshot({
         segments: [{ review_status: 'approved' }],
         frames: [{ frame_id: 'frame-1', review_status: 'approved' }],
         variants: [{ frame_id: 'frame-1', review_status: 'approved' }],
-        experiments: [{ experiment_id: 'exp-1', status: 'decided' }],
+        runs: [{ run_id: 'run-1', experiment_id: 'exp-1', status: 'decided' }],
       })
     )
 
     expect(progress.runComplete).toBe(true)
   })
 
-  it('does not mark run complete for draft experiments', () => {
+  it('does not mark run complete for draft runs', () => {
     const progress = getCycleProgress(
       makeSnapshot({
         segments: [{ review_status: 'approved' }],
         frames: [{ frame_id: 'frame-1', review_status: 'approved' }],
         variants: [{ frame_id: 'frame-1', review_status: 'approved' }],
-        experiments: [{ experiment_id: 'exp-1', status: 'draft' }],
+        runs: [{ run_id: 'run-1', experiment_id: 'exp-1', status: 'draft' }],
       })
     )
 
@@ -96,14 +96,14 @@ describe('getCycleProgress', () => {
     expect(progress.nextAction).toBe('run')
   })
 
-  it('marks results complete only with observations for launched experiments', () => {
+  it('marks results complete only with observations for launched runs', () => {
     const progress = getCycleProgress(
       makeSnapshot({
         segments: [{ review_status: 'approved' }],
         frames: [{ frame_id: 'frame-1', review_status: 'approved' }],
         variants: [{ frame_id: 'frame-1', review_status: 'approved' }],
-        experiments: [{ experiment_id: 'exp-1', status: 'draft' }],
-        observations: [{ experiment_id: 'exp-1' }],
+        runs: [{ run_id: 'run-1', experiment_id: 'exp-1', status: 'draft' }],
+        observations: [{ run_id: 'run-1' }],
       })
     )
 
@@ -118,8 +118,8 @@ describe('getCycleProgress', () => {
         segments: [{ review_status: 'approved' }],
         frames: [{ frame_id: 'frame-1', review_status: 'approved' }],
         variants: [{ frame_id: 'frame-1', review_status: 'approved' }],
-        experiments: [{ experiment_id: 'exp-1', status: 'active' }],
-        observations: [{ experiment_id: 'exp-1' }],
+        runs: [{ run_id: 'run-1', experiment_id: 'exp-1', status: 'active' }],
+        observations: [{ run_id: 'run-1' }],
       })
     )
 
@@ -137,8 +137,8 @@ describe('getCycleProgress', () => {
         segments: [{ review_status: 'approved' }],
         frames: [{ frame_id: 'frame-1', review_status: 'approved' }],
         variants: [{ frame_id: 'frame-1', review_status: 'approved' }],
-        experiments: [{ experiment_id: 'exp-1', status: 'decided' }],
-        observations: [{ experiment_id: 'exp-1' }],
+        runs: [{ run_id: 'run-1', experiment_id: 'exp-1', status: 'decided' }],
+        observations: [{ run_id: 'run-1' }],
         memos: [{ memo_id: 'memo-1' }],
       })
     )
@@ -151,12 +151,53 @@ describe('getCycleProgress', () => {
       makeSnapshot({
         segments: [{ review_status: 'approved' }],
         frames: [{ frame_id: 'frame-1', review_status: 'approved' }],
-        experiments: [{ experiment_id: 'exp-1', status: 'decided' }],
+        runs: [{ run_id: 'run-1', experiment_id: 'exp-1', status: 'decided' }],
       })
     )
 
     expect(progress.runComplete).toBe(true)
     expect(progress.createComplete).toBe(false)
     expect(progress.nextAction).toBe('create')
+  })
+
+  it('runComplete is false when no runs exist', () => {
+    const progress = getCycleProgress(makeSnapshot({ runs: [] }))
+    expect(progress.runComplete).toBe(false)
+  })
+
+  it('runComplete is true when a run is active', () => {
+    const progress = getCycleProgress({
+      segments: [],
+      frames: [],
+      variants: [],
+      runs: [{ run_id: 'run-1', experiment_id: 'exp-1', status: 'active' }],
+      observations: [],
+      memos: [],
+    })
+    expect(progress.runComplete).toBe(true)
+  })
+
+  it('resultsComplete uses run_id from observations', () => {
+    const progress = getCycleProgress({
+      segments: [],
+      frames: [],
+      variants: [],
+      runs: [{ run_id: 'run-1', experiment_id: 'exp-1', status: 'active' }],
+      observations: [{ run_id: 'run-1' }],
+      memos: [],
+    })
+    expect(progress.resultsComplete).toBe(true)
+  })
+
+  it('resultsComplete is false when observation run_id does not match any active run', () => {
+    const progress = getCycleProgress({
+      segments: [],
+      frames: [],
+      variants: [],
+      runs: [{ run_id: 'run-1', experiment_id: 'exp-1', status: 'active' }],
+      observations: [{ run_id: 'run-UNKNOWN' }],
+      memos: [],
+    })
+    expect(progress.resultsComplete).toBe(false)
   })
 })

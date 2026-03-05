@@ -14,6 +14,7 @@ from growth.adapters.orm import (
     CycleORM,
     DecisionORM,
     ExperimentORM,
+    ExperimentRunORM,
     ObservationORM,
     ProducerMemoORM,
     ShowORM,
@@ -27,17 +28,20 @@ from growth.domain.models import (
     Decision,
     DecisionAction,
     Experiment,
+    ExperimentRun,
     ExperimentStatus,
     JobStatus,
     JobType,
     Observation,
     ProducerMemo,
     ReviewStatus,
+    RunStatus,
     Show,
 )
 from growth.ports.repositories import (
     CreativeVariantRepository,
     ExperimentRepository,
+    ExperimentRunRepository,
     FrameRepository,
     JobRepository,
     ProducerMemoRepository,
@@ -84,20 +88,16 @@ def _show_to_orm(domain: Show) -> ShowORM:
 
 def _experiment_to_domain(orm: ExperimentORM) -> Experiment:
     """Convert ExperimentORM to domain Experiment."""
-    from datetime import timezone
     return Experiment(
         experiment_id=UUID(orm.experiment_id),
         show_id=UUID(orm.show_id),
+        origin_cycle_id=UUID(orm.origin_cycle_id),
         segment_id=UUID(orm.segment_id),
         frame_id=UUID(orm.frame_id),
         channel=orm.channel,
         objective=orm.objective,
         budget_cap_cents=orm.budget_cap_cents,
-        status=ExperimentStatus(orm.status),
-        start_time=orm.start_time.replace(tzinfo=timezone.utc) if orm.start_time else None,
-        end_time=orm.end_time.replace(tzinfo=timezone.utc) if orm.end_time else None,
         baseline_snapshot=orm.baseline_snapshot,
-        cycle_id=UUID(orm.cycle_id) if orm.cycle_id else None,
     )
 
 
@@ -106,16 +106,13 @@ def _experiment_to_orm(domain: Experiment) -> ExperimentORM:
     return ExperimentORM(
         experiment_id=str(domain.experiment_id),
         show_id=str(domain.show_id),
+        origin_cycle_id=str(domain.origin_cycle_id),
         segment_id=str(domain.segment_id),
         frame_id=str(domain.frame_id),
         channel=domain.channel,
         objective=domain.objective,
         budget_cap_cents=domain.budget_cap_cents,
-        status=domain.status.value,
-        start_time=domain.start_time,
-        end_time=domain.end_time,
         baseline_snapshot=domain.baseline_snapshot,
-        cycle_id=str(domain.cycle_id) if domain.cycle_id else None,
     )
 
 
@@ -123,7 +120,7 @@ def _observation_to_domain(orm: ObservationORM) -> Observation:
     """Convert ObservationORM to domain Observation."""
     return Observation(
         observation_id=UUID(orm.observation_id),
-        experiment_id=UUID(orm.experiment_id),
+        run_id=UUID(orm.run_id),
         window_start=orm.window_start.replace(tzinfo=timezone.utc),
         window_end=orm.window_end.replace(tzinfo=timezone.utc),
         spend_cents=orm.spend_cents,
@@ -146,7 +143,7 @@ def _observation_to_orm(domain: Observation) -> ObservationORM:
     """Convert domain Observation to ObservationORM."""
     return ObservationORM(
         observation_id=str(domain.observation_id),
-        experiment_id=str(domain.experiment_id),
+        run_id=str(domain.run_id),
         window_start=domain.window_start,
         window_end=domain.window_end,
         spend_cents=domain.spend_cents,
@@ -169,7 +166,7 @@ def _decision_to_orm(domain: Decision) -> DecisionORM:
     """Convert domain Decision to DecisionORM."""
     return DecisionORM(
         decision_id=str(domain.decision_id),
-        experiment_id=str(domain.experiment_id),
+        run_id=str(domain.run_id),
         action=domain.action.value,
         confidence=domain.confidence,
         rationale=domain.rationale,
@@ -182,7 +179,7 @@ def _decision_to_domain(orm: DecisionORM) -> Decision:
     """Convert DecisionORM to domain Decision."""
     return Decision(
         decision_id=UUID(orm.decision_id),
-        experiment_id=UUID(orm.experiment_id),
+        run_id=UUID(orm.run_id),
         action=DecisionAction(orm.action),
         confidence=orm.confidence,
         rationale=orm.rationale,
@@ -286,27 +283,101 @@ class SQLAlchemyExperimentRepository(ExperimentRepository):
         orms = self._session.query(ExperimentORM).filter_by(show_id=str(show_id)).all()
         return [_experiment_to_domain(orm) for orm in orms]
 
-    def add_observation(self, observation: Observation) -> None:
-        orm = _observation_to_orm(observation)
-        self._session.merge(orm)
+
+def _run_to_orm(run: ExperimentRun) -> ExperimentRunORM:
+    """Convert domain ExperimentRun to ExperimentRunORM."""
+    return ExperimentRunORM(
+        run_id=str(run.run_id),
+        experiment_id=str(run.experiment_id),
+        cycle_id=str(run.cycle_id),
+        status=run.status.value,
+        start_time=run.start_time.replace(tzinfo=None) if run.start_time else None,
+        end_time=run.end_time.replace(tzinfo=None) if run.end_time else None,
+        budget_cap_cents_override=run.budget_cap_cents_override,
+        channel_config=run.channel_config,
+        variant_snapshot=run.variant_snapshot,
+    )
+
+
+def _run_to_domain(row: ExperimentRunORM) -> ExperimentRun:
+    """Convert ExperimentRunORM to domain ExperimentRun."""
+    return ExperimentRun(
+        run_id=UUID(row.run_id),
+        experiment_id=UUID(row.experiment_id),
+        cycle_id=UUID(row.cycle_id),
+        status=RunStatus(row.status),
+        start_time=row.start_time.replace(tzinfo=timezone.utc) if row.start_time else None,
+        end_time=row.end_time.replace(tzinfo=timezone.utc) if row.end_time else None,
+        budget_cap_cents_override=row.budget_cap_cents_override,
+        channel_config=row.channel_config or {},
+        variant_snapshot=row.variant_snapshot or {},
+    )
+
+
+class SQLAlchemyExperimentRunRepository:
+    """SQLAlchemy implementation of ExperimentRunRepository."""
+
+    def __init__(self, session: Session) -> None:
+        self._session = session
+
+    def get_by_id(self, run_id: UUID) -> ExperimentRun | None:
+        row = self._session.get(ExperimentRunORM, str(run_id))
+        return _run_to_domain(row) if row else None
+
+    def save(self, run: ExperimentRun) -> None:
+        existing = self._session.get(ExperimentRunORM, str(run.run_id))
+        if existing:
+            orm = _run_to_orm(run)
+            existing.status = orm.status
+            existing.start_time = orm.start_time
+            existing.end_time = orm.end_time
+            existing.budget_cap_cents_override = orm.budget_cap_cents_override
+            existing.channel_config = orm.channel_config
+            existing.variant_snapshot = orm.variant_snapshot
+        else:
+            self._session.add(_run_to_orm(run))
         self._session.commit()
 
-    def get_observations(self, experiment_id: UUID) -> list[Observation]:
-        orms = self._session.query(ObservationORM).filter_by(
-            experiment_id=str(experiment_id)
-        ).all()
-        return [_observation_to_domain(orm) for orm in orms]
+    def get_by_cycle(self, cycle_id: UUID) -> list[ExperimentRun]:
+        rows = (
+            self._session.query(ExperimentRunORM)
+            .filter(ExperimentRunORM.cycle_id == str(cycle_id))
+            .all()
+        )
+        return [_run_to_domain(r) for r in rows]
+
+    def get_by_experiment(self, experiment_id: UUID) -> list[ExperimentRun]:
+        rows = (
+            self._session.query(ExperimentRunORM)
+            .filter(ExperimentRunORM.experiment_id == str(experiment_id))
+            .all()
+        )
+        return [_run_to_domain(r) for r in rows]
+
+    def add_observation(self, observation: Observation) -> None:
+        self._session.add(_observation_to_orm(observation))
+        self._session.commit()
+
+    def get_observations(self, run_id: UUID) -> list[Observation]:
+        rows = (
+            self._session.query(ObservationORM)
+            .filter(ObservationORM.run_id == str(run_id))
+            .order_by(ObservationORM.window_start.asc())
+            .all()
+        )
+        return [_observation_to_domain(r) for r in rows]
 
     def save_decision(self, decision: Decision) -> None:
-        orm = _decision_to_orm(decision)
-        self._session.merge(orm)
+        self._session.add(_decision_to_orm(decision))
         self._session.commit()
 
-    def get_decisions(self, experiment_id: UUID) -> list[Decision]:
-        orms = self._session.query(DecisionORM).filter_by(
-            experiment_id=str(experiment_id)
-        ).all()
-        return [_decision_to_domain(orm) for orm in orms]
+    def get_decisions(self, run_id: UUID) -> list[Decision]:
+        rows = (
+            self._session.query(DecisionORM)
+            .filter(DecisionORM.run_id == str(run_id))
+            .all()
+        )
+        return [_decision_to_domain(r) for r in rows]
 
 
 def _segment_to_domain(orm: AudienceSegmentORM) -> AudienceSegment:

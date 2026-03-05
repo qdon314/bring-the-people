@@ -93,6 +93,10 @@ class SessionContainer:
         from growth.adapters.repositories import SQLAlchemyJobRepository
         return SQLAlchemyJobRepository(self._session)
 
+    def run_repo(self):
+        from growth.adapters.repositories import SQLAlchemyExperimentRunRepository
+        return SQLAlchemyExperimentRunRepository(self._session)
+
     # --- Non-session deps (delegate to parent) ---
 
     def event_log(self) -> JSONLEventLog:
@@ -110,6 +114,7 @@ class SessionContainer:
     def decision_service(self):
         from growth.app.services.decision_service import DecisionService
         return DecisionService(
+            run_repo=self.run_repo(),
             experiment_repo=self.experiment_repo(),
             event_log=self.event_log(),
             policy=self.policy_config(),

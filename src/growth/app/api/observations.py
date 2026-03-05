@@ -11,22 +11,22 @@ from growth.domain.models import Observation
 router = APIRouter()
 
 
-def _get_exp_repo(request: Request):
-    return request.state.container.experiment_repo()
+def _get_run_repo(request: Request):
+    return request.state.container.run_repo()
 
 
 @router.post("", status_code=201, response_model=ObservationResponse)
 def create_observation(body: ObservationCreate, request: Request):
-    repo = _get_exp_repo(request)
-    
-    # Verify experiment exists
-    exp = repo.get_by_id(body.experiment_id)
-    if exp is None:
-        raise HTTPException(status_code=404, detail="Experiment not found")
-    
+    repo = _get_run_repo(request)
+
+    # Verify run exists
+    run = repo.get_by_id(body.run_id)
+    if run is None:
+        raise HTTPException(status_code=404, detail="Run not found")
+
     obs = Observation(
         observation_id=uuid4(),
-        experiment_id=body.experiment_id,
+        run_id=body.run_id,
         window_start=body.window_start,
         window_end=body.window_end,
         spend_cents=body.spend_cents,
@@ -49,18 +49,18 @@ def create_observation(body: ObservationCreate, request: Request):
 
 @router.post("/bulk", status_code=201, response_model=list[ObservationResponse])
 def create_observations_bulk(body: ObservationBulkCreate, request: Request):
-    repo = _get_exp_repo(request)
+    repo = _get_run_repo(request)
     responses = []
-    
+
     for obs_create in body.observations:
-        # Verify experiment exists
-        exp = repo.get_by_id(obs_create.experiment_id)
-        if exp is None:
-            raise HTTPException(status_code=404, detail=f"Experiment {obs_create.experiment_id} not found")
-        
+        # Verify run exists
+        run = repo.get_by_id(obs_create.run_id)
+        if run is None:
+            raise HTTPException(status_code=404, detail=f"Run {obs_create.run_id} not found")
+
         obs = Observation(
             observation_id=uuid4(),
-            experiment_id=obs_create.experiment_id,
+            run_id=obs_create.run_id,
             window_start=obs_create.window_start,
             window_end=obs_create.window_end,
             spend_cents=obs_create.spend_cents,
@@ -79,12 +79,12 @@ def create_observations_bulk(body: ObservationBulkCreate, request: Request):
         )
         repo.add_observation(obs)
         responses.append(ObservationResponse.from_domain(obs))
-    
+
     return responses
 
 
 @router.get("", response_model=list[ObservationResponse])
-def list_observations(experiment_id: UUID, request: Request):
-    repo = _get_exp_repo(request)
-    observations = repo.get_observations(experiment_id)
+def list_observations(run_id: UUID, request: Request):
+    repo = _get_run_repo(request)
+    observations = repo.get_observations(run_id)
     return [ObservationResponse.from_domain(o) for o in observations]

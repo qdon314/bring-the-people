@@ -1,7 +1,7 @@
 """Core domain models. All dataclasses are frozen (immutable)."""
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
 from typing import Any
@@ -15,11 +15,15 @@ class ShowPhase(Enum):
     LATE = "late"      # T-7..T-0
 
 
-class ExperimentStatus(Enum):
+class RunStatus(str, Enum):
     DRAFT = "draft"
     ACTIVE = "active"
     AWAITING_APPROVAL = "awaiting_approval"
     DECIDED = "decided"
+
+
+# Backward-compatibility alias — existing code importing ExperimentStatus continues to work.
+ExperimentStatus = RunStatus
 
 
 class DecisionAction(Enum):
@@ -130,22 +134,32 @@ class CreativeVariant:
 class Experiment:
     experiment_id: UUID
     show_id: UUID
+    origin_cycle_id: UUID
     segment_id: UUID
     frame_id: UUID
     channel: str
     objective: str
     budget_cap_cents: int
-    status: ExperimentStatus
+    baseline_snapshot: dict[str, Any]
+
+
+@dataclass(frozen=True)
+class ExperimentRun:
+    run_id: UUID
+    experiment_id: UUID
+    cycle_id: UUID
+    status: RunStatus
     start_time: datetime | None
     end_time: datetime | None
-    baseline_snapshot: dict[str, Any]
-    cycle_id: UUID | None = None
+    budget_cap_cents_override: int | None = None
+    channel_config: dict[str, Any] = field(default_factory=dict)
+    variant_snapshot: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass(frozen=True)
 class Observation:
     observation_id: UUID
-    experiment_id: UUID
+    run_id: UUID
     window_start: datetime
     window_end: datetime
     spend_cents: int
@@ -166,7 +180,7 @@ class Observation:
 @dataclass(frozen=True)
 class Decision:
     decision_id: UUID
-    experiment_id: UUID
+    run_id: UUID
     action: DecisionAction
     confidence: float
     rationale: str

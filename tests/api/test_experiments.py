@@ -16,10 +16,15 @@ def _create_show(client) -> str:
     return resp.json()["show_id"]
 
 
-def _experiment_create_payload(show_id: str, **overrides):
+def _create_cycle(client, show_id: str) -> str:
+    resp = client.post(f"/api/shows/{show_id}/cycles", json={})
+    return resp.json()["cycle_id"]
+
+
+def _experiment_create_payload(show_id: str, origin_cycle_id: str, **overrides):
     payload = {
         "show_id": show_id,
-        "cycle_id": str(uuid4()),
+        "origin_cycle_id": origin_cycle_id,
         "segment_id": str(uuid4()),
         "frame_id": str(uuid4()),
         "channel": "meta",
@@ -32,21 +37,20 @@ def _experiment_create_payload(show_id: str, **overrides):
 class TestExperimentsAPI:
     def test_create_experiment(self, client):
         show_id = _create_show(client)
-        cycle_id = str(uuid4())
+        origin_cycle_id = _create_cycle(client, show_id)
         resp = client.post(
             "/api/experiments",
             json=_experiment_create_payload(
                 show_id,
-                cycle_id=cycle_id,
+                origin_cycle_id,
                 objective="ticket_sales",
                 baseline_snapshot={"cac_cents": 800},
             ),
         )
         assert resp.status_code == 201
         data = resp.json()
-        assert data["status"] == "draft"
         assert data["channel"] == "meta"
-        assert data["cycle_id"] == cycle_id
+        assert data["origin_cycle_id"] == origin_cycle_id
 
     def test_create_experiment_requires_cycle_id(self, client):
         show_id = _create_show(client)
@@ -64,7 +68,8 @@ class TestExperimentsAPI:
 
     def test_get_experiment(self, client):
         show_id = _create_show(client)
-        create_resp = client.post("/api/experiments", json=_experiment_create_payload(show_id))
+        origin_cycle_id = _create_cycle(client, show_id)
+        create_resp = client.post("/api/experiments", json=_experiment_create_payload(show_id, origin_cycle_id))
         exp_id = create_resp.json()["experiment_id"]
 
         resp = client.get(f"/api/experiments/{exp_id}")
@@ -73,58 +78,27 @@ class TestExperimentsAPI:
 
     def test_list_experiments_by_show(self, client):
         show_id = _create_show(client)
+        origin_cycle_id = _create_cycle(client, show_id)
         for _ in range(3):
-            client.post("/api/experiments", json=_experiment_create_payload(show_id))
+            client.post("/api/experiments", json=_experiment_create_payload(show_id, origin_cycle_id))
         resp = client.get(f"/api/experiments?show_id={show_id}")
         assert resp.status_code == 200
         assert len(resp.json()) == 3
 
-    def test_launch_from_draft(self, client):
+    def test_launch_returns_410(self, client):
         show_id = _create_show(client)
-        create_resp = client.post("/api/experiments", json=_experiment_create_payload(show_id))
+        origin_cycle_id = _create_cycle(client, show_id)
+        create_resp = client.post("/api/experiments", json=_experiment_create_payload(show_id, origin_cycle_id))
         exp_id = create_resp.json()["experiment_id"]
 
         resp = client.post(f"/api/experiments/{exp_id}/launch")
-        assert resp.status_code == 200
-        assert resp.json()["status"] == "active"
-        assert resp.json()["start_time"] is not None
+        assert resp.status_code == 410
 
-    def test_launch_from_awaiting_approval(self, client):
-        """Cross-cycle: awaiting_approval experiments can be re-launched."""
+    def test_request_reapproval_returns_410(self, client):
         show_id = _create_show(client)
-        create_resp = client.post("/api/experiments", json=_experiment_create_payload(show_id))
-        exp_id = create_resp.json()["experiment_id"]
-
-        # Transition to awaiting_approval first
-        client.post(f"/api/experiments/{exp_id}/request-reapproval")
-
-        resp = client.post(f"/api/experiments/{exp_id}/launch")
-        assert resp.status_code == 200
-        assert resp.json()["status"] == "active"
-
-    def test_launch_from_active_fails(self, client):
-        show_id = _create_show(client)
-        create_resp = client.post("/api/experiments", json=_experiment_create_payload(show_id))
-        exp_id = create_resp.json()["experiment_id"]
-
-        client.post(f"/api/experiments/{exp_id}/launch")
-        resp = client.post(f"/api/experiments/{exp_id}/launch")
-        assert resp.status_code == 409
-
-    def test_request_reapproval_from_draft(self, client):
-        show_id = _create_show(client)
-        create_resp = client.post("/api/experiments", json=_experiment_create_payload(show_id))
+        origin_cycle_id = _create_cycle(client, show_id)
+        create_resp = client.post("/api/experiments", json=_experiment_create_payload(show_id, origin_cycle_id))
         exp_id = create_resp.json()["experiment_id"]
 
         resp = client.post(f"/api/experiments/{exp_id}/request-reapproval")
-        assert resp.status_code == 200
-        assert resp.json()["status"] == "awaiting_approval"
-
-    def test_request_reapproval_from_active_fails(self, client):
-        show_id = _create_show(client)
-        create_resp = client.post("/api/experiments", json=_experiment_create_payload(show_id))
-        exp_id = create_resp.json()["experiment_id"]
-
-        client.post(f"/api/experiments/{exp_id}/launch")
-        resp = client.post(f"/api/experiments/{exp_id}/request-reapproval")
-        assert resp.status_code == 409
+        assert resp.status_code == 410

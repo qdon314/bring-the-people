@@ -5,7 +5,7 @@ description: Fast-load codebase context for frontend-v2 tasks
 
 # Frontend V2 — Codebase Context
 
-last-verified: 2026-03-03 c74b22a
+last-verified: 2026-03-04 react-query-refactor
 
 This is a fast-load reference. Do not use code-explorer for frontend-v2 tasks.
 Load this skill, then go directly to the files you need to modify.
@@ -33,7 +33,7 @@ frontend-v2/
   features/                     # Feature modules — one folder per domain
     cycles/    shows/    segments/    frames/    variants/
     experiments/    observations/    decisions/    memos/
-    jobs/    events/
+    jobs/    events/    overview/
   shared/
     api/
       client.ts                 # Base fetch wrapper + ApiError class
@@ -112,12 +112,38 @@ queryKeys.cycles.list(showId)
 | `getActiveCycle()` | `shared/lib/cycles.ts` | Active cycle from list |
 | `mapApiError()` | `shared/errors/mapApiError.ts` | API error → UI copy |
 | `ApiError` | `shared/api/client.ts` | Typed API error class |
-| `useJobPolling` | `features/jobs/useJobPolling.ts` | Async job polling hook |
+| `useJobPolling` | `features/jobs/useJobPolling.ts` | Async job polling hook (uses useState/useEffect — not React Query) |
+| `useOverviewSnapshot` | `features/overview/useOverviewSnapshot.ts` | Multi-domain query aggregation → `CycleProgressSnapshot` + events (uses React Query) |
 | validators | `shared/api/validators/` | Runtime response validation |
 | MSW server | `test/msw/server.ts` | Integration test server |
 | MSW handlers | `test/msw/handlers.ts` | Baseline API mocks |
+| `getCycleProgress()` | `features/cycles/getCycleProgress.ts` | Derive workflow step completion from snapshot |
+| `CycleStepper` | `features/cycles/ui/CycleStepper.tsx` | Horizontal step progress indicator (props: showId, cycleId, progress) |
+| `CycleStepperSkeleton` | `features/cycles/ui/CycleStepper.tsx` | Loading skeleton for CycleStepper |
+| `AppShell` | `features/layout/AppShell.tsx` | Cycle layout shell (TopBar + CycleStepper + Sidebar + content) |
+| `AppShellSkeleton` | `features/layout/AppShell.tsx` | Loading skeleton for AppShell |
+| `ShowHeader` | `features/shows/ui/ShowHeader.tsx` | Show name, phase badge, dates |
+| Feature api.ts stubs | `features/{segments,frames,variants,experiments,observations,memos,events}/api.ts` | List functions for each domain (no validators — raw typed returns) |
+| Feature query hooks | `features/*/queries.ts` | React Query hooks for all domains (see table below) |
 
-**Planned (do not import yet):** `cn()`, `getCycleProgress()`, `AppShell`, `Sidebar`, `ShowHeader`, `CycleStepper`, `StatusBadge`, `ErrorBanner`, `EmptyState`, `SpinnerIcon`, `Dialog`, `useJobPoller`.
+**React Query**: `@tanstack/react-query` IS installed. `QueryClientProvider` is in `app/providers.tsx` (wrapped in root layout). Use `useQuery`/`useQueries` for new data-fetching hooks.
+
+**Feature query hooks** (all in `features/<domain>/queries.ts`):
+- `useShows()` — all shows
+- `useShow(showId)` — single show
+- `useCycles(showId)` — cycles for a show
+- `useCycle(cycleId)` — single cycle
+- `useSegments(showId, cycleId?)` — segments, cycle-scoped
+- `useFrames(showId, cycleId?)` — frames, cycle-scoped
+- `useVariants(frameId)` — variants by frame (API is frame-scoped)
+- `useExperiments(showId)` — all experiments for a show
+- `useObservations(experimentId)` — observations for an experiment
+- `useMemos(showId)` — memos for a show
+- `useEvents(showId, cycleId?)` — events, cycle-scoped
+- `useJob(jobId | null)` — single job by ID (use `useJobPolling` for active polling)
+- `useDecisions` — **stub only**, pending V2-012 (API takes `experiment_id`, key factory mismatch)
+
+**Planned (do not import yet):** `cn()`, `StatusBadge`, `ErrorBanner`, `EmptyState`, `SpinnerIcon`, `Dialog`, `useJobPoller`.
 See `docs/contracts/frontend-manifest.md` for full inventory.
 
 ---

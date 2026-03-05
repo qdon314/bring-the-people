@@ -12,7 +12,7 @@ Do not try to import planned items.
 Flip `planned` → `exists` when you create the file. Add new rows for items
 not yet listed. This is part of the definition of done.
 
-Last updated: 2026-03-03
+Last updated: 2026-03-05 (entity-refactor)
 
 ---
 
@@ -36,7 +36,7 @@ These are called for in `docs/designs/frontend-architecture.md`:
 | Function           | Path                    | Status  | Purpose                         |
 |--------------------|-------------------------|---------|---------------------------------|
 | cn()               | shared/lib/utils.ts     | exists  | Tailwind class merging          |
-| getCycleProgress() | shared/lib/progress.ts  | planned | Derive workflow step completion |
+| getCycleProgress() | features/cycles/getCycleProgress.ts | exists  | Derive workflow step completion |
 | getActiveCycle()   | shared/lib/cycles.ts    | exists  | Return most recently started cycle from list |
 | query key factories | shared/queryKeys.ts     | exists  | Canonical query key builders by domain |
 
@@ -54,9 +54,10 @@ These are called for in `docs/designs/frontend-architecture.md`:
 
 ## Feature Hooks (`features/*`)
 
-| Hook          | Path                               | Status  | Purpose                              |
-|---------------|------------------------------------|---------|--------------------------------------|
-| useJobPolling | features/jobs/useJobPolling.ts     | exists  | Adaptive job polling for async runs  |
+| Hook                  | Path                                           | Status  | Purpose                              |
+|-----------------------|------------------------------------------------|---------|--------------------------------------|
+| useJobPolling         | features/jobs/useJobPolling.ts                 | exists  | Adaptive job polling for async runs  |
+| useOverviewSnapshot   | features/overview/useOverviewSnapshot.ts       | exists  | Aggregate multi-domain queries into CycleProgressSnapshot + events |
 
 ## Shared Config (`shared/config/`)
 
@@ -80,8 +81,8 @@ App shell and navigation components for cycle-scoped routes:
 
 | Component     | Path                        | Status  | Purpose                       |
 |---------------|-----------------------------|---------|-------------------------------|
-| ShowHeader    | features/shows/ui/ShowHeader.tsx    | planned | Show name, phase, dates       |
-| CycleStepper  | features/cycles/ui/CycleStepper.tsx  | planned | Workflow progress indicator   |
+| ShowHeader    | features/shows/ui/ShowHeader.tsx    | exists  | Show name, phase, dates       |
+| CycleStepper  | features/cycles/ui/CycleStepper.tsx  | exists  | Workflow progress indicator   |
 
 ## API Client (`shared/api/`)
 
@@ -109,15 +110,34 @@ Update this table as feature modules are built.
 
 | Feature       | Status      | api | queries | mutations | ui  |
 |---------------|-------------|-----|---------|-----------|-----|
-| shows         | in progress | exists | exists  | -         | -   |
+| shows         | in progress | exists | exists  | -         | exists |
 | cycles        | in progress | exists | exists  | -         | -   |
 | layout        | exists      | -    | -       | -         | exists |
-| segments      | in progress | -   | exists  | -         | -   |
-| frames        | in progress | -   | exists  | -         | -   |
-| variants      | in progress | -   | exists  | -         | -   |
-| experiments   | in progress | -   | exists  | -         | -   |
-| observations  | in progress | -   | exists  | -         | -   |
-| decisions     | in progress | -   | exists  | -         | -   |
-| memos         | in progress | -   | exists  | -         | -   |
+| overview      | in progress | -   | -       | -         | -   |
+| segments      | in progress | exists | exists  | -         | -   |
+| frames        | in progress | exists | exists  | -         | -   |
+| variants      | in progress | exists | exists  | -         | -   |
+| experiments   | in progress | exists | exists  | -         | -   |
+| runs          | in progress | exists | exists  | createRun, launchRun, requestRunReapproval | -   |
+| observations  | in progress | exists | exists (`useObservations(runId)`) | -  | -   |
+| decisions     | in progress | -   | exists (`useDecisions(runId)`)  | -         | -   |
+| memos         | in progress | exists | exists  | -         | -   |
 | jobs          | in progress | exists | exists  | -         | -   |
-| events        | in progress | -   | exists  | -         | -   |
+| events        | in progress | exists | exists  | -         | -   |
+
+---
+
+## Recent Changes
+
+### entity-refactor (2026-03-05)
+
+**Query key factories (`shared/queryKeys.ts`)**
+
+- `runKeys` added: `listByCycle(cycleId)`, `listByExperiment(experimentId)`, `detail(runId)`, `metrics(runId)`
+- `observationKeys.list(runId)` — parameter renamed from `experimentId` to `runId`
+- `decisionKeys.list(runId)` — parameter renamed from `experimentId` to `runId`
+
+**`getCycleProgress` / `CycleProgressSnapshot`**
+
+- `runs` replaces `experiments` in the snapshot shape
+- `ObservationSnapshot.run_id` replaces `experiment_id`

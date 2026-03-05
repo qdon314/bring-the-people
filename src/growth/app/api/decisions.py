@@ -1,26 +1,15 @@
 """Decisions API routes."""
 from __future__ import annotations
 
-from dataclasses import replace
-from datetime import datetime, timezone
 from uuid import UUID
 
 from fastapi import APIRouter, HTTPException, Request
 
 from growth.app.schemas import DecisionResponse
-from growth.domain.models import ExperimentStatus
 
 router = APIRouter()
 
-CANONICAL_EVALUATE_ROUTE = "/api/decisions/evaluate/{experiment_id}"
-
-
-def _get_exp_repo(request: Request):
-    return request.state.container.experiment_repo()
-
-
-def _get_decision_service(request: Request):
-    return request.state.container.decision_service()
+CANONICAL_EVALUATE_ROUTE = "/api/decisions/evaluate/{run_id}"
 
 
 @router.post("/evaluate", include_in_schema=False)
@@ -32,33 +21,20 @@ def evaluate_experiment_legacy_route():
     )
 
 
-@router.post("/evaluate/{experiment_id}", response_model=DecisionResponse)
-def evaluate_experiment(experiment_id: UUID, request: Request):
-    """Evaluate an experiment and return a decision."""
-    # Verify experiment exists first
-    repo = _get_exp_repo(request)
-    exp = repo.get_by_id(experiment_id)
-    if exp is None:
-        raise HTTPException(status_code=404, detail="Experiment not found")
-
-    # Use decision service to evaluate
-    service = _get_decision_service(request)
-    decision = service.evaluate_experiment(experiment_id)
-
-    # Transition experiment to DECIDED status
-    updated_exp = replace(
-        exp,
-        status=ExperimentStatus.DECIDED,
-        end_time=datetime.now(timezone.utc),
-    )
-    repo.save(updated_exp)
-
+@router.post("/evaluate/{run_id}", response_model=DecisionResponse)
+def evaluate_run(run_id: UUID, request: Request):
+    container = request.state.container
+    try:
+        decision = container.decision_service().evaluate_run(run_id)
+    except ValueError as exc:
+        msg = str(exc)
+        if "not found" in msg.lower():
+            raise HTTPException(status_code=404, detail=msg)
+        raise HTTPException(status_code=409, detail=msg)
     return DecisionResponse.from_domain(decision)
 
 
 @router.get("", response_model=list[DecisionResponse])
-def list_decisions(experiment_id: UUID, request: Request):
-    """Get all decisions for an experiment."""
-    repo = _get_exp_repo(request)
-    decisions = repo.get_decisions(experiment_id)
-    return [DecisionResponse.from_domain(d) for d in decisions]
+def list_decisions(run_id: UUID, request: Request):
+    run_repo = request.state.container.run_repo()
+    return [DecisionResponse.from_domain(d) for d in run_repo.get_decisions(run_id)]

@@ -107,42 +107,37 @@ class TestExperiment:
         exp = Experiment(
             experiment_id=uuid4(),
             show_id=uuid4(),
+            origin_cycle_id=uuid4(),
             segment_id=uuid4(),
             frame_id=uuid4(),
             channel="meta",
             objective="ticket_sales",
             budget_cap_cents=5000,
-            status=ExperimentStatus.DRAFT,
-            start_time=None,
-            end_time=None,
             baseline_snapshot={"daily_velocity": 2.5, "cac_cents": 800},
         )
-        assert exp.status == ExperimentStatus.DRAFT
         assert exp.budget_cap_cents == 5000
 
     def test_experiment_is_frozen(self):
         exp = Experiment(
             experiment_id=uuid4(),
             show_id=uuid4(),
+            origin_cycle_id=uuid4(),
             segment_id=uuid4(),
             frame_id=uuid4(),
             channel="meta",
             objective="ticket_sales",
             budget_cap_cents=5000,
-            status=ExperimentStatus.DRAFT,
-            start_time=None,
-            end_time=None,
             baseline_snapshot={},
         )
         with pytest.raises(AttributeError):
-            exp.status = ExperimentStatus.ACTIVE
+            exp.budget_cap_cents = 9999
 
 
 class TestObservation:
     def test_create_observation(self):
         obs = Observation(
             observation_id=uuid4(),
-            experiment_id=uuid4(),
+            run_id=uuid4(),
             window_start=datetime(2026, 4, 1, 0, 0, tzinfo=timezone.utc),
             window_end=datetime(2026, 4, 2, 0, 0, tzinfo=timezone.utc),
             spend_cents=2500,
@@ -167,7 +162,7 @@ class TestDecision:
     def test_create_decision(self):
         d = Decision(
             decision_id=uuid4(),
-            experiment_id=uuid4(),
+            run_id=uuid4(),
             action=DecisionAction.SCALE,
             confidence=0.82,
             rationale="Strong CAC improvement with sufficient evidence.",

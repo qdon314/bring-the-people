@@ -7,14 +7,16 @@ import pytest
 from growth.adapters.orm import create_tables, get_engine, get_session_maker
 from growth.adapters.repositories import (
     SQLAlchemyExperimentRepository,
+    SQLAlchemyExperimentRunRepository,
     SQLAlchemyShowRepository,
 )
 from growth.domain.models import (
     Decision,
     DecisionAction,
     Experiment,
-    ExperimentStatus,
+    ExperimentRun,
     Observation,
+    RunStatus,
     Show,
 )
 
@@ -59,8 +61,7 @@ class TestShowRepository:
 
 
 class TestExperimentRepository:
-    def test_save_and_get_experiment(self, db_session):
-        # First create a show
+    def _make_show(self, db_session):
         show_repo = SQLAlchemyShowRepository(db_session)
         show = Show(
             show_id=uuid4(),
@@ -75,20 +76,20 @@ class TestExperimentRepository:
             currency="USD",
         )
         show_repo.save(show)
+        return show
 
-        # Create experiment
+    def test_save_and_get_experiment(self, db_session):
+        show = self._make_show(db_session)
         exp_repo = SQLAlchemyExperimentRepository(db_session)
         exp = Experiment(
             experiment_id=uuid4(),
             show_id=show.show_id,
+            origin_cycle_id=uuid4(),
             segment_id=uuid4(),
             frame_id=uuid4(),
             channel="meta",
             objective="ticket_sales",
             budget_cap_cents=5000,
-            status=ExperimentStatus.DRAFT,
-            start_time=None,
-            end_time=None,
             baseline_snapshot={"cac_cents": 800},
         )
         exp_repo.save(exp)
@@ -96,39 +97,21 @@ class TestExperimentRepository:
         retrieved = exp_repo.get_by_id(exp.experiment_id)
         assert retrieved is not None
         assert retrieved.channel == "meta"
-        assert retrieved.status == ExperimentStatus.DRAFT
+        assert retrieved.budget_cap_cents == 5000
 
     def test_get_experiments_by_show(self, db_session):
-        # Create show
-        show_repo = SQLAlchemyShowRepository(db_session)
-        show = Show(
-            show_id=uuid4(),
-            artist_name="Test Artist",
-            city="Austin",
-            venue="The Parish",
-            show_time=datetime(2026, 5, 1, 20, 0, tzinfo=timezone.utc),
-            timezone="America/Chicago",
-            capacity=200,
-            tickets_total=200,
-            tickets_sold=0,
-            currency="USD",
-        )
-        show_repo.save(show)
-
-        # Create two experiments
+        show = self._make_show(db_session)
         exp_repo = SQLAlchemyExperimentRepository(db_session)
-        for i in range(2):
+        for _ in range(2):
             exp = Experiment(
                 experiment_id=uuid4(),
                 show_id=show.show_id,
+                origin_cycle_id=uuid4(),
                 segment_id=uuid4(),
                 frame_id=uuid4(),
                 channel="meta",
                 objective="ticket_sales",
                 budget_cap_cents=5000,
-                status=ExperimentStatus.DRAFT,
-                start_time=None,
-                end_time=None,
                 baseline_snapshot={},
             )
             exp_repo.save(exp)
@@ -137,42 +120,37 @@ class TestExperimentRepository:
         assert len(experiments) == 2
 
     def test_add_and_get_observations(self, db_session):
-        # Create show and experiment
-        show_repo = SQLAlchemyShowRepository(db_session)
-        show = Show(
-            show_id=uuid4(),
-            artist_name="Test Artist",
-            city="Austin",
-            venue="The Parish",
-            show_time=datetime(2026, 5, 1, 20, 0, tzinfo=timezone.utc),
-            timezone="America/Chicago",
-            capacity=200,
-            tickets_total=200,
-            tickets_sold=0,
-            currency="USD",
-        )
-        show_repo.save(show)
-
+        show = self._make_show(db_session)
         exp_repo = SQLAlchemyExperimentRepository(db_session)
+        run_repo = SQLAlchemyExperimentRunRepository(db_session)
+
         exp = Experiment(
             experiment_id=uuid4(),
             show_id=show.show_id,
+            origin_cycle_id=uuid4(),
             segment_id=uuid4(),
             frame_id=uuid4(),
             channel="meta",
             objective="ticket_sales",
             budget_cap_cents=5000,
-            status=ExperimentStatus.ACTIVE,
-            start_time=datetime(2026, 4, 1, 10, 0, tzinfo=timezone.utc),
-            end_time=None,
             baseline_snapshot={},
         )
         exp_repo.save(exp)
 
-        # Add observation
+        run = ExperimentRun(
+            run_id=uuid4(),
+            experiment_id=exp.experiment_id,
+            cycle_id=uuid4(),
+            status=RunStatus.ACTIVE,
+            start_time=datetime(2026, 4, 1, 10, 0, tzinfo=timezone.utc),
+            end_time=None,
+        )
+        run_repo.save(run)
+
+        # Add observation via run_repo
         obs = Observation(
             observation_id=uuid4(),
-            experiment_id=exp.experiment_id,
+            run_id=run.run_id,
             window_start=datetime(2026, 4, 1, 0, 0, tzinfo=timezone.utc),
             window_end=datetime(2026, 4, 2, 0, 0, tzinfo=timezone.utc),
             spend_cents=2500,
@@ -189,57 +167,52 @@ class TestExperimentRepository:
             attribution_model="last_click_utm",
             raw_json={"source": "manual"},
         )
-        exp_repo.add_observation(obs)
+        run_repo.add_observation(obs)
 
-        observations = exp_repo.get_observations(exp.experiment_id)
+        observations = run_repo.get_observations(run.run_id)
         assert len(observations) == 1
         assert observations[0].purchases == 8
         assert observations[0].clicks == 200
 
     def test_save_decision(self, db_session):
-        # Create show and experiment
-        show_repo = SQLAlchemyShowRepository(db_session)
-        show = Show(
-            show_id=uuid4(),
-            artist_name="Test Artist",
-            city="Austin",
-            venue="The Parish",
-            show_time=datetime(2026, 5, 1, 20, 0, tzinfo=timezone.utc),
-            timezone="America/Chicago",
-            capacity=200,
-            tickets_total=200,
-            tickets_sold=0,
-            currency="USD",
-        )
-        show_repo.save(show)
-
+        show = self._make_show(db_session)
         exp_repo = SQLAlchemyExperimentRepository(db_session)
+        run_repo = SQLAlchemyExperimentRunRepository(db_session)
+
         exp = Experiment(
             experiment_id=uuid4(),
             show_id=show.show_id,
+            origin_cycle_id=uuid4(),
             segment_id=uuid4(),
             frame_id=uuid4(),
             channel="meta",
             objective="ticket_sales",
             budget_cap_cents=5000,
-            status=ExperimentStatus.ACTIVE,
-            start_time=datetime(2026, 4, 1, 10, 0, tzinfo=timezone.utc),
-            end_time=None,
             baseline_snapshot={},
         )
         exp_repo.save(exp)
 
-        # Save decision
+        run = ExperimentRun(
+            run_id=uuid4(),
+            experiment_id=exp.experiment_id,
+            cycle_id=uuid4(),
+            status=RunStatus.ACTIVE,
+            start_time=datetime(2026, 4, 1, 10, 0, tzinfo=timezone.utc),
+            end_time=None,
+        )
+        run_repo.save(run)
+
+        # Save decision via run_repo
         decision = Decision(
             decision_id=uuid4(),
-            experiment_id=exp.experiment_id,
+            run_id=run.run_id,
             action=DecisionAction.SCALE,
             confidence=0.85,
             rationale="Strong CAC improvement",
             policy_version="v1",
             metrics_snapshot={"cac_cents": 600},
         )
-        exp_repo.save_decision(decision)
+        run_repo.save_decision(decision)
 
         # Verify by querying the database directly
         from growth.adapters.orm import DecisionORM

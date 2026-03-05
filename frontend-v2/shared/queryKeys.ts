@@ -35,6 +35,7 @@ export const variantKeys = {
   lists: () => ['variants', 'list'] as const,
   list: (showId: string, cycleId?: string) =>
     cycleId ? (['variants', 'list', showId, cycleId] as const) : (['variants', 'list', showId] as const),
+  byFrame: (frameId: string) => ['variants', 'by-frame', frameId] as const,
   detail: (variantId: string) => ['variants', 'detail', variantId] as const,
 } as const
 
@@ -51,15 +52,14 @@ export const experimentKeys = {
 export const observationKeys = {
   all: () => ['observations'] as const,
   lists: () => ['observations', 'list'] as const,
-  list: (experimentId: string) => ['observations', 'list', experimentId] as const,
+  list: (runId: string) => ['observations', 'list', runId] as const,
   detail: (observationId: string) => ['observations', 'detail', observationId] as const,
 } as const
 
 export const decisionKeys = {
   all: () => ['decisions'] as const,
   lists: () => ['decisions', 'list'] as const,
-  list: (showId: string, cycleId?: string) =>
-    cycleId ? (['decisions', 'list', showId, cycleId] as const) : (['decisions', 'list', showId] as const),
+  list: (runId: string) => ['decisions', 'list', runId] as const,
 } as const
 
 export const memoKeys = {
@@ -68,6 +68,14 @@ export const memoKeys = {
   list: (showId: string, cycleId?: string) =>
     cycleId ? (['memos', 'list', showId, cycleId] as const) : (['memos', 'list', showId] as const),
   detail: (memoId: string) => ['memos', 'detail', memoId] as const,
+} as const
+
+export const runKeys = {
+  all: () => ['runs'] as const,
+  listByCycle: (cycleId: string) => ['runs', 'list', 'cycle', cycleId] as const,
+  listByExperiment: (experimentId: string) => ['runs', 'list', 'experiment', experimentId] as const,
+  detail: (runId: string) => ['runs', 'detail', runId] as const,
+  metrics: (runId: string) => ['runs', 'metrics', runId] as const,
 } as const
 
 export const jobKeys = {
@@ -94,6 +102,7 @@ export const queryKeys = {
   observations: observationKeys,
   decisions: decisionKeys,
   memos: memoKeys,
+  runs: runKeys,
   jobs: jobKeys,
   events: eventKeys,
 } as const

@@ -8,14 +8,17 @@ from growth.adapters.event_log import JSONLEventLog
 from growth.adapters.orm import create_tables, get_engine, get_session_maker
 from growth.adapters.repositories import (
     SQLAlchemyExperimentRepository,
+    SQLAlchemyExperimentRunRepository,
     SQLAlchemyShowRepository,
 )
 from growth.domain.events import DecisionRecorded, ExperimentStarted
 from growth.domain.models import (
+    Decision,
     DecisionAction,
     Experiment,
-    ExperimentStatus,
+    ExperimentRun,
     Observation,
+    RunStatus,
     Show,
 )
 from growth.domain.policies import evaluate
@@ -35,6 +38,7 @@ def integration_setup(tmp_path):
     # Repositories
     show_repo = SQLAlchemyShowRepository(session)
     exp_repo = SQLAlchemyExperimentRepository(session)
+    run_repo = SQLAlchemyExperimentRunRepository(session)
 
     # Event log
     log_path = tmp_path / "events.jsonl"
@@ -63,6 +67,7 @@ def integration_setup(tmp_path):
         "session": session,
         "show_repo": show_repo,
         "exp_repo": exp_repo,
+        "run_repo": run_repo,
         "event_log": event_log,
         "policy": policy,
     }
@@ -78,6 +83,7 @@ class TestFullExperimentLifecycle:
         setup = integration_setup
         show_repo = setup["show_repo"]
         exp_repo = setup["exp_repo"]
+        run_repo = setup["run_repo"]
         event_log = setup["event_log"]
         policy = setup["policy"]
 
@@ -100,17 +106,26 @@ class TestFullExperimentLifecycle:
         experiment = Experiment(
             experiment_id=uuid4(),
             show_id=show.show_id,
+            origin_cycle_id=uuid4(),
             segment_id=uuid4(),
             frame_id=uuid4(),
             channel="meta",
             objective="ticket_sales",
             budget_cap_cents=10000,
-            status=ExperimentStatus.ACTIVE,
-            start_time=datetime(2026, 4, 1, 10, 0, tzinfo=timezone.utc),
-            end_time=None,
             baseline_snapshot={"cac_cents": 1000, "conversion_rate": 0.02},
         )
         exp_repo.save(experiment)
+
+        # 3. Create and activate a run
+        run = ExperimentRun(
+            run_id=uuid4(),
+            experiment_id=experiment.experiment_id,
+            cycle_id=experiment.origin_cycle_id,
+            status=RunStatus.ACTIVE,
+            start_time=datetime(2026, 4, 1, 10, 0, tzinfo=timezone.utc),
+            end_time=None,
+        )
+        run_repo.save(run)
 
         # Log experiment started
         event = ExperimentStarted(
@@ -125,10 +140,10 @@ class TestFullExperimentLifecycle:
         )
         event_log.append(event)
 
-        # 3. Add observation with good performance
+        # 4. Add observation with good performance
         observation = Observation(
             observation_id=uuid4(),
-            experiment_id=experiment.experiment_id,
+            run_id=run.run_id,
             window_start=datetime(2026, 4, 1, 0, 0, tzinfo=timezone.utc),
             window_end=datetime(2026, 4, 2, 0, 0, tzinfo=timezone.utc),
             spend_cents=5000,
@@ -145,9 +160,9 @@ class TestFullExperimentLifecycle:
             attribution_model="last_click_utm",
             raw_json={"source": "manual"},
         )
-        exp_repo.add_observation(observation)
+        run_repo.add_observation(observation)
 
-        # 4. Evaluate
+        # 5. Evaluate
         conversion_rate = observation.purchases / observation.clicks
         cac_cents = observation.spend_cents / observation.purchases
         incremental_per_100usd = observation.purchases / (observation.spend_cents / 100)
@@ -172,12 +187,21 @@ class TestFullExperimentLifecycle:
             policy=policy,
         )
 
-        # 5. Verify SCALE decision
+        # 6. Verify SCALE decision
         assert decision.action == DecisionAction.SCALE
         assert decision.confidence > 0.5
 
-        # 6. Save and log decision
-        exp_repo.save_decision(decision)
+        # 7. Bind decision to run_id and save
+        decision = Decision(
+            decision_id=decision.decision_id,
+            run_id=run.run_id,
+            action=decision.action,
+            confidence=decision.confidence,
+            rationale=decision.rationale,
+            policy_version=decision.policy_version,
+            metrics_snapshot=decision.metrics_snapshot,
+        )
+        run_repo.save_decision(decision)
 
         decision_event = DecisionRecorded(
             event_id=uuid4(),
@@ -191,7 +215,7 @@ class TestFullExperimentLifecycle:
         )
         event_log.append(decision_event)
 
-        # 7. Verify event log
+        # 8. Verify event log
         events = event_log.read_all()
         assert len(events) == 2
         assert events[0]["event_type"] == "experiment_started"
@@ -203,6 +227,7 @@ class TestFullExperimentLifecycle:
         setup = integration_setup
         show_repo = setup["show_repo"]
         exp_repo = setup["exp_repo"]
+        run_repo = setup["run_repo"]
         policy = setup["policy"]
 
         # 1. Create show
@@ -224,22 +249,31 @@ class TestFullExperimentLifecycle:
         experiment = Experiment(
             experiment_id=uuid4(),
             show_id=show.show_id,
+            origin_cycle_id=uuid4(),
             segment_id=uuid4(),
             frame_id=uuid4(),
             channel="meta",
             objective="ticket_sales",
             budget_cap_cents=10000,
-            status=ExperimentStatus.ACTIVE,
-            start_time=datetime(2026, 4, 1, 10, 0, tzinfo=timezone.utc),
-            end_time=None,
             baseline_snapshot={"cac_cents": 1000, "conversion_rate": 0.02},
         )
         exp_repo.save(experiment)
 
-        # 3. Add observation with poor performance (high refund rate)
+        # 3. Create and activate a run
+        run = ExperimentRun(
+            run_id=uuid4(),
+            experiment_id=experiment.experiment_id,
+            cycle_id=experiment.origin_cycle_id,
+            status=RunStatus.ACTIVE,
+            start_time=datetime(2026, 4, 1, 10, 0, tzinfo=timezone.utc),
+            end_time=None,
+        )
+        run_repo.save(run)
+
+        # 4. Add observation with poor performance (high refund rate)
         observation = Observation(
             observation_id=uuid4(),
-            experiment_id=experiment.experiment_id,
+            run_id=run.run_id,
             window_start=datetime(2026, 4, 1, 0, 0, tzinfo=timezone.utc),
             window_end=datetime(2026, 4, 2, 0, 0, tzinfo=timezone.utc),
             spend_cents=5000,
@@ -256,9 +290,9 @@ class TestFullExperimentLifecycle:
             attribution_model="last_click_utm",
             raw_json={"source": "manual"},
         )
-        exp_repo.add_observation(observation)
+        run_repo.add_observation(observation)
 
-        # 4. Evaluate
+        # 5. Evaluate
         conversion_rate = observation.purchases / observation.clicks
         cac_cents = observation.spend_cents / observation.purchases if observation.purchases > 0 else float('inf')
         incremental_per_100usd = observation.purchases / (observation.spend_cents / 100) if observation.spend_cents > 0 else 0
@@ -283,7 +317,7 @@ class TestFullExperimentLifecycle:
             policy=policy,
         )
 
-        # 5. Verify KILL decision due to guardrail violation
+        # 6. Verify KILL decision due to guardrail violation
         assert decision.action == DecisionAction.KILL
         assert "guardrail" in decision.rationale.lower() or "refund" in decision.rationale.lower()
 
@@ -292,6 +326,7 @@ class TestFullExperimentLifecycle:
         setup = integration_setup
         show_repo = setup["show_repo"]
         exp_repo = setup["exp_repo"]
+        run_repo = setup["run_repo"]
         policy = setup["policy"]
 
         # 1. Create show
@@ -313,23 +348,31 @@ class TestFullExperimentLifecycle:
         experiment = Experiment(
             experiment_id=uuid4(),
             show_id=show.show_id,
+            origin_cycle_id=uuid4(),
             segment_id=uuid4(),
             frame_id=uuid4(),
             channel="meta",
             objective="ticket_sales",
             budget_cap_cents=10000,
-            status=ExperimentStatus.ACTIVE,
-            start_time=datetime(2026, 4, 1, 10, 0, tzinfo=timezone.utc),
-            end_time=None,
             baseline_snapshot={"cac_cents": 1000, "conversion_rate": 0.02},
         )
         exp_repo.save(experiment)
 
-        # 3. Add observation with too few clicks (below min_clicks threshold)
-        # This avoids triggering kill conditions while still having insufficient evidence
+        # 3. Create and activate a run
+        run = ExperimentRun(
+            run_id=uuid4(),
+            experiment_id=experiment.experiment_id,
+            cycle_id=experiment.origin_cycle_id,
+            status=RunStatus.ACTIVE,
+            start_time=datetime(2026, 4, 1, 10, 0, tzinfo=timezone.utc),
+            end_time=None,
+        )
+        run_repo.save(run)
+
+        # 4. Add observation with too few clicks (below min_clicks threshold)
         observation = Observation(
             observation_id=uuid4(),
-            experiment_id=experiment.experiment_id,
+            run_id=run.run_id,
             window_start=datetime(2026, 4, 1, 0, 0, tzinfo=timezone.utc),
             window_end=datetime(2026, 4, 2, 0, 0, tzinfo=timezone.utc),
             spend_cents=1000,  # Low spend
@@ -346,9 +389,9 @@ class TestFullExperimentLifecycle:
             attribution_model="last_click_utm",
             raw_json={"source": "manual"},
         )
-        exp_repo.add_observation(observation)
+        run_repo.add_observation(observation)
 
-        # 4. Evaluate
+        # 5. Evaluate
         conversion_rate = observation.purchases / observation.clicks
         cac_cents = observation.spend_cents / observation.purchases if observation.purchases > 0 else float('inf')
         incremental_per_100usd = observation.purchases / (observation.spend_cents / 100) if observation.spend_cents > 0 else 0
@@ -373,6 +416,6 @@ class TestFullExperimentLifecycle:
             policy=policy,
         )
 
-        # 5. Verify HOLD decision due to insufficient evidence
+        # 6. Verify HOLD decision due to insufficient evidence
         assert decision.action == DecisionAction.HOLD
         assert "evidence" in decision.rationale.lower()

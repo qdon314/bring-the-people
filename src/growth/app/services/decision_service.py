@@ -1,6 +1,6 @@
 """Application-level decision service.
 
-Orchestrates: fetch experiment → fetch observations → compute aggregate metrics
+Orchestrates: fetch run → fetch observations → compute aggregate metrics
 → call evaluate() → persist decision → emit event.
 """
 from __future__ import annotations
@@ -9,49 +9,57 @@ from datetime import datetime, timezone
 from uuid import UUID, uuid4
 
 from growth.domain.events import DecisionRecorded
-from growth.domain.models import Decision
+from growth.domain.models import Decision, RunStatus
 from growth.domain.policies import evaluate
 from growth.domain.policy_config import PolicyConfig
 from growth.ports.event_log import EventLog
-from growth.ports.repositories import ExperimentRepository
 
 
 class DecisionService:
-    """Service for evaluating experiments and making decisions."""
+    """Service for evaluating runs and making decisions."""
 
     def __init__(
         self,
-        experiment_repo: ExperimentRepository,
+        run_repo,
+        experiment_repo,
         event_log: EventLog,
         policy: PolicyConfig,
     ):
+        self._run_repo = run_repo
         self._experiment_repo = experiment_repo
         self._event_log = event_log
         self._policy = policy
 
-    def evaluate_experiment(self, experiment_id: UUID) -> Decision:
-        """Evaluate an experiment and return a decision.
+    def evaluate_run(self, run_id: UUID) -> Decision:
+        """Evaluate an active run and return a decision.
 
         Args:
-            experiment_id: The ID of the experiment to evaluate
+            run_id: The ID of the run to evaluate
 
         Returns:
-            The decision made for the experiment
+            The decision made for the run
 
         Raises:
-            ValueError: If the experiment is not found
+            ValueError: If the run is not found or not active
         """
 
-        # Fetch experiment
-        experiment = self._experiment_repo.get_by_id(experiment_id)
-        if experiment is None:
-            raise ValueError(f"Experiment {experiment_id} not found")
+        # Fetch run
+        run = self._run_repo.get_by_id(run_id)
+        if run is None:
+            raise ValueError(f"Run {run_id} not found")
+        if run.status != RunStatus.ACTIVE:
+            raise ValueError(f"Run must be active to evaluate, got {run.status.value}")
 
         # Fetch observations
-        observations = self._experiment_repo.get_observations(experiment_id)
+        observations = self._run_repo.get_observations(run_id)
 
         # Compute aggregate metrics
         metrics = self._compute_metrics(observations)
+
+        # Fetch the experiment to get baseline_snapshot and budget_cap_cents
+        experiment = self._experiment_repo.get_by_id(run.experiment_id)
+        if experiment is None:
+            raise ValueError(f"Experiment {run.experiment_id} not found for run {run_id}")
 
         # Calculate derived metrics for evaluation
         num_windows = len(observations)
@@ -104,10 +112,10 @@ class DecisionService:
             policy=self._policy,
         )
 
-        # Update decision with actual experiment_id
+        # Update decision with actual run_id
         decision = Decision(
             decision_id=decision.decision_id,
-            experiment_id=experiment_id,
+            run_id=run_id,
             action=decision.action,
             confidence=decision.confidence,
             rationale=decision.rationale,
@@ -116,14 +124,14 @@ class DecisionService:
         )
 
         # Persist decision
-        self._experiment_repo.save_decision(decision)
+        self._run_repo.save_decision(decision)
 
         # Emit event
         event = DecisionRecorded(
             event_id=uuid4(),
             occurred_at=datetime.now(timezone.utc),
             decision_id=decision.decision_id,
-            experiment_id=experiment_id,
+            experiment_id=run.experiment_id,
             action=decision.action,
             confidence=decision.confidence,
             rationale=decision.rationale,
@@ -161,4 +169,3 @@ class DecisionService:
             "total_refund_cents": sum(o.refund_cents for o in observations),
             "total_complaints": sum(o.complaints for o in observations),
         }
-

@@ -3,15 +3,15 @@ import type { components } from '@/shared/api/generated/schema'
 type SegmentSnapshot = Pick<components['schemas']['SegmentResponse'], 'review_status'>
 type FrameSnapshot = Pick<components['schemas']['FrameResponse'], 'frame_id' | 'review_status'>
 type VariantSnapshot = Pick<components['schemas']['VariantResponse'], 'frame_id' | 'review_status'>
-type ExperimentSnapshot = Pick<components['schemas']['ExperimentResponse'], 'experiment_id' | 'status'>
-type ObservationSnapshot = Pick<components['schemas']['ObservationResponse'], 'experiment_id'>
+type RunSnapshot = Pick<components['schemas']['RunResponse'], 'run_id' | 'experiment_id' | 'status'>
+type ObservationSnapshot = Pick<components['schemas']['ObservationResponse'], 'run_id'>
 type MemoSnapshot = Pick<components['schemas']['MemoResponse'], 'memo_id'>
 
 export interface CycleProgressSnapshot {
   segments: readonly SegmentSnapshot[]
   frames: readonly FrameSnapshot[]
   variants: readonly VariantSnapshot[]
-  experiments: readonly ExperimentSnapshot[]
+  runs: readonly RunSnapshot[]
   observations: readonly ObservationSnapshot[]
   memos: readonly MemoSnapshot[]
 }
@@ -27,7 +27,7 @@ export interface CycleProgress {
   nextAction: CycleNextAction
 }
 
-/** Experiment statuses that indicate the experiment has been launched. */
+/** Run statuses that indicate the run has been launched. */
 const LAUNCHED_STATUSES = new Set(['active', 'decided'])
 
 function isApproved(reviewStatus: components['schemas']['ReviewStatus']): boolean {
@@ -41,10 +41,10 @@ export function getCycleProgress(snapshot: CycleProgressSnapshot): CycleProgress
       .map((frame) => frame.frame_id)
   )
 
-  const launchedExperimentIds = new Set(
-    snapshot.experiments
-      .filter((experiment) => LAUNCHED_STATUSES.has(experiment.status))
-      .map((experiment) => experiment.experiment_id)
+  const launchedRunIds = new Set(
+    snapshot.runs
+      .filter((run) => LAUNCHED_STATUSES.has(run.status))
+      .map((run) => run.run_id)
   )
 
   const planComplete =
@@ -55,10 +55,10 @@ export function getCycleProgress(snapshot: CycleProgressSnapshot): CycleProgress
     (variant) => isApproved(variant.review_status) && approvedFrameIds.has(variant.frame_id)
   )
 
-  const runComplete = launchedExperimentIds.size > 0
+  const runComplete = launchedRunIds.size > 0
 
   const resultsComplete = snapshot.observations.some((observation) =>
-    launchedExperimentIds.has(observation.experiment_id)
+    launchedRunIds.has(observation.run_id)
   )
 
   const memoComplete = snapshot.memos.length > 0
