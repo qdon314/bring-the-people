@@ -2,6 +2,7 @@ import { redirect, notFound } from 'next/navigation'
 import { listCycles } from '@/features/cycles/api'
 import { ApiError } from '@/shared/api/client'
 import { getActiveCycle } from '@/shared/lib/cycles'
+import { StartCycleView } from '@/features/shows/ui/StartCycleView'
 
 interface ShowPageProps {
   params: { show_id: string }
@@ -24,14 +25,7 @@ export default async function ShowPage({ params }: ShowPageProps) {
   const activeCycle = getActiveCycle(cycles)
 
   if (!activeCycle) {
-    return (
-      <main className="min-h-screen p-8">
-        <h1 className="text-2xl font-semibold">Show</h1>
-        <p className="mt-2 text-sm text-gray-600">
-          No cycles have been started for this show.
-        </p>
-      </main>
-    )
+    return <StartCycleView showId={show_id} />
   }
 
   redirect(`/shows/${show_id}/cycles/${activeCycle.cycle_id}/overview`)

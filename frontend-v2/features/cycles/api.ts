@@ -14,3 +14,10 @@ export async function getCycle(cycleId: string) {
   })
   return validateCycleResponse(response, 'GET /api/cycles/{cycle_id}')
 }
+
+export async function createCycle(showId: string) {
+  const response = await apiClient.post('/api/shows/{show_id}/cycles', {
+    path: { show_id: showId },
+  })
+  return validateCycleResponse(response, 'POST /api/shows/{show_id}/cycles')
+}

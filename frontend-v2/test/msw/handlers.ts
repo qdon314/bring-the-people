@@ -85,4 +85,16 @@ export const handlers = [
 
     return HttpResponse.json({ detail: 'Cycle not found' }, { status: 404 })
   }),
+  http.post(`${API_BASE_URL}/api/shows/:showId/cycles`, ({ params }) => {
+    const showId = String(params.showId)
+    return HttpResponse.json(
+      {
+        cycle_id: 'cycle-new',
+        show_id: showId,
+        started_at: '2026-03-05T00:00:00Z',
+        label: null,
+      },
+      { status: 201 },
+    )
+  }),
 ]
