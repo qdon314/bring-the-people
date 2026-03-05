@@ -8,7 +8,7 @@ from uuid import UUID
 from fastapi import APIRouter, HTTPException, Request
 
 from growth.app.schemas import ReviewAction, ReviewRequest, VariantResponse, VariantUpdate
-from growth.domain.models import ReviewStatus
+from growth.domain.models import CreativeVariant, ReviewStatus
 
 router = APIRouter()
 
@@ -56,25 +56,19 @@ def review_variant(variant_id: UUID, body: ReviewRequest, request: Request):
     if variant is None:
         raise HTTPException(404, "Variant not found")
 
-    from growth.domain.models import CreativeVariant
+    if body.action == ReviewAction.UNDO:
+        new_status = ReviewStatus.PENDING
+        reviewed_at = None
+        reviewed_by = None
+    elif body.action == ReviewAction.APPROVE:
+        new_status = ReviewStatus.APPROVED
+        reviewed_at = datetime.now(timezone.utc)
+        reviewed_by = body.reviewed_by
+    else:
+        new_status = ReviewStatus.REJECTED
+        reviewed_at = datetime.now(timezone.utc)
+        reviewed_by = body.reviewed_by
 
-    new_status = (
-        ReviewStatus.APPROVED
-        if body.action == ReviewAction.APPROVE
-        else ReviewStatus.REJECTED
-    )
-    updated = CreativeVariant(
-        variant_id=variant.variant_id,
-        frame_id=variant.frame_id,
-        platform=variant.platform,
-        hook=variant.hook,
-        body=variant.body,
-        cta=variant.cta,
-        constraints_passed=variant.constraints_passed,
-        cycle_id=variant.cycle_id,
-        review_status=new_status,
-        reviewed_at=datetime.now(timezone.utc),
-        reviewed_by=body.reviewed_by,
-    )
+    updated = replace(variant, review_status=new_status, reviewed_at=reviewed_at, reviewed_by=reviewed_by)
     repo.save(updated)
     return VariantResponse.from_domain(updated)

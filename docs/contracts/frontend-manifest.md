@@ -12,7 +12,7 @@ Do not try to import planned items.
 Flip `planned` → `exists` when you create the file. Add new rows for items
 not yet listed. This is part of the definition of done.
 
-Last updated: 2026-03-05 (stage-2-overview-ui)
+Last updated: 2026-03-05 (V2-033-segment-edit-modal)
 
 ---
 
@@ -22,12 +22,13 @@ These are called for in `docs/designs/dashboard.md`:
 
 | Component     | Path                       | Status  | Purpose                              |
 |---------------|----------------------------|---------|--------------------------------------|
-| StatusBadge   | shared/ui/StatusBadge.tsx   | planned | Render review/job/experiment status  |
+| StatusBadge   | shared/ui/StatusBadge.tsx   | exists  | Render review/job/experiment status  |
 | ErrorBanner   | shared/ui/ErrorBanner.tsx   | exists  | Query error display with retry       |
 | ErrorBoundary | shared/ui/ErrorBoundary.tsx | planned | Catch React render errors            |
 | EmptyState    | shared/ui/EmptyState.tsx    | exists  | Descriptive empty state with CTA     |
-| SpinnerIcon   | shared/ui/SpinnerIcon.tsx   | planned | Inline loading indicator             |
-| Dialog        | shared/ui/dialog.tsx        | planned | Radix Dialog wrapper                 |
+| SpinnerIcon   | shared/ui/SpinnerIcon.tsx   | exists  | Inline loading indicator             |
+| Dialog        | shared/ui/dialog.tsx        | exists  | Accessible modal (focus trap, Escape/overlay close) |
+| ToastContainer | shared/ui/ToastContainer.tsx | exists | Listens for app:toast events and renders dismissible toasts |
 
 ## Shared Utilities (`shared/lib/`)
 
@@ -120,7 +121,7 @@ Update this table as feature modules are built.
 | cycles        | in progress | exists | exists  | useCreateCycle | -   |
 | layout        | exists      | -    | -       | -         | exists |
 | overview      | in progress | -   | -       | -         | exists (NextActionPanel, KPIGrid, OverviewDashboard) |
-| segments      | in progress | exists | exists  | -         | -   |
+| segments      | in progress | exists | exists  | useApproveSegment, useRejectSegment, useUpdateSegment | SegmentCard, SegmentList (with skeletons), SegmentEditModal |
 | frames        | in progress | exists | exists  | -         | -   |
 | variants      | in progress | exists | exists  | -         | -   |
 | experiments   | in progress | exists | exists  | -         | -   |

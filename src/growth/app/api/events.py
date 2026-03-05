@@ -62,10 +62,10 @@ def _to_event_response(event: dict) -> EventResponse:
 
 @router.get("", response_model=list[EventResponse])
 def list_events(
+    request: Request,
     show_id: str,
     cycle_id: Optional[str] = None,
     limit: int = 50,
-    request: Request = ...,
 ):
     event_log = request.state.container.event_log()
     events = event_log.read_by_show(show_id)

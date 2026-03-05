@@ -434,6 +434,7 @@ class VariantResponse(BaseModel):
 class ReviewAction(str, Enum):
     APPROVE = "approve"
     REJECT = "reject"
+    UNDO = "undo"
 
 
 # --- Review schemas ---

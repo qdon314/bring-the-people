@@ -9,16 +9,16 @@ from uuid import UUID
 from fastapi import APIRouter, HTTPException, Request
 
 from growth.app.schemas import ReviewAction, ReviewRequest, SegmentResponse, SegmentUpdate
-from growth.domain.models import ReviewStatus
+from growth.domain.models import AudienceSegment, ReviewStatus
 
 router = APIRouter()
 
 
 @router.get("", response_model=list[SegmentResponse])
 def list_segments(
+    request: Request,
     show_id: UUID,
     cycle_id: Optional[UUID] = None,
-    request: Request = ...,
 ):
     repo = request.state.container.segment_repo()
     segments = repo.get_by_show(show_id)
@@ -63,24 +63,19 @@ def review_segment(segment_id: UUID, body: ReviewRequest, request: Request):
     if segment is None:
         raise HTTPException(404, "Segment not found")
 
-    from growth.domain.models import AudienceSegment
+    if body.action == ReviewAction.UNDO:
+        new_status = ReviewStatus.PENDING
+        reviewed_at = None
+        reviewed_by = None
+    elif body.action == ReviewAction.APPROVE:
+        new_status = ReviewStatus.APPROVED
+        reviewed_at = datetime.now(timezone.utc)
+        reviewed_by = body.reviewed_by
+    else:
+        new_status = ReviewStatus.REJECTED
+        reviewed_at = datetime.now(timezone.utc)
+        reviewed_by = body.reviewed_by
 
-    new_status = (
-        ReviewStatus.APPROVED
-        if body.action == ReviewAction.APPROVE
-        else ReviewStatus.REJECTED
-    )
-    updated = AudienceSegment(
-        segment_id=segment.segment_id,
-        show_id=segment.show_id,
-        name=segment.name,
-        definition_json=segment.definition_json,
-        estimated_size=segment.estimated_size,
-        created_by=segment.created_by,
-        cycle_id=segment.cycle_id,
-        review_status=new_status,
-        reviewed_at=datetime.now(timezone.utc),
-        reviewed_by=body.reviewed_by,
-    )
+    updated = replace(segment, review_status=new_status, reviewed_at=reviewed_at, reviewed_by=reviewed_by)
     repo.save(updated)
     return SegmentResponse.from_domain(updated)
