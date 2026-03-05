@@ -11,6 +11,9 @@ import { listMemos } from '@/features/memos/api'
 import { listEvents, type EventResponse } from '@/features/events/api'
 import type { CycleProgressSnapshot } from '@/features/cycles/getCycleProgress'
 import { queryKeys } from '@/shared/queryKeys'
+import type { components } from '@/shared/api/generated/schema'
+
+type ObservationResponse = components['schemas']['ObservationResponse']
 
 export interface UseOverviewSnapshotParams {
   showId: string
@@ -19,6 +22,7 @@ export interface UseOverviewSnapshotParams {
 
 export interface UseOverviewSnapshotResult {
   snapshot: CycleProgressSnapshot | undefined
+  fullObservations: ObservationResponse[] | undefined
   events: EventResponse[] | undefined
   isLoading: boolean
   isError: boolean
@@ -125,8 +129,13 @@ export function useOverviewSnapshot({
     }
   }
 
+  const fullObservations = allObservationsLoaded
+    ? observationQueries.flatMap((q) => q.data ?? [])
+    : undefined
+
   return {
     snapshot,
+    fullObservations,
     events: eventsQuery.data,
     isLoading,
     isError,

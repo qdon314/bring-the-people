@@ -24,9 +24,9 @@ type PathParams<P extends PathKey, M extends HttpMethod> = Params<P, M> extends 
   : never
 
 type QueryParams<P extends PathKey, M extends HttpMethod> = Params<P, M> extends {
-  query: infer T
+  query?: infer T
 }
-  ? T
+  ? Exclude<T, undefined>
   : never
 
 type RequestBody<P extends PathKey, M extends HttpMethod> = Operation<P, M> extends {

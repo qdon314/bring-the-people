@@ -5,7 +5,7 @@ description: Fast-load codebase context for frontend-v2 tasks
 
 # Frontend V2 — Codebase Context
 
-last-verified: 2026-03-04 9786b17
+last-verified: 2026-03-05 (stage-2-overview-ui)
 
 This is a fast-load reference. Do not use code-explorer for frontend-v2 tasks.
 Load this skill, then go directly to the files you need to modify.
@@ -113,7 +113,15 @@ queryKeys.cycles.list(showId)
 | `mapApiError()` | `shared/errors/mapApiError.ts` | API error → UI copy |
 | `ApiError` | `shared/api/client.ts` | Typed API error class |
 | `useJobPolling` | `features/jobs/useJobPolling.ts` | Async job polling hook (uses useState/useEffect — not React Query) |
-| `useOverviewSnapshot` | `features/overview/useOverviewSnapshot.ts` | Multi-domain query aggregation → `CycleProgressSnapshot` + events (uses React Query) |
+| `useOverviewSnapshot` | `features/overview/useOverviewSnapshot.ts` | Multi-domain query aggregation → `CycleProgressSnapshot` + `fullObservations` + events (uses React Query) |
+| `ErrorBanner` | `shared/ui/ErrorBanner.tsx` | Error display with optional retry button (props: message, onRetry?) |
+| `EmptyState` | `shared/ui/EmptyState.tsx` | Empty state (props: title, description?) |
+| `NextActionPanel` | `features/overview/ui/NextActionPanel.tsx` | Next action CTA card derived from CycleProgress (props: progress, showId, cycleId) |
+| `NextActionPanelSkeleton` | `features/overview/ui/NextActionPanel.tsx` | Loading skeleton for NextActionPanel |
+| `KPIGrid` | `features/overview/ui/KPIGrid.tsx` | 4-stat KPI grid (props: show, observations) |
+| `KPIGridSkeleton` | `features/overview/ui/KPIGrid.tsx` | Loading skeleton for KPIGrid |
+| `ActivityFeed` | `features/events/ui/ActivityFeed.tsx` | Event list sorted newest-first (props: events) |
+| `OverviewDashboard` | `app/shows/[show_id]/cycles/[cycle_id]/overview/OverviewDashboard.tsx` | Client component orchestrating overview page data + layout |
 | validators | `shared/api/validators/` | Runtime response validation |
 | MSW server | `test/msw/server.ts` | Integration test server |
 | MSW handlers | `test/msw/handlers.ts` | Baseline API mocks |
@@ -143,7 +151,8 @@ queryKeys.cycles.list(showId)
 - `useJob(jobId | null)` — single job by ID (use `useJobPolling` for active polling)
 - `useDecisions(experimentId)` — decisions for an experiment
 
-**Planned (do not import yet):** `cn()`, `StatusBadge`, `ErrorBanner`, `EmptyState`, `SpinnerIcon`, `Dialog`, `useJobPoller`.
+**Planned (do not import yet):** `StatusBadge`, `SpinnerIcon`, `Dialog`, `useJobPoller`.
+**Now importable (were planned):** `cn()` (`shared/lib/utils.ts`), `ErrorBanner` (`shared/ui/ErrorBanner.tsx`), `EmptyState` (`shared/ui/EmptyState.tsx`).
 See `docs/contracts/frontend-manifest.md` for full inventory.
 
 ---

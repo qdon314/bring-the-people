@@ -12,7 +12,7 @@ Do not try to import planned items.
 Flip `planned` → `exists` when you create the file. Add new rows for items
 not yet listed. This is part of the definition of done.
 
-Last updated: 2026-03-05 (entity-refactor)
+Last updated: 2026-03-05 (stage-2-overview-ui)
 
 ---
 
@@ -23,9 +23,9 @@ These are called for in `docs/designs/dashboard.md`:
 | Component     | Path                       | Status  | Purpose                              |
 |---------------|----------------------------|---------|--------------------------------------|
 | StatusBadge   | shared/ui/StatusBadge.tsx   | planned | Render review/job/experiment status  |
-| ErrorBanner   | shared/ui/ErrorBanner.tsx   | planned | Query error display with retry       |
+| ErrorBanner   | shared/ui/ErrorBanner.tsx   | exists  | Query error display with retry       |
 | ErrorBoundary | shared/ui/ErrorBoundary.tsx | planned | Catch React render errors            |
-| EmptyState    | shared/ui/EmptyState.tsx    | planned | Descriptive empty state with CTA     |
+| EmptyState    | shared/ui/EmptyState.tsx    | exists  | Descriptive empty state with CTA     |
 | SpinnerIcon   | shared/ui/SpinnerIcon.tsx   | planned | Inline loading indicator             |
 | Dialog        | shared/ui/dialog.tsx        | planned | Radix Dialog wrapper                 |
 
@@ -119,7 +119,7 @@ Update this table as feature modules are built.
 | shows         | in progress | exists | exists  | -         | exists |
 | cycles        | in progress | exists | exists  | useCreateCycle | -   |
 | layout        | exists      | -    | -       | -         | exists |
-| overview      | in progress | -   | -       | -         | -   |
+| overview      | in progress | -   | -       | -         | exists (NextActionPanel, KPIGrid, OverviewDashboard) |
 | segments      | in progress | exists | exists  | -         | -   |
 | frames        | in progress | exists | exists  | -         | -   |
 | variants      | in progress | exists | exists  | -         | -   |
@@ -129,7 +129,7 @@ Update this table as feature modules are built.
 | decisions     | in progress | -   | exists (`useDecisions(runId)`)  | -         | -   |
 | memos         | in progress | exists | exists  | -         | -   |
 | jobs          | in progress | exists | exists  | -         | -   |
-| events        | in progress | exists | exists  | -         | -   |
+| events        | in progress | exists | exists  | -         | exists (ActivityFeed) |
 
 ---
 
