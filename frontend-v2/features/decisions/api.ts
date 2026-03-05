@@ -3,8 +3,8 @@ import type { components } from '@/shared/api/generated/schema'
 
 export type DecisionResponse = components['schemas']['DecisionResponse']
 
-export async function listDecisions(experimentId: string): Promise<DecisionResponse[]> {
+export async function listDecisions(runId: string): Promise<DecisionResponse[]> {
   return apiClient.get('/api/decisions', {
-    query: { experiment_id: experimentId },
+    query: { run_id: runId },
   }) as Promise<DecisionResponse[]>
 }

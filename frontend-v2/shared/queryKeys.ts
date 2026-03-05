@@ -52,14 +52,14 @@ export const experimentKeys = {
 export const observationKeys = {
   all: () => ['observations'] as const,
   lists: () => ['observations', 'list'] as const,
-  list: (experimentId: string) => ['observations', 'list', experimentId] as const,
+  list: (runId: string) => ['observations', 'list', runId] as const,
   detail: (observationId: string) => ['observations', 'detail', observationId] as const,
 } as const
 
 export const decisionKeys = {
   all: () => ['decisions'] as const,
   lists: () => ['decisions', 'list'] as const,
-  list: (experimentId: string) => ['decisions', 'list', experimentId] as const,
+  list: (runId: string) => ['decisions', 'list', runId] as const,
 } as const
 
 export const memoKeys = {

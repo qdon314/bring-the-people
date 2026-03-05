@@ -7,7 +7,7 @@ import { useObservations } from './queries'
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000'
 
-const mockObservations = [{ observation_id: 'obs-1', experiment_id: 'exp-1' }]
+const mockObservations = [{ observation_id: 'obs-1', run_id: 'run-1' }]
 
 function makeWrapper() {
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } })
@@ -16,14 +16,14 @@ function makeWrapper() {
 }
 
 describe('useObservations', () => {
-  it('returns observation list for an experiment', async () => {
+  it('returns observation list for a run', async () => {
     server.use(http.get(`${API_BASE_URL}/api/observations`, () => HttpResponse.json(mockObservations)))
-    const { result } = renderHook(() => useObservations('exp-1'), { wrapper: makeWrapper() })
+    const { result } = renderHook(() => useObservations('run-1'), { wrapper: makeWrapper() })
     await waitFor(() => expect(result.current.isSuccess).toBe(true))
     expect(result.current.data).toHaveLength(1)
   })
 
-  it('is disabled when experimentId is empty', () => {
+  it('is disabled when runId is empty', () => {
     const { result } = renderHook(() => useObservations(''), { wrapper: makeWrapper() })
     expect(result.current.isPending).toBe(true)
     expect(result.current.fetchStatus).toBe('idle')
@@ -31,7 +31,7 @@ describe('useObservations', () => {
 
   it('sets isError on server failure', async () => {
     server.use(http.get(`${API_BASE_URL}/api/observations`, () => HttpResponse.json({}, { status: 500 })))
-    const { result } = renderHook(() => useObservations('exp-1'), { wrapper: makeWrapper() })
+    const { result } = renderHook(() => useObservations('run-1'), { wrapper: makeWrapper() })
     await waitFor(() => expect(result.current.isError).toBe(true))
   })
 })
