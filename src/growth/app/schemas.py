@@ -8,7 +8,7 @@ from uuid import UUID
 
 from pydantic import BaseModel, Field, model_validator
 
-from growth.domain.models import ReviewStatus
+from growth.domain.models import ExperimentRun, ReviewStatus, RunStatus
 
 
 # --- Show schemas ---
@@ -72,7 +72,7 @@ class ShowResponse(BaseModel):
 
 class ExperimentCreate(BaseModel):
     show_id: UUID
-    cycle_id: UUID
+    origin_cycle_id: UUID
     segment_id: UUID
     frame_id: UUID
     channel: str = Field(min_length=1, max_length=50)
@@ -84,15 +84,12 @@ class ExperimentCreate(BaseModel):
 class ExperimentResponse(BaseModel):
     experiment_id: UUID
     show_id: UUID
-    cycle_id: Optional[UUID]
+    origin_cycle_id: UUID
     segment_id: UUID
     frame_id: UUID
     channel: str
     objective: str
     budget_cap_cents: int
-    status: str
-    start_time: Optional[datetime]
-    end_time: Optional[datetime]
     baseline_snapshot: dict[str, Any]
 
     @classmethod
@@ -100,23 +97,73 @@ class ExperimentResponse(BaseModel):
         return cls(
             experiment_id=exp.experiment_id,
             show_id=exp.show_id,
-            cycle_id=exp.cycle_id,
+            origin_cycle_id=exp.origin_cycle_id,
             segment_id=exp.segment_id,
             frame_id=exp.frame_id,
             channel=exp.channel,
             objective=exp.objective,
             budget_cap_cents=exp.budget_cap_cents,
-            status=exp.status.value,
-            start_time=exp.start_time,
-            end_time=exp.end_time,
             baseline_snapshot=exp.baseline_snapshot,
         )
+
+
+# --- Run schemas ---
+
+class RunCreate(BaseModel):
+    experiment_id: UUID
+    cycle_id: UUID
+    status: RunStatus = RunStatus.DRAFT
+    budget_cap_cents_override: int | None = Field(default=None, gt=0)
+    channel_config: dict[str, Any] = Field(default_factory=dict)
+    variant_snapshot: dict[str, Any] = Field(default_factory=dict)
+
+
+class RunResponse(BaseModel):
+    run_id: UUID
+    experiment_id: UUID
+    cycle_id: UUID
+    status: str
+    start_time: datetime | None
+    end_time: datetime | None
+    budget_cap_cents_override: int | None
+    channel_config: dict[str, Any]
+    variant_snapshot: dict[str, Any]
+
+    @classmethod
+    def from_domain(cls, run: "ExperimentRun") -> "RunResponse":
+        return cls(
+            run_id=run.run_id,
+            experiment_id=run.experiment_id,
+            cycle_id=run.cycle_id,
+            status=run.status.value,
+            start_time=run.start_time,
+            end_time=run.end_time,
+            budget_cap_cents_override=run.budget_cap_cents_override,
+            channel_config=run.channel_config,
+            variant_snapshot=run.variant_snapshot,
+        )
+
+
+class RunMetricsResponse(BaseModel):
+    run_id: UUID
+    total_spend_cents: int
+    total_impressions: int
+    total_clicks: int
+    total_purchases: int
+    total_revenue_cents: int
+    windows_count: int
+    ctr: float | None
+    cpc_cents: float | None
+    cpa_cents: float | None
+    roas: float | None
+    conversion_rate: float | None
+    evidence_sufficient: bool
 
 
 # --- Observation schemas ---
 
 class ObservationCreate(BaseModel):
-    experiment_id: UUID
+    run_id: UUID
     window_start: datetime
     window_end: datetime
     spend_cents: int = Field(ge=0)
@@ -146,7 +193,7 @@ class ObservationBulkCreate(BaseModel):
 
 class ObservationResponse(BaseModel):
     observation_id: UUID
-    experiment_id: UUID
+    run_id: UUID
     window_start: datetime
     window_end: datetime
     spend_cents: int
@@ -166,7 +213,7 @@ class ObservationResponse(BaseModel):
     def from_domain(cls, obs) -> ObservationResponse:
         return cls(
             observation_id=obs.observation_id,
-            experiment_id=obs.experiment_id,
+            run_id=obs.run_id,
             window_start=obs.window_start,
             window_end=obs.window_end,
             spend_cents=obs.spend_cents,
@@ -188,7 +235,7 @@ class ObservationResponse(BaseModel):
 
 class DecisionResponse(BaseModel):
     decision_id: UUID
-    experiment_id: UUID
+    run_id: UUID
     action: str
     confidence: float
     rationale: str
@@ -199,7 +246,7 @@ class DecisionResponse(BaseModel):
     def from_domain(cls, dec) -> DecisionResponse:
         return cls(
             decision_id=dec.decision_id,
-            experiment_id=dec.experiment_id,
+            run_id=dec.run_id,
             action=dec.action.value,
             confidence=dec.confidence,
             rationale=dec.rationale,
