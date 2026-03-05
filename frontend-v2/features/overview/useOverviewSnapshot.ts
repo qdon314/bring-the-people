@@ -5,7 +5,7 @@ import { useQueries, useQuery } from '@tanstack/react-query'
 import { listSegments } from '@/features/segments/api'
 import { listFrames } from '@/features/frames/api'
 import { listVariants } from '@/features/variants/api'
-import { listExperiments } from '@/features/experiments/api'
+import { listRunsByCycle } from '@/features/runs/api'
 import { listObservations } from '@/features/observations/api'
 import { listMemos } from '@/features/memos/api'
 import { listEvents, type EventResponse } from '@/features/events/api'
@@ -40,9 +40,10 @@ export function useOverviewSnapshot({
     queryFn: () => listFrames(showId, cycleId),
   })
 
-  const experimentsQuery = useQuery({
-    queryKey: queryKeys.experiments.list(showId),
-    queryFn: () => listExperiments(showId),
+  const runsQuery = useQuery({
+    queryKey: queryKeys.runs.listByCycle(cycleId),
+    queryFn: () => listRunsByCycle(cycleId),
+    enabled: !!cycleId,
   })
 
   const memosQuery = useQuery({
@@ -65,23 +66,22 @@ export function useOverviewSnapshot({
     })),
   })
 
-  // Phase 2: observation queries — one per cycle experiment, enabled when experiments are loaded
-  const allExperiments = experimentsQuery.data ?? []
-  const cycleExperiments = allExperiments.filter((e) => e.cycle_id === cycleId)
+  // Phase 2: observation queries — one per cycle run, enabled when runs are loaded
+  const runs = runsQuery.data ?? []
   const observationQueries = useQueries({
-    queries: cycleExperiments.map((experiment) => ({
-      queryKey: queryKeys.observations.list(experiment.experiment_id),
-      queryFn: () => listObservations(experiment.experiment_id),
-      enabled: experimentsQuery.isSuccess,
+    queries: runs.map((run) => ({
+      queryKey: queryKeys.observations.list(run.run_id),
+      queryFn: () => listObservations(run.run_id),
+      enabled: runsQuery.isSuccess,
     })),
   })
 
   // Aggregate loading/error states
-  const phase1Queries = [segmentsQuery, framesQuery, experimentsQuery, memosQuery, eventsQuery]
+  const phase1Queries = [segmentsQuery, framesQuery, runsQuery, memosQuery, eventsQuery]
   const isPhase1Loading = phase1Queries.some((q) => q.isPending)
   const isVariantsLoading = framesQuery.isSuccess && variantQueries.some((q) => q.isPending)
   const isObservationsLoading =
-    experimentsQuery.isSuccess && observationQueries.some((q) => q.isPending)
+    runsQuery.isSuccess && observationQueries.some((q) => q.isPending)
 
   const isLoading = isPhase1Loading || isVariantsLoading || isObservationsLoading
   const isError =
@@ -100,13 +100,13 @@ export function useOverviewSnapshot({
     framesQuery.isSuccess &&
     (frames.length === 0 || variantQueries.every((q) => q.isSuccess))
   const allObservationsLoaded =
-    experimentsQuery.isSuccess &&
-    (cycleExperiments.length === 0 || observationQueries.every((q) => q.isSuccess))
+    runsQuery.isSuccess &&
+    (runs.length === 0 || observationQueries.every((q) => q.isSuccess))
 
   const canCompose =
     segmentsQuery.isSuccess &&
     framesQuery.isSuccess &&
-    experimentsQuery.isSuccess &&
+    runsQuery.isSuccess &&
     memosQuery.isSuccess &&
     allVariantsLoaded &&
     allObservationsLoaded
@@ -119,7 +119,7 @@ export function useOverviewSnapshot({
       segments: segmentsQuery.data ?? [],
       frames: framesQuery.data ?? [],
       variants: variantQueries.flatMap((q) => q.data ?? []),
-      experiments: cycleExperiments,
+      runs,
       observations: observationQueries.flatMap((q) => q.data ?? []),
       memos: cycleMemos,
     }

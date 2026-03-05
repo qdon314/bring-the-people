@@ -13,8 +13,8 @@ const CYCLE_ID = 'cycle-1'
 const defaultSegments = [{ segment_id: 'seg-1', show_id: SHOW_ID, cycle_id: CYCLE_ID, review_status: 'approved', name: 'Gen Pop' }]
 const defaultFrames = [{ frame_id: 'frame-1', show_id: SHOW_ID, cycle_id: CYCLE_ID, review_status: 'approved', name: 'Frame 1' }]
 const defaultVariants = [{ variant_id: 'var-1', frame_id: 'frame-1', review_status: 'approved', agent_output: null, approved_copy: null, edited_by_human: false }]
-const defaultExperiments = [{ experiment_id: 'exp-1', show_id: SHOW_ID, cycle_id: CYCLE_ID, status: 'active' }]
-const defaultObservations = [{ observation_id: 'obs-1', experiment_id: 'exp-1' }]
+const defaultRuns = [{ run_id: 'run-1', experiment_id: 'exp-1', cycle_id: CYCLE_ID, status: 'active' }]
+const defaultObservations = [{ observation_id: 'obs-1', run_id: 'run-1' }]
 const defaultMemos = [{ memo_id: 'memo-1', show_id: SHOW_ID, cycle_id: CYCLE_ID }]
 const defaultEvents = [{ event_id: 'evt-1', show_id: SHOW_ID, cycle_id: CYCLE_ID, event_type: 'segment_approved' }]
 
@@ -31,7 +31,7 @@ function setupHandlers() {
     http.get(`${API_BASE_URL}/api/segments`, () => HttpResponse.json(defaultSegments)),
     http.get(`${API_BASE_URL}/api/frames`, () => HttpResponse.json(defaultFrames)),
     http.get(`${API_BASE_URL}/api/variants`, () => HttpResponse.json(defaultVariants)),
-    http.get(`${API_BASE_URL}/api/experiments`, () => HttpResponse.json(defaultExperiments)),
+    http.get(`${API_BASE_URL}/api/runs`, () => HttpResponse.json(defaultRuns)),
     http.get(`${API_BASE_URL}/api/observations`, () => HttpResponse.json(defaultObservations)),
     http.get(`${API_BASE_URL}/api/memos`, () => HttpResponse.json(defaultMemos)),
     http.get(`${API_BASE_URL}/api/events`, () => HttpResponse.json(defaultEvents)),
@@ -66,7 +66,7 @@ describe('useOverviewSnapshot', () => {
       expect(result.current.snapshot?.segments).toHaveLength(1)
       expect(result.current.snapshot?.frames).toHaveLength(1)
       expect(result.current.snapshot?.variants).toHaveLength(1)
-      expect(result.current.snapshot?.experiments).toHaveLength(1)
+      expect(result.current.snapshot?.runs).toHaveLength(1)
       expect(result.current.snapshot?.observations).toHaveLength(1)
       expect(result.current.snapshot?.memos).toHaveLength(1)
     })
@@ -86,15 +86,15 @@ describe('useOverviewSnapshot', () => {
   })
 
   describe('cycle-id filtering', () => {
-    it('excludes experiments from other cycles', async () => {
-      const otherCycleExp = { experiment_id: 'exp-other', show_id: SHOW_ID, cycle_id: 'cycle-99', status: 'active' }
+    it('fetches runs scoped to the cycle via query param', async () => {
       server.use(
         http.get(`${API_BASE_URL}/api/segments`, () => HttpResponse.json(defaultSegments)),
         http.get(`${API_BASE_URL}/api/frames`, () => HttpResponse.json(defaultFrames)),
         http.get(`${API_BASE_URL}/api/variants`, () => HttpResponse.json(defaultVariants)),
-        http.get(`${API_BASE_URL}/api/experiments`, () =>
-          HttpResponse.json([...defaultExperiments, otherCycleExp])
-        ),
+        http.get(`${API_BASE_URL}/api/runs`, ({ request }) => {
+          const cycleId = new URL(request.url).searchParams.get('cycle_id')
+          return HttpResponse.json(cycleId === CYCLE_ID ? defaultRuns : [])
+        }),
         http.get(`${API_BASE_URL}/api/observations`, () => HttpResponse.json(defaultObservations)),
         http.get(`${API_BASE_URL}/api/memos`, () => HttpResponse.json(defaultMemos)),
         http.get(`${API_BASE_URL}/api/events`, () => HttpResponse.json(defaultEvents)),
@@ -106,8 +106,8 @@ describe('useOverviewSnapshot', () => {
       )
       await waitFor(() => expect(result.current.isLoading).toBe(false))
 
-      expect(result.current.snapshot?.experiments).toHaveLength(1)
-      expect(result.current.snapshot?.experiments[0].experiment_id).toBe('exp-1')
+      expect(result.current.snapshot?.runs).toHaveLength(1)
+      expect(result.current.snapshot?.runs[0].run_id).toBe('run-1')
     })
 
     it('excludes memos from other cycles', async () => {
@@ -116,7 +116,7 @@ describe('useOverviewSnapshot', () => {
         http.get(`${API_BASE_URL}/api/segments`, () => HttpResponse.json(defaultSegments)),
         http.get(`${API_BASE_URL}/api/frames`, () => HttpResponse.json(defaultFrames)),
         http.get(`${API_BASE_URL}/api/variants`, () => HttpResponse.json(defaultVariants)),
-        http.get(`${API_BASE_URL}/api/experiments`, () => HttpResponse.json(defaultExperiments)),
+        http.get(`${API_BASE_URL}/api/runs`, () => HttpResponse.json(defaultRuns)),
         http.get(`${API_BASE_URL}/api/observations`, () => HttpResponse.json(defaultObservations)),
         http.get(`${API_BASE_URL}/api/memos`, () =>
           HttpResponse.json([...defaultMemos, otherCycleMemo])
@@ -141,7 +141,7 @@ describe('useOverviewSnapshot', () => {
         http.get(`${API_BASE_URL}/api/segments`, () => HttpResponse.json([])),
         http.get(`${API_BASE_URL}/api/frames`, () => HttpResponse.json([])),
         http.get(`${API_BASE_URL}/api/variants`, () => HttpResponse.json([])),
-        http.get(`${API_BASE_URL}/api/experiments`, () => HttpResponse.json([])),
+        http.get(`${API_BASE_URL}/api/runs`, () => HttpResponse.json([])),
         http.get(`${API_BASE_URL}/api/observations`, () => HttpResponse.json([])),
         http.get(`${API_BASE_URL}/api/memos`, () => HttpResponse.json([])),
         http.get(`${API_BASE_URL}/api/events`, () => HttpResponse.json([])),
@@ -175,7 +175,7 @@ describe('useOverviewSnapshot', () => {
           if (frameId === 'frame-2') return HttpResponse.json(variantsFrame2)
           return HttpResponse.json([])
         }),
-        http.get(`${API_BASE_URL}/api/experiments`, () => HttpResponse.json(defaultExperiments)),
+        http.get(`${API_BASE_URL}/api/runs`, () => HttpResponse.json(defaultRuns)),
         http.get(`${API_BASE_URL}/api/observations`, () => HttpResponse.json(defaultObservations)),
         http.get(`${API_BASE_URL}/api/memos`, () => HttpResponse.json(defaultMemos)),
         http.get(`${API_BASE_URL}/api/events`, () => HttpResponse.json(defaultEvents)),
@@ -199,7 +199,7 @@ describe('useOverviewSnapshot', () => {
         ),
         http.get(`${API_BASE_URL}/api/frames`, () => HttpResponse.json(defaultFrames)),
         http.get(`${API_BASE_URL}/api/variants`, () => HttpResponse.json(defaultVariants)),
-        http.get(`${API_BASE_URL}/api/experiments`, () => HttpResponse.json(defaultExperiments)),
+        http.get(`${API_BASE_URL}/api/runs`, () => HttpResponse.json(defaultRuns)),
         http.get(`${API_BASE_URL}/api/observations`, () => HttpResponse.json(defaultObservations)),
         http.get(`${API_BASE_URL}/api/memos`, () => HttpResponse.json(defaultMemos)),
         http.get(`${API_BASE_URL}/api/events`, () => HttpResponse.json(defaultEvents)),
@@ -223,7 +223,7 @@ describe('useOverviewSnapshot', () => {
         http.get(`${API_BASE_URL}/api/variants`, () =>
           HttpResponse.json({ detail: 'Server error' }, { status: 500 })
         ),
-        http.get(`${API_BASE_URL}/api/experiments`, () => HttpResponse.json(defaultExperiments)),
+        http.get(`${API_BASE_URL}/api/runs`, () => HttpResponse.json(defaultRuns)),
         http.get(`${API_BASE_URL}/api/observations`, () => HttpResponse.json(defaultObservations)),
         http.get(`${API_BASE_URL}/api/memos`, () => HttpResponse.json(defaultMemos)),
         http.get(`${API_BASE_URL}/api/events`, () => HttpResponse.json(defaultEvents)),
