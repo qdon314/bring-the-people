@@ -237,11 +237,22 @@ class SQLAlchemyShowRepository(ShowRepository):
         )
 
         if experiment_ids:
-            self._session.query(ObservationORM).filter(
-                ObservationORM.experiment_id.in_(experiment_ids)
-            ).delete(synchronize_session=False)
-            self._session.query(DecisionORM).filter(
-                DecisionORM.experiment_id.in_(experiment_ids)
+            # Get run_ids for these experiments, then delete observations/decisions by run_id
+            run_ids = [
+                run_id
+                for run_id, in self._session.query(ExperimentRunORM.run_id).filter(
+                    ExperimentRunORM.experiment_id.in_(experiment_ids)
+                ).all()
+            ]
+            if run_ids:
+                self._session.query(ObservationORM).filter(
+                    ObservationORM.run_id.in_(run_ids)
+                ).delete(synchronize_session=False)
+                self._session.query(DecisionORM).filter(
+                    DecisionORM.run_id.in_(run_ids)
+                ).delete(synchronize_session=False)
+            self._session.query(ExperimentRunORM).filter(
+                ExperimentRunORM.experiment_id.in_(experiment_ids)
             ).delete(synchronize_session=False)
 
         self._session.query(ExperimentORM).filter_by(show_id=show_id_str).delete(

@@ -163,7 +163,7 @@ def evaluate(
     if guardrail_result == DecisionAction.KILL:
         return Decision(
             decision_id=uuid4(),
-            experiment_id=uuid4(),  # Will be set by caller
+            run_id=uuid4(),  # Will be set by caller
             action=DecisionAction.KILL,
             confidence=1.0,
             rationale=f"Guardrail violated: refund_rate={refund_rate:.2%}, complaint_rate={complaint_rate:.2%}, negative_comment_rate={negative_comment_rate:.2%}",
@@ -189,7 +189,7 @@ def evaluate(
     if kill_result == DecisionAction.KILL:
         return Decision(
             decision_id=uuid4(),
-            experiment_id=uuid4(),
+            run_id=uuid4(),  # Will be set by caller
             action=DecisionAction.KILL,
             confidence=0.9,
             rationale=f"Kill condition triggered: conversion_rate={conversion_rate:.2%} below threshold",
@@ -214,7 +214,7 @@ def evaluate(
     if not evidence_met:
         return Decision(
             decision_id=uuid4(),
-            experiment_id=uuid4(),
+            run_id=uuid4(),  # Will be set by caller
             action=DecisionAction.HOLD,
             confidence=0.5,
             rationale=f"Insufficient evidence: windows={num_windows}, clicks={total_clicks}, purchases={total_purchases}",
@@ -251,7 +251,7 @@ def evaluate(
         )
         return Decision(
             decision_id=uuid4(),
-            experiment_id=uuid4(),
+            run_id=uuid4(),  # Will be set by caller
             action=DecisionAction.SCALE,
             confidence=confidence,
             rationale=f"Scale conditions met: CAC ${cac_cents/100:.2f} vs baseline ${baseline_cac_cents/100:.2f}",
@@ -265,7 +265,7 @@ def evaluate(
     else:
         return Decision(
             decision_id=uuid4(),
-            experiment_id=uuid4(),
+            run_id=uuid4(),  # Will be set by caller
             action=DecisionAction.HOLD,
             confidence=0.6,
             rationale=f"Scale threshold not met: incremental_tickets={incremental_tickets_per_100usd}, CAC ${cac_cents/100:.2f}",
