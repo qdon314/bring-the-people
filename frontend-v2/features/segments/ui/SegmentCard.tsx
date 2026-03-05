@@ -7,6 +7,7 @@ import { SpinnerIcon } from '@/shared/ui/SpinnerIcon'
 import { Dialog } from '@/shared/ui/dialog'
 import { showToast } from '@/shared/ui/toast'
 import { useApproveSegment, useRejectSegment } from '../mutations'
+import { SegmentEditModal } from './SegmentEditModal'
 import type { SegmentResponse } from '../api'
 
 interface SegmentCardProps {
@@ -17,6 +18,7 @@ interface SegmentCardProps {
 export function SegmentCard({ segment, showId }: SegmentCardProps) {
   const [definitionExpanded, setDefinitionExpanded] = useState(false)
   const [rejectDialogOpen, setRejectDialogOpen] = useState(false)
+  const [editModalOpen, setEditModalOpen] = useState(false)
   const [rejectReason, setRejectReason] = useState('')
 
   const approveMutation = useApproveSegment(showId)
@@ -80,7 +82,7 @@ export function SegmentCard({ segment, showId }: SegmentCardProps) {
           {isPending && (
             <button
               type="button"
-              onClick={() => {/* V2-033: wire edit modal */}}
+              onClick={() => setEditModalOpen(true)}
               className="rounded-md px-3 py-1.5 text-xs font-medium text-text-muted hover:bg-bg"
             >
               Edit
@@ -132,6 +134,14 @@ export function SegmentCard({ segment, showId }: SegmentCardProps) {
           </pre>
         )}
       </div>
+
+      {/* Edit modal */}
+      <SegmentEditModal
+        segment={segment}
+        showId={showId}
+        open={editModalOpen}
+        onClose={() => setEditModalOpen(false)}
+      />
 
       {/* Reject confirmation dialog */}
       <Dialog

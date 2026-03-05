@@ -4,10 +4,11 @@ import { render, screen } from '@testing-library/react'
 import { SegmentList, SegmentListSkeleton } from './SegmentList'
 import type { SegmentResponse } from '../api'
 
-// Mock mutations used by SegmentCard
+// Mock mutations used by SegmentCard and SegmentEditModal
 vi.mock('../mutations', () => ({
   useApproveSegment: () => ({ mutate: vi.fn(), isPending: false }),
   useRejectSegment: () => ({ mutate: vi.fn(), isPending: false }),
+  useUpdateSegment: () => ({ mutate: vi.fn(), isPending: false }),
 }))
 
 const SHOW_ID = 'show-1'

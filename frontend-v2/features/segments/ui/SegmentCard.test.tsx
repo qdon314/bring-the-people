@@ -17,6 +17,10 @@ vi.mock('../mutations', () => ({
     mutate: mockReject,
     isPending: false,
   }),
+  useUpdateSegment: () => ({
+    mutate: vi.fn(),
+    isPending: false,
+  }),
 }))
 
 const SHOW_ID = 'show-1'
@@ -78,7 +82,13 @@ describe('SegmentCard', () => {
 
     it('renders Edit button on pending cards', () => {
       renderCard(pendingSegment)
-      expect(screen.getByRole('button', { name: /edit/i })).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: /^edit$/i })).toBeInTheDocument()
+    })
+
+    it('opens edit modal when Edit is clicked', () => {
+      renderCard(pendingSegment)
+      fireEvent.click(screen.getByRole('button', { name: /^edit$/i }))
+      expect(screen.getByRole('dialog', { name: /edit segment/i })).toBeInTheDocument()
     })
 
     it('renders Approve and Reject buttons', () => {
@@ -111,9 +121,9 @@ describe('SegmentCard', () => {
       expect(screen.getByRole('button', { name: /reject/i })).toBeDisabled()
     })
 
-    it('does not render Edit button', () => {
+    it('does not render Edit button on approved cards', () => {
       renderCard(approvedSegment)
-      expect(screen.queryByRole('button', { name: /edit/i })).not.toBeInTheDocument()
+      expect(screen.queryByRole('button', { name: /^edit$/i })).not.toBeInTheDocument()
     })
   })
 
@@ -129,9 +139,9 @@ describe('SegmentCard', () => {
       expect(screen.getByRole('button', { name: /reject/i })).toBeDisabled()
     })
 
-    it('does not render Edit button', () => {
+    it('does not render Edit button on rejected cards', () => {
       renderCard(rejectedSegment)
-      expect(screen.queryByRole('button', { name: /edit/i })).not.toBeInTheDocument()
+      expect(screen.queryByRole('button', { name: /^edit$/i })).not.toBeInTheDocument()
     })
   })
 
