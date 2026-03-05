@@ -131,6 +131,10 @@ def test_review_rejects_status_values_as_actions(client, container, resource: st
         ("segment", "reject"),
         ("frame", "approve"),
         ("frame", "reject"),
+        # variant is included here because UNDO is now implemented for variants
+        # (previously excluded due to a bug where "undo" silently mapped to REJECTED)
+        ("variant", "approve"),
+        ("variant", "reject"),
     ],
 )
 def test_undo_resets_review_to_pending(
@@ -168,7 +172,7 @@ def test_undo_resets_review_to_pending(
     assert persisted_data["reviewed_by"] is None
 
 
-@pytest.mark.parametrize("resource", ["segment", "frame"])
+@pytest.mark.parametrize("resource", ["segment", "frame", "variant"])
 def test_undo_on_already_pending_resets_cleanly(client, container, resource: str):
     """Undo on a pending resource is idempotent — stays pending."""
     segment_id, frame_id, variant_id = _seed_review_chain(container)

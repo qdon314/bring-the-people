@@ -9,7 +9,7 @@ from uuid import UUID
 from fastapi import APIRouter, HTTPException, Request
 
 from growth.app.schemas import FrameResponse, FrameUpdate, ReviewAction, ReviewRequest
-from growth.domain.models import ReviewStatus
+from growth.domain.models import CreativeFrame, ReviewStatus
 
 router = APIRouter()
 
@@ -70,8 +70,6 @@ def review_frame(frame_id: UUID, body: ReviewRequest, request: Request):
     if frame is None:
         raise HTTPException(404, "Frame not found")
 
-    from growth.domain.models import CreativeFrame
-
     if body.action == ReviewAction.UNDO:
         new_status = ReviewStatus.PENDING
         reviewed_at = None
@@ -85,19 +83,6 @@ def review_frame(frame_id: UUID, body: ReviewRequest, request: Request):
         reviewed_at = datetime.now(timezone.utc)
         reviewed_by = body.reviewed_by
 
-    updated = CreativeFrame(
-        frame_id=frame.frame_id,
-        show_id=frame.show_id,
-        segment_id=frame.segment_id,
-        hypothesis=frame.hypothesis,
-        promise=frame.promise,
-        evidence_refs=frame.evidence_refs,
-        channel=frame.channel,
-        risk_notes=frame.risk_notes,
-        cycle_id=frame.cycle_id,
-        review_status=new_status,
-        reviewed_at=reviewed_at,
-        reviewed_by=reviewed_by,
-    )
+    updated = replace(frame, review_status=new_status, reviewed_at=reviewed_at, reviewed_by=reviewed_by)
     repo.save(updated)
     return FrameResponse.from_domain(updated)
