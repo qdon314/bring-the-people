@@ -9,17 +9,17 @@ from uuid import UUID
 from fastapi import APIRouter, HTTPException, Request
 
 from growth.app.schemas import FrameResponse, FrameUpdate, ReviewAction, ReviewRequest
-from growth.domain.models import ReviewStatus
+from growth.domain.models import CreativeFrame, ReviewStatus
 
 router = APIRouter()
 
 
 @router.get("", response_model=list[FrameResponse])
 def list_frames(
+    request: Request,
     show_id: UUID,
     cycle_id: Optional[UUID] = None,
     segment_id: Optional[UUID] = None,
-    request: Request = ...,
 ):
     repo = request.state.container.frame_repo()
     frames = repo.get_by_show(show_id)
@@ -70,26 +70,19 @@ def review_frame(frame_id: UUID, body: ReviewRequest, request: Request):
     if frame is None:
         raise HTTPException(404, "Frame not found")
 
-    from growth.domain.models import CreativeFrame
+    if body.action == ReviewAction.UNDO:
+        new_status = ReviewStatus.PENDING
+        reviewed_at = None
+        reviewed_by = None
+    elif body.action == ReviewAction.APPROVE:
+        new_status = ReviewStatus.APPROVED
+        reviewed_at = datetime.now(timezone.utc)
+        reviewed_by = body.reviewed_by
+    else:
+        new_status = ReviewStatus.REJECTED
+        reviewed_at = datetime.now(timezone.utc)
+        reviewed_by = body.reviewed_by
 
-    new_status = (
-        ReviewStatus.APPROVED
-        if body.action == ReviewAction.APPROVE
-        else ReviewStatus.REJECTED
-    )
-    updated = CreativeFrame(
-        frame_id=frame.frame_id,
-        show_id=frame.show_id,
-        segment_id=frame.segment_id,
-        hypothesis=frame.hypothesis,
-        promise=frame.promise,
-        evidence_refs=frame.evidence_refs,
-        channel=frame.channel,
-        risk_notes=frame.risk_notes,
-        cycle_id=frame.cycle_id,
-        review_status=new_status,
-        reviewed_at=datetime.now(timezone.utc),
-        reviewed_by=body.reviewed_by,
-    )
+    updated = replace(frame, review_status=new_status, reviewed_at=reviewed_at, reviewed_by=reviewed_by)
     repo.save(updated)
     return FrameResponse.from_domain(updated)
