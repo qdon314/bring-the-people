@@ -113,7 +113,7 @@ class RunCreate(BaseModel):
     experiment_id: UUID
     cycle_id: UUID
     status: RunStatus = RunStatus.DRAFT
-    budget_cap_cents_override: int | None = Field(default=None, gt=0)
+    budget_cap_cents_override: Optional[int] = Field(default=None, gt=0)
     channel_config: dict[str, Any] = Field(default_factory=dict)
     variant_snapshot: dict[str, Any] = Field(default_factory=dict)
 
@@ -123,9 +123,9 @@ class RunResponse(BaseModel):
     experiment_id: UUID
     cycle_id: UUID
     status: str
-    start_time: datetime | None
-    end_time: datetime | None
-    budget_cap_cents_override: int | None
+    start_time: Optional[datetime]
+    end_time: Optional[datetime]
+    budget_cap_cents_override: Optional[int]
     channel_config: dict[str, Any]
     variant_snapshot: dict[str, Any]
 
@@ -152,11 +152,11 @@ class RunMetricsResponse(BaseModel):
     total_purchases: int
     total_revenue_cents: int
     windows_count: int
-    ctr: float | None
-    cpc_cents: float | None
-    cpa_cents: float | None
-    roas: float | None
-    conversion_rate: float | None
+    ctr: Optional[float]
+    cpc_cents: Optional[float]
+    cpa_cents: Optional[float]
+    roas: Optional[float]
+    conversion_rate: Optional[float]
     evidence_sufficient: bool
 
 

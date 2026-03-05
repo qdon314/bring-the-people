@@ -3,6 +3,7 @@ from __future__ import annotations
 
 from dataclasses import replace
 from datetime import datetime, timezone
+from typing import Optional
 from uuid import UUID
 
 from fastapi import APIRouter, HTTPException, Request
@@ -16,7 +17,7 @@ router = APIRouter()
 @router.get("", response_model=list[SegmentResponse])
 def list_segments(
     show_id: UUID,
-    cycle_id: UUID | None = None,
+    cycle_id: Optional[UUID] = None,
     request: Request = ...,
 ):
     repo = request.state.container.segment_repo()

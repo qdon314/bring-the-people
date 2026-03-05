@@ -106,6 +106,9 @@ def create_app(container: Optional[Container] = None) -> FastAPI:
     from growth.app.api.jobs import router as jobs_router
     app.include_router(jobs_router, prefix="/api/jobs", tags=["jobs"])
 
+    from growth.app.api.runs import router as runs_router
+    app.include_router(runs_router, prefix="/api/runs", tags=["runs"])
+
     from growth.app.api.events import router as events_router
     app.include_router(events_router, prefix="/api/events", tags=["events"])
 
