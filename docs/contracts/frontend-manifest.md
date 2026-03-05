@@ -12,7 +12,7 @@ Do not try to import planned items.
 Flip `planned` → `exists` when you create the file. Add new rows for items
 not yet listed. This is part of the definition of done.
 
-Last updated: 2026-03-04 (V2-025)
+Last updated: 2026-03-05 (entity-refactor)
 
 ---
 
@@ -118,8 +118,26 @@ Update this table as feature modules are built.
 | frames        | in progress | exists | exists  | -         | -   |
 | variants      | in progress | exists | exists  | -         | -   |
 | experiments   | in progress | exists | exists  | -         | -   |
-| observations  | in progress | exists | exists  | -         | -   |
-| decisions     | in progress | -   | exists  | -         | -   |
+| runs          | in progress | exists | exists  | createRun, launchRun, requestRunReapproval | -   |
+| observations  | in progress | exists | exists (`useObservations(runId)`) | -  | -   |
+| decisions     | in progress | -   | exists (`useDecisions(runId)`)  | -         | -   |
 | memos         | in progress | exists | exists  | -         | -   |
 | jobs          | in progress | exists | exists  | -         | -   |
 | events        | in progress | exists | exists  | -         | -   |
+
+---
+
+## Recent Changes
+
+### entity-refactor (2026-03-05)
+
+**Query key factories (`shared/queryKeys.ts`)**
+
+- `runKeys` added: `listByCycle(cycleId)`, `listByExperiment(experimentId)`, `detail(runId)`, `metrics(runId)`
+- `observationKeys.list(runId)` — parameter renamed from `experimentId` to `runId`
+- `decisionKeys.list(runId)` — parameter renamed from `experimentId` to `runId`
+
+**`getCycleProgress` / `CycleProgressSnapshot`**
+
+- `runs` replaces `experiments` in the snapshot shape
+- `ObservationSnapshot.run_id` replaces `experiment_id`
