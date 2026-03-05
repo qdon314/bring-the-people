@@ -48,7 +48,7 @@ export function useApproveSegment(showId: string) {
     },
 
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.segments.all() })
+      queryClient.invalidateQueries({ queryKey: queryKeys.segments.list(showId) })
     },
   })
 }
@@ -91,7 +91,7 @@ export function useRejectSegment(showId: string) {
     },
 
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.segments.all() })
+      queryClient.invalidateQueries({ queryKey: queryKeys.segments.list(showId) })
     },
   })
 }

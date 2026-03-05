@@ -1,6 +1,7 @@
 import React from 'react'
 import { describe, it, expect, vi } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { Dialog } from './dialog'
 
 function renderDialog(overrides: Partial<React.ComponentProps<typeof Dialog>> = {}) {
@@ -35,10 +36,11 @@ describe('Dialog', () => {
     expect(onClose).toHaveBeenCalledOnce()
   })
 
-  it('calls onClose when overlay is clicked', () => {
+  it('calls onClose when overlay is clicked', async () => {
+    const user = userEvent.setup()
     const { onClose } = renderDialog()
-    const overlay = screen.getByRole('dialog').parentElement!
-    fireEvent.click(overlay)
+    const overlay = screen.getByTestId('dialog-overlay')
+    await user.click(overlay)
     expect(onClose).toHaveBeenCalledOnce()
   })
 

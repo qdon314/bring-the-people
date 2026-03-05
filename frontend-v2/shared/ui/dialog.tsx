@@ -1,6 +1,7 @@
 'use client'
 
-import React, { useEffect, useRef, useCallback } from 'react'
+import React from 'react'
+import * as RadixDialog from '@radix-ui/react-dialog'
 import { cn } from '@/shared/lib/utils'
 
 interface DialogProps {
@@ -12,98 +13,36 @@ interface DialogProps {
 }
 
 /**
- * Accessible modal dialog with focus trap, Escape key, and overlay click to close.
- * No Radix UI dependency — uses native HTML dialog patterns with ARIA.
+ * Accessible modal dialog built on Radix UI Dialog primitive.
+ * Provides focus trap, Escape key, and overlay click to close.
  */
 export function Dialog({ open, onClose, title, children, className }: DialogProps) {
-  const overlayRef = useRef<HTMLDivElement>(null)
-  const dialogRef = useRef<HTMLDivElement>(null)
-  const titleId = useRef(`dialog-title-${Math.random().toString(36).slice(2)}`)
-
-  // Close on Escape
-  const handleKeyDown = useCallback(
-    (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        onClose()
-      }
-
-      // Focus trap
-      if (e.key === 'Tab' && dialogRef.current) {
-        const focusable = dialogRef.current.querySelectorAll<HTMLElement>(
-          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-        )
-        const first = focusable[0]
-        const last = focusable[focusable.length - 1]
-
-        if (e.shiftKey) {
-          if (document.activeElement === first) {
-            e.preventDefault()
-            last?.focus()
-          }
-        } else {
-          if (document.activeElement === last) {
-            e.preventDefault()
-            first?.focus()
-          }
-        }
-      }
-    },
-    [onClose]
-  )
-
-  useEffect(() => {
-    if (!open) return
-    document.addEventListener('keydown', handleKeyDown)
-    // Focus first focusable element
-    const timeout = setTimeout(() => {
-      const focusable = dialogRef.current?.querySelector<HTMLElement>(
-        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-      )
-      focusable?.focus()
-    }, 0)
-
-    return () => {
-      document.removeEventListener('keydown', handleKeyDown)
-      clearTimeout(timeout)
-    }
-  }, [open, handleKeyDown])
-
-  if (!open) return null
-
   return (
-    <div
-      ref={overlayRef}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onClose()
-      }}
-    >
-      <div
-        ref={dialogRef}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby={titleId.current}
-        className={cn(
-          'w-full max-w-md rounded-xl border border-border bg-surface shadow-xl',
-          className
-        )}
-      >
-        <div className="flex items-center justify-between border-b border-border px-6 py-4">
-          <h2 id={titleId.current} className="text-base font-semibold text-text">
-            {title}
-          </h2>
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="Close"
-            className="rounded p-1 text-text-muted hover:bg-bg hover:text-text"
-          >
-            <CloseIcon className="h-5 w-5" />
-          </button>
-        </div>
-        <div className="px-6 py-5">{children}</div>
-      </div>
-    </div>
+    <RadixDialog.Root open={open} onOpenChange={(isOpen) => { if (!isOpen) onClose() }}>
+      <RadixDialog.Portal>
+        <RadixDialog.Overlay data-testid="dialog-overlay" className="fixed inset-0 z-50 bg-black/50" />
+        <RadixDialog.Content
+          aria-modal="true"
+          className={cn(
+            'fixed left-1/2 top-1/2 z-50 w-full max-w-md -translate-x-1/2 -translate-y-1/2 rounded-xl border border-border bg-surface shadow-xl p-0',
+            className
+          )}
+        >
+          <div className="flex items-center justify-between border-b border-border px-6 py-4">
+            <RadixDialog.Title className="text-base font-semibold text-text">
+              {title}
+            </RadixDialog.Title>
+            <RadixDialog.Close
+              aria-label="Close"
+              className="rounded p-1 text-text-muted hover:bg-bg hover:text-text"
+            >
+              <CloseIcon className="h-5 w-5" />
+            </RadixDialog.Close>
+          </div>
+          <div className="px-6 py-5">{children}</div>
+        </RadixDialog.Content>
+      </RadixDialog.Portal>
+    </RadixDialog.Root>
   )
 }
 

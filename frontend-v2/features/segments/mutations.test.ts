@@ -116,7 +116,7 @@ describe('useApproveSegment', () => {
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true))
     expect(invalidateSpy).toHaveBeenCalledWith(
-      expect.objectContaining({ queryKey: queryKeys.segments.all() })
+      expect.objectContaining({ queryKey: queryKeys.segments.list(SHOW_ID) })
     )
   })
 })
@@ -185,7 +185,7 @@ describe('useRejectSegment', () => {
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true))
     expect(invalidateSpy).toHaveBeenCalledWith(
-      expect.objectContaining({ queryKey: queryKeys.segments.all() })
+      expect.objectContaining({ queryKey: queryKeys.segments.list(SHOW_ID) })
     )
   })
 })
