@@ -12,7 +12,7 @@ Do not try to import planned items.
 Flip `planned` → `exists` when you create the file. Add new rows for items
 not yet listed. This is part of the definition of done.
 
-Last updated: 2026-03-06 (Stage 4 Complete)
+Last updated: 2026-03-06 (stage7-memo — V2-070..073)
 
 ---
 
@@ -130,7 +130,7 @@ Update this table as feature modules are built.
 | runs          | in progress | exists | exists  | useCreateRun, useLaunchRun, useRequestRunReapproval, useRunsByCycle | RunCard, RunCardSkeleton, RunList, RunActions, CreateRunForm |
 | observations  | in progress | exists | exists (`useObservations(runId)`) | -  | -   |
 | decisions     | in progress | -   | exists (`useDecisions(runId)`)  | -         | -   |
-| memos         | in progress | exists | exists  | -         | -   |
+| memos         | complete    | exists | exists (useMemos, useMemo) | useRunMemo | MemoTriggerPanel, MemoHistoryList, MemoView, MemoViewer |
 | jobs          | in progress | exists | exists  | -         | -   |
 | events        | in progress | exists | exists  | -         | exists (ActivityFeed) |
 
@@ -171,3 +171,21 @@ Update this table as feature modules are built.
 
 - `runs` replaces `experiments` in the snapshot shape
 - `ObservationSnapshot.run_id` replaces `experiment_id`
+
+### stage7-memo (2026-03-06) — V2-070..073
+
+**`features/memos/`**
+
+- `api.ts` — added `getMemo(memoId)`, `runMemo(showId, cycleStart, cycleEnd)`
+- `mutations.ts` — new file, exports `useRunMemo(showId)`
+- `queries.ts` — added `useMemo(memoId)` alongside existing `useMemos(showId)`
+- `ui/MemoTriggerPanel` — Generate Memo button with `useJobPolling` integration
+- `ui/MemoHistoryList` — memo list with URL query param selection sync (`?memo=<id>`)
+- `ui/MemoView` — renders memo markdown as pre-formatted text with date range header
+- `ui/MemoViewer` — container: placeholder / skeleton / error / renders MemoView
+
+**`app/shows/[show_id]/cycles/[cycle_id]/memo/page.tsx`**
+
+- Fully wired: `MemoTriggerPanel`, `MemoHistoryList`, `MemoViewer` in 4/8 grid layout
+- Derives `cycleStart` from `cycle.started_at`, uses `new Date().toISOString()` for `cycleEnd`
+- Reads `?memo` param from URL to restore selected memo on load
