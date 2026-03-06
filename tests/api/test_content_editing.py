@@ -130,3 +130,27 @@ def test_patch_segment_rejects_empty_payload(client, container):
 
     resp = client.patch(f"/api/segments/{segment.segment_id}", json={})
     assert resp.status_code == 422
+
+
+def test_patch_variant_sets_edited_by_human_flag(client, container):
+    """Verify that PATCH /api/variants/{id} sets edited_by_human=True."""
+    _, _, variant = _seed_content_chain(container)
+
+    # Initially edited_by_human should be False
+    get_resp = client.get(f"/api/variants/{variant.variant_id}")
+    assert get_resp.status_code == 200
+    assert get_resp.json()["edited_by_human"] is False
+
+    # PATCH with any field update
+    patch_resp = client.patch(
+        f"/api/variants/{variant.variant_id}",
+        json={"hook": "Human edited hook"},
+    )
+    assert patch_resp.status_code == 200
+    assert patch_resp.json()["edited_by_human"] is True
+
+    # Verify persistence
+    get_resp2 = client.get(f"/api/variants/{variant.variant_id}")
+    assert get_resp2.status_code == 200
+    assert get_resp2.json()["edited_by_human"] is True
+    assert get_resp2.json()["hook"] == "Human edited hook"

@@ -81,16 +81,25 @@ def _create_show(client) -> str:
     return resp.json()["show_id"]
 
 
+def _create_cycle(client, show_id: str) -> str:
+    """Create a cycle for testing."""
+    resp = client.post(f"/api/shows/{show_id}/cycles")
+    assert resp.status_code == 201
+    return resp.json()["cycle_id"]
+
+
 class TestStrategyAPI:
     def test_run_strategy_success(self, client):
         show_id = _create_show(client)
+        cycle_id = _create_cycle(client, show_id)
 
-        resp = client.post(f"/api/strategy/{show_id}/run")
+        resp = client.post(f"/api/strategy/{show_id}/run", json={"cycle_id": cycle_id})
         assert resp.status_code == 202
         data = resp.json()
         assert data["status"] == "queued"
         assert "job_id" in data
 
     def test_run_strategy_show_not_found(self, client):
-        resp = client.post(f"/api/strategy/{uuid4()}/run")
+        from uuid import uuid4
+        resp = client.post(f"/api/strategy/{uuid4()}/run", json={"cycle_id": str(uuid4())})
         assert resp.status_code == 404
