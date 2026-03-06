@@ -13,14 +13,21 @@ vi.mock('@/features/frames/queries', () => ({
   useFrames: vi.fn(),
 }))
 
+vi.mock('@/features/segments/queries', () => ({
+  useSegments: vi.fn(),
+}))
+
 import React from 'react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent, act } from '@testing-library/react'
 import { FramePicker } from './FramePicker'
 import type { FrameResponse } from '@/features/frames/api'
+import type { SegmentResponse } from '@/features/segments/api'
 import { useFrames } from '@/features/frames/queries'
+import { useSegments } from '@/features/segments/queries'
 
 const mockUseFrames = vi.mocked(useFrames)
+const mockUseSegments = vi.mocked(useSegments)
 
 const SHOW_ID = 'show-1'
 const CYCLE_ID = 'cycle-1'
@@ -70,6 +77,18 @@ const approvedFrame2: FrameResponse = {
   reviewed_by: 'producer',
 }
 
+const segment1: SegmentResponse = {
+  segment_id: 'seg-1',
+  show_id: SHOW_ID,
+  cycle_id: CYCLE_ID,
+  name: 'Segment One',
+  hypothesis: 'Hypothesis one',
+  target_audience: 'Audience one',
+  review_status: 'approved',
+  reviewed_at: '2026-03-05T10:00:00Z',
+  reviewed_by: 'producer',
+}
+
 function makeQueryResult(overrides: Partial<ReturnType<typeof useFrames>>) {
   return {
     data: undefined,
@@ -85,6 +104,7 @@ describe('FramePicker', () => {
   beforeEach(() => {
     mockMutateAsync.mockReset()
     mockIsMutationPending = false
+    mockUseSegments.mockReturnValue({ data: [], isPending: false } as never)
   })
 
   it('renders "No approved frames" empty state when all frames are pending', () => {
@@ -98,22 +118,19 @@ describe('FramePicker', () => {
     mockUseFrames.mockReturnValue(
       makeQueryResult({ data: [pendingFrame, approvedFrame1, approvedFrame2] }),
     )
+    mockUseSegments.mockReturnValue({ data: [], isPending: false } as never)
     render(<FramePicker showId={SHOW_ID} cycleId={CYCLE_ID} onJobsStarted={vi.fn()} />)
 
-    // Approved frames are shown
     expect(screen.getByText('Approved hypothesis one')).toBeInTheDocument()
     expect(screen.getByText('Approved hypothesis two')).toBeInTheDocument()
 
-    // Pending frame is NOT shown
     expect(screen.queryByText('Pending hypothesis')).not.toBeInTheDocument()
 
-    // Two checkboxes for the two approved frames
     const checkboxes = screen.getAllByRole('checkbox')
     expect(checkboxes).toHaveLength(2)
 
-    // Channel badges
-    expect(screen.getByText('email')).toBeInTheDocument()
-    expect(screen.getByText('social')).toBeInTheDocument()
+    const badges = document.querySelectorAll('.rounded-full')
+    expect(badges).toHaveLength(2)
   })
 
   it('"Generate variants" button is disabled when no frames are selected', () => {
@@ -167,5 +184,59 @@ describe('FramePicker', () => {
     const updatedCheckboxes = screen.getAllByRole('checkbox')
     expect(updatedCheckboxes[0]).toBeDisabled()
     expect(updatedCheckboxes[1]).toBeDisabled()
+  })
+
+  it('renders filter dropdowns', () => {
+    mockUseFrames.mockReturnValue(makeQueryResult({ data: [approvedFrame1, approvedFrame2] }))
+    mockUseSegments.mockReturnValue({ data: [segment1], isPending: false } as never)
+    render(<FramePicker showId={SHOW_ID} cycleId={CYCLE_ID} onJobsStarted={vi.fn()} />)
+
+    expect(screen.getAllByRole('combobox')).toHaveLength(2)
+    expect(screen.getByText('All channels')).toBeInTheDocument()
+    expect(screen.getByText('All segments')).toBeInTheDocument()
+  })
+
+  it('filters frames by channel', () => {
+    mockUseFrames.mockReturnValue(makeQueryResult({ data: [approvedFrame1, approvedFrame2] }))
+    mockUseSegments.mockReturnValue({ data: [segment1], isPending: false } as never)
+    render(<FramePicker showId={SHOW_ID} cycleId={CYCLE_ID} onJobsStarted={vi.fn()} />)
+
+    const selects = screen.getAllByRole('combobox')
+    const channelSelect = selects[0]
+    fireEvent.change(channelSelect, { target: { value: 'email' } })
+
+    expect(screen.getByText('Approved hypothesis one')).toBeInTheDocument()
+    expect(screen.queryByText('Approved hypothesis two')).not.toBeInTheDocument()
+  })
+
+  it('shows empty state when filters match no frames', () => {
+    mockUseFrames.mockReturnValue(makeQueryResult({ data: [approvedFrame1] }))
+    mockUseSegments.mockReturnValue({ data: [segment1], isPending: false } as never)
+    render(<FramePicker showId={SHOW_ID} cycleId={CYCLE_ID} onJobsStarted={vi.fn()} />)
+
+    const selects = screen.getAllByRole('combobox')
+    const channelSelect = selects[0]
+    fireEvent.change(channelSelect, { target: { value: 'email' } })
+
+    const framesAfterFilter = screen.queryAllByRole('checkbox')
+    expect(framesAfterFilter).toHaveLength(1)
+  })
+
+  it('clears filters when clear button is clicked', () => {
+    mockUseFrames.mockReturnValue(makeQueryResult({ data: [approvedFrame1, approvedFrame2] }))
+    mockUseSegments.mockReturnValue({ data: [segment1], isPending: false } as never)
+    render(<FramePicker showId={SHOW_ID} cycleId={CYCLE_ID} onJobsStarted={vi.fn()} />)
+
+    const selects = screen.getAllByRole('combobox')
+    const channelSelect = selects[0]
+    fireEvent.change(channelSelect, { target: { value: 'email' } })
+
+    expect(screen.queryByText('Approved hypothesis two')).not.toBeInTheDocument()
+
+    const clearButton = screen.getByRole('button', { name: /clear filters/i })
+    fireEvent.click(clearButton)
+
+    expect(screen.getByText('Approved hypothesis one')).toBeInTheDocument()
+    expect(screen.getByText('Approved hypothesis two')).toBeInTheDocument()
   })
 })

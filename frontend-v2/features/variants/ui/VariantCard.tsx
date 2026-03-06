@@ -8,6 +8,7 @@ import { Dialog } from '@/shared/ui/dialog'
 import { showToast } from '@/shared/ui/toast'
 import { useApproveVariant, useRejectVariant, useUndoVariantReview } from '../mutations'
 import type { VariantResponse } from '../api'
+import { VariantEditModal } from './VariantEditModal'
 
 interface VariantCardProps {
   variant: VariantResponse
@@ -18,6 +19,7 @@ interface VariantCardProps {
 export function VariantCard({ variant, frameId, onEdit }: VariantCardProps) {
   const [rejectDialogOpen, setRejectDialogOpen] = useState(false)
   const [rejectReason, setRejectReason] = useState('')
+  const [editModalOpen, setEditModalOpen] = useState(false)
 
   const approveMutation = useApproveVariant(frameId)
   const rejectMutation = useRejectVariant(frameId)
@@ -25,6 +27,11 @@ export function VariantCard({ variant, frameId, onEdit }: VariantCardProps) {
 
   const isDecided = variant.review_status === 'approved' || variant.review_status === 'rejected'
   const isPending = variant.review_status === 'pending'
+
+  function handleEditClick() {
+    setEditModalOpen(true)
+    onEdit?.()
+  }
 
   function handleApprove() {
     approveMutation.mutate(
@@ -98,7 +105,7 @@ export function VariantCard({ variant, frameId, onEdit }: VariantCardProps) {
           {isPending && (
             <button
               type="button"
-              onClick={onEdit}
+              onClick={handleEditClick}
               className="rounded-md px-3 py-1.5 text-xs font-medium text-text-muted hover:bg-bg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
             >
               Edit
@@ -208,6 +215,13 @@ export function VariantCard({ variant, frameId, onEdit }: VariantCardProps) {
             {rejectMutation.isPending ? 'Rejecting\u2026' : 'Reject variant'}
           </button>
         </div>
+
+        <VariantEditModal
+          open={editModalOpen}
+          onClose={() => setEditModalOpen(false)}
+          variant={variant}
+          frameId={frameId}
+        />
       </Dialog>
     </div>
   )

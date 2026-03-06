@@ -8,3 +8,9 @@ export async function listDecisions(runId: string): Promise<DecisionResponse[]> 
     query: { run_id: runId },
   }) as Promise<DecisionResponse[]>
 }
+
+export async function evaluateRun(runId: string): Promise<DecisionResponse> {
+  return apiClient.post('/api/decisions/evaluate/{run_id}', {
+    path: { run_id: runId },
+  }) as Promise<DecisionResponse>
+}
