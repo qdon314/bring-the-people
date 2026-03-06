@@ -124,9 +124,9 @@ Update this table as feature modules are built.
 | segments      | in progress | exists | exists  | useApproveSegment, useRejectSegment, useUpdateSegment, useUndoSegmentReview | SegmentCard, SegmentList (with skeletons), SegmentEditModal |
 | frames        | in progress | exists | exists  | useApproveFrame, useRejectFrame, useUpdateFrame, useUndoFrameReview | FrameCard, FrameList (with skeletons), FrameEditModal |
 | variants      | in progress | exists | exists  | -         | -   |
-| experiments   | in progress | exists | exists  | useCreateExperiment | ExperimentForm |
+| experiments   | in progress | exists | exists  | useCreateExperiment | ExperimentForm, ExperimentLibraryModal |
 | strategy      | in progress | exists | -       | useRunStrategy | StrategyRunPanel |
-| runs          | in progress | exists | exists  | createRun, launchRun, requestRunReapproval | -   |
+| runs          | in progress | exists | exists  | useCreateRun, useLaunchRun, useRequestRunReapproval, useRunsByCycle | RunCard, RunCardSkeleton, RunList, RunActions, CreateRunForm |
 | observations  | in progress | exists | exists (`useObservations(runId)`) | -  | -   |
 | decisions     | in progress | -   | exists (`useDecisions(runId)`)  | -         | -   |
 | memos         | in progress | exists | exists  | -         | -   |
