@@ -12,7 +12,7 @@ Do not try to import planned items.
 Flip `planned` → `exists` when you create the file. Add new rows for items
 not yet listed. This is part of the definition of done.
 
-Last updated: 2026-03-06 (V2-033-035-036-fixes)
+Last updated: 2026-03-06 (Stage 4 Complete)
 
 ---
 
@@ -123,7 +123,8 @@ Update this table as feature modules are built.
 | overview      | in progress | -   | -       | -         | exists (NextActionPanel, KPIGrid, OverviewDashboard) |
 | segments      | in progress | exists | exists  | useApproveSegment, useRejectSegment, useUpdateSegment, useUndoSegmentReview | SegmentCard, SegmentList (with skeletons), SegmentEditModal |
 | frames        | in progress | exists | exists  | useApproveFrame, useRejectFrame, useUpdateFrame, useUndoFrameReview | FrameCard, FrameList (with skeletons), FrameEditModal |
-| variants      | in progress | exists | exists  | -         | -   |
+| variants      | complete    | exists | exists  | useApproveVariant, useRejectVariant, useUndoVariantReview, useUpdateVariant | VariantCard, VariantGroup, VariantEditModal (with skeletons, human edit badge) |
+| creative      | complete    | exists | -       | useRunCreative | FramePicker, CreativeQueue |
 | experiments   | in progress | exists | exists  | useCreateExperiment | ExperimentForm, ExperimentLibraryModal |
 | strategy      | in progress | exists | -       | useRunStrategy | StrategyRunPanel |
 | runs          | in progress | exists | exists  | useCreateRun, useLaunchRun, useRequestRunReapproval, useRunsByCycle | RunCard, RunCardSkeleton, RunList, RunActions, CreateRunForm |
@@ -132,6 +133,27 @@ Update this table as feature modules are built.
 | memos         | in progress | exists | exists  | -         | -   |
 | jobs          | in progress | exists | exists  | -         | -   |
 | events        | in progress | exists | exists  | -         | exists (ActivityFeed) |
+
+
+
+### Stage 4: Create Tab (2026-03-06)
+
+**Backend:**
+- Added `edited_by_human: bool` field to `CreativeVariant` domain model
+- Added `edited_by_human: bool` to `VariantResponse` schema
+- PATCH `/api/variants/{variant_id}` automatically sets `edited_by_human = True` on any edit
+
+**Frontend:**
+- `features/variants/ui/VariantCard.tsx` — added "Human edited" badge when `edited_by_human` is true
+- `app/shows/[show_id]/cycles/[cycle_id]/create/page.tsx` — wired page with FramePicker, CreativeQueue, VariantGroup, and frame selector tabs
+- `app/shows/[show_id]/cycles/[cycle_id]/create/page.test.tsx` — comprehensive integration tests
+
+**Components completed:**
+- FramePicker (with filters, multi-select, job triggering)
+- CreativeQueue (job polling panel)
+- VariantGroup (grouped by platform)
+- VariantCard (approve/reject/edit actions, human edit badge)
+- VariantEditModal (edit hook/body/cta)
 
 ---
 

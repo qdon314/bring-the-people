@@ -848,6 +848,11 @@ export interface components {
             reviewed_at: string | null;
             /** Reviewed By */
             reviewed_by: string | null;
+            /**
+             * Edited By Human
+             * @default false
+             */
+            edited_by_human: boolean;
         };
         /** FrameUpdate */
         FrameUpdate: {
@@ -1037,7 +1042,7 @@ export interface components {
          * ReviewAction
          * @enum {string}
          */
-        ReviewAction: "approve" | "reject";
+        ReviewAction: "approve" | "reject" | "undo";
         /** ReviewRequest */
         ReviewRequest: {
             action: components["schemas"]["ReviewAction"];
@@ -1175,6 +1180,11 @@ export interface components {
             reviewed_at: string | null;
             /** Reviewed By */
             reviewed_by: string | null;
+            /**
+             * Edited By Human
+             * @default false
+             */
+            edited_by_human: boolean;
         };
         /** SegmentUpdate */
         SegmentUpdate: {
@@ -1268,6 +1278,14 @@ export interface components {
             /** Ticket Base Url */
             ticket_base_url?: string | null;
         };
+        /** StrategyRunRequest */
+        StrategyRunRequest: {
+            /**
+             * Cycle Id
+             * Format: uuid
+             */
+            cycle_id: string;
+        };
         /** ValidationError */
         ValidationError: {
             /** Location */
@@ -1310,6 +1328,11 @@ export interface components {
             reviewed_at: string | null;
             /** Reviewed By */
             reviewed_by: string | null;
+            /**
+             * Edited By Human
+             * @default false
+             */
+            edited_by_human: boolean;
         };
         /** VariantUpdate */
         VariantUpdate: {
@@ -1853,7 +1876,11 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StrategyRunRequest"];
+            };
+        };
         responses: {
             /** @description Successful Response */
             202: {

@@ -97,6 +97,7 @@ class AudienceSegment:
     review_status: ReviewStatus = ReviewStatus.PENDING
     reviewed_at: datetime | None = None
     reviewed_by: str | None = None
+    edited_by_human: bool = False
 
 
 @dataclass(frozen=True)
@@ -113,6 +114,7 @@ class CreativeFrame:
     review_status: ReviewStatus = ReviewStatus.PENDING
     reviewed_at: datetime | None = None
     reviewed_by: str | None = None
+    edited_by_human: bool = False
 
 
 @dataclass(frozen=True)
@@ -128,6 +130,7 @@ class CreativeVariant:
     review_status: ReviewStatus = ReviewStatus.PENDING
     reviewed_at: datetime | None = None
     reviewed_by: str | None = None
+    edited_by_human: bool = False
 
 
 @dataclass(frozen=True)
