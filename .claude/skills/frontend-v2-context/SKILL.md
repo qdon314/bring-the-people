@@ -5,7 +5,7 @@ description: Fast-load codebase context for frontend-v2 tasks
 
 # Frontend V2 — Codebase Context
 
-last-verified: 2026-03-05 (stage-2-overview-ui)
+last-verified: 2026-03-06 (stage5-run-tab-ui @ d8bf293)
 
 This is a fast-load reference. Do not use code-explorer for frontend-v2 tasks.
 Load this skill, then go directly to the files you need to modify.
@@ -133,6 +133,12 @@ queryKeys.cycles.list(showId)
 | `ShowHeader` | `features/shows/ui/ShowHeader.tsx` | Show name, phase badge, dates |
 | Feature api.ts stubs | `features/{segments,frames,variants,experiments,observations,memos,events}/api.ts` | List functions for each domain (no validators — raw typed returns) |
 | Feature query hooks | `features/*/queries.ts` | React Query hooks for all domains (see table below) |
+| `RunCard` | `features/runs/ui/RunCard.tsx` | Run card with status badge + experiment label (props: run, experiment?) |
+| `RunCardSkeleton` | `features/runs/ui/RunCard.tsx` | Loading skeleton for RunCard |
+| `RunList` | `features/runs/ui/RunList.tsx` | Fetches + renders cycle runs with experiment cross-ref (props: showId, cycleId) |
+| `RunActions` | `features/runs/ui/RunActions.tsx` | Status-gated Launch / Request Reapproval actions with confirmation dialog (props: run) |
+| `CreateRunForm` | `features/runs/ui/CreateRunForm.tsx` | Form to create a run — library picker + optional budget override (props: showId, cycleId) |
+| `ExperimentLibraryModal` | `features/experiments/ui/ExperimentLibraryModal.tsx` | Browse + filter show-level experiments, select one (props: open, onClose, showId, onSelect) |
 
 **React Query**: `@tanstack/react-query` IS installed. `QueryClientProvider` is in `app/providers.tsx` (wrapped in root layout). Use `useQuery`/`useQueries` for new data-fetching hooks.
 
@@ -145,14 +151,17 @@ queryKeys.cycles.list(showId)
 - `useFrames(showId, cycleId?)` — frames, cycle-scoped
 - `useVariants(frameId)` — variants by frame (API is frame-scoped)
 - `useExperiments(showId)` — all experiments for a show
+- `useRunsByCycle(cycleId)` — runs for a cycle
+- `useCreateRun()`, `useLaunchRun()`, `useRequestRunReapproval()` — run mutations
 - `useObservations(experimentId)` — observations for an experiment
 - `useMemos(showId)` — memos for a show
 - `useEvents(showId, cycleId?)` — events, cycle-scoped
 - `useJob(jobId | null)` — single job by ID (use `useJobPolling` for active polling)
 - `useDecisions(experimentId)` — decisions for an experiment
 
-**Planned (do not import yet):** `StatusBadge`, `SpinnerIcon`, `Dialog`, `useJobPoller`.
-**Now importable (were planned):** `cn()` (`shared/lib/utils.ts`), `ErrorBanner` (`shared/ui/ErrorBanner.tsx`), `EmptyState` (`shared/ui/EmptyState.tsx`).
+**JSX convention:** All component files must include `import React from 'react'` (esbuild classic transform — no auto-import in tests).
+**Planned (do not import yet):** `useJobPoller`.
+**Now importable:** `StatusBadge`, `SpinnerIcon`, `Dialog` (`shared/ui/dialog.tsx`), `cn()` (`shared/lib/utils.ts`), `ErrorBanner`, `EmptyState`.
 See `docs/contracts/frontend-manifest.md` for full inventory.
 
 ---
