@@ -12,7 +12,7 @@ Do not try to import planned items.
 Flip `planned` → `exists` when you create the file. Add new rows for items
 not yet listed. This is part of the definition of done.
 
-Last updated: 2026-03-05 (V2-033-segment-edit-modal)
+Last updated: 2026-03-06 (V2-033-035-036-fixes)
 
 ---
 
@@ -121,10 +121,11 @@ Update this table as feature modules are built.
 | cycles        | in progress | exists | exists  | useCreateCycle | -   |
 | layout        | exists      | -    | -       | -         | exists |
 | overview      | in progress | -   | -       | -         | exists (NextActionPanel, KPIGrid, OverviewDashboard) |
-| segments      | in progress | exists | exists  | useApproveSegment, useRejectSegment, useUpdateSegment | SegmentCard, SegmentList (with skeletons), SegmentEditModal |
-| frames        | in progress | exists | exists  | -         | -   |
+| segments      | in progress | exists | exists  | useApproveSegment, useRejectSegment, useUpdateSegment, useUndoSegmentReview | SegmentCard, SegmentList (with skeletons), SegmentEditModal |
+| frames        | in progress | exists | exists  | useApproveFrame, useRejectFrame, useUpdateFrame, useUndoFrameReview | FrameCard, FrameList (with skeletons), FrameEditModal |
 | variants      | in progress | exists | exists  | -         | -   |
-| experiments   | in progress | exists | exists  | -         | -   |
+| experiments   | in progress | exists | exists  | useCreateExperiment | ExperimentForm |
+| strategy      | in progress | exists | -       | useRunStrategy | StrategyRunPanel |
 | runs          | in progress | exists | exists  | createRun, launchRun, requestRunReapproval | -   |
 | observations  | in progress | exists | exists (`useObservations(runId)`) | -  | -   |
 | decisions     | in progress | -   | exists (`useDecisions(runId)`)  | -         | -   |

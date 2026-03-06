@@ -6,7 +6,12 @@ from pathlib import Path
 from sqlalchemy.orm import Session
 
 from growth.adapters.event_log import JSONLEventLog
-from growth.adapters.orm import create_tables, get_engine, get_session_maker
+from growth.adapters.orm import (
+    BackgroundJobORM,
+    create_tables,
+    get_engine,
+    get_session_maker,
+)
 from growth.adapters.repositories import (
     SQLAlchemyExperimentRepository,
     SQLAlchemyFrameRepository,

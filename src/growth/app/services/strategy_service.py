@@ -75,21 +75,16 @@ class StrategyService:
         self._policy = policy
         self._runs_path = runs_path
 
-    def run(self, show_id: UUID) -> StrategyRunResult:
+    def run(self, show_id: UUID, cycle_id: UUID) -> StrategyRunResult:
         """Run the Strategy Agent for a show."""
         show = self._show_repo.get_by_id(show_id)
         if show is None:
             raise ValueError(f"Show {show_id} not found")
 
-        # Create a new cycle for this strategy run
-        cycle_id = uuid4()
-        cycle = Cycle(
-            cycle_id=cycle_id,
-            show_id=show_id,
-            started_at=datetime.now(timezone.utc),
-            label=None,   # auto-generate later or accept as param
-        )
-        self._cycle_repo.save(cycle)
+        # Use the provided cycle (must already exist)
+        cycle = self._cycle_repo.get_by_id(cycle_id)
+        if cycle is None or cycle.show_id != show_id:
+            raise ValueError(f"Cycle {cycle_id} not found for show {show_id}")
 
         run_id = uuid4()
         run_dir = self._runs_path / str(run_id)

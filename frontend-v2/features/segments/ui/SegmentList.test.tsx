@@ -9,6 +9,7 @@ vi.mock('../mutations', () => ({
   useApproveSegment: () => ({ mutate: vi.fn(), isPending: false }),
   useRejectSegment: () => ({ mutate: vi.fn(), isPending: false }),
   useUpdateSegment: () => ({ mutate: vi.fn(), isPending: false }),
+  useUndoSegmentReview: () => ({ mutate: vi.fn(), isPending: false }),
 }))
 
 const SHOW_ID = 'show-1'

@@ -6,49 +6,54 @@ import { StatusBadge } from '@/shared/ui/StatusBadge'
 import { SpinnerIcon } from '@/shared/ui/SpinnerIcon'
 import { Dialog } from '@/shared/ui/dialog'
 import { showToast } from '@/shared/ui/toast'
-import { useApproveSegment, useRejectSegment, useUndoSegmentReview } from '../mutations'
-import { SegmentEditModal } from './SegmentEditModal'
-import type { SegmentResponse } from '../api'
+import { useApproveFrame, useRejectFrame, useUndoFrameReview } from '../mutations'
+import type { FrameResponse } from '../api'
+import { useSegments } from '@/features/segments/queries'
+import { FrameEditModal } from './FrameEditModal'
 
-interface SegmentCardProps {
-  segment: SegmentResponse
+interface FrameCardProps {
+  frame: FrameResponse
   showId: string
 }
 
-export function SegmentCard({ segment, showId }: SegmentCardProps) {
-  const [definitionExpanded, setDefinitionExpanded] = useState(false)
+export function FrameCard({ frame, showId }: FrameCardProps) {
+  const [riskNotesExpanded, setRiskNotesExpanded] = useState(false)
   const [rejectDialogOpen, setRejectDialogOpen] = useState(false)
   const [editModalOpen, setEditModalOpen] = useState(false)
   const [rejectReason, setRejectReason] = useState('')
 
-  const approveMutation = useApproveSegment(showId)
-  const rejectMutation = useRejectSegment(showId)
-  const undoMutation = useUndoSegmentReview(showId)
+  const { data: segments } = useSegments(showId)
+  const segment = segments?.find((s) => s.segment_id === frame.segment_id)
+  const segmentName = segment?.name ?? 'Unknown segment'
 
-  const isDecided = segment.review_status === 'approved' || segment.review_status === 'rejected'
-  const isPending = segment.review_status === 'pending'
+  const approveMutation = useApproveFrame(showId)
+  const rejectMutation = useRejectFrame(showId)
+  const undoMutation = useUndoFrameReview(showId)
+
+  const isDecided = frame.review_status === 'approved' || frame.review_status === 'rejected'
+  const isPending = frame.review_status === 'pending'
 
   function handleApprove() {
     approveMutation.mutate(
-      { segmentId: segment.segment_id },
+      { frameId: frame.frame_id },
       {
-        onSuccess: () => showToast('Segment approved', 'success'),
-        onError: () => showToast('Failed to approve segment. Try again or refresh the page.', 'error'),
+        onSuccess: () => showToast('Frame approved', 'success'),
+        onError: () => showToast('Failed to approve frame. Try again or refresh the page.', 'error'),
       }
     )
   }
 
   function handleRejectConfirm() {
     rejectMutation.mutate(
-      { segmentId: segment.segment_id, notes: rejectReason },
+      { frameId: frame.frame_id, notes: rejectReason },
       {
         onSuccess: () => {
-          showToast('Segment rejected', 'success')
+          showToast('Frame rejected', 'success')
           setRejectDialogOpen(false)
           setRejectReason('')
         },
         onError: () => {
-          showToast('Failed to reject segment. Try again or refresh the page.', 'error')
+          showToast('Failed to reject frame. Try again or refresh the page.', 'error')
         },
       }
     )
@@ -56,7 +61,7 @@ export function SegmentCard({ segment, showId }: SegmentCardProps) {
 
   function handleUndo() {
     undoMutation.mutate(
-      { segmentId: segment.segment_id },
+      { frameId: frame.frame_id },
       {
         onSuccess: () => showToast('Review undone', 'success'),
         onError: () => showToast('Failed to undo review. Try again.', 'error'),
@@ -69,21 +74,47 @@ export function SegmentCard({ segment, showId }: SegmentCardProps) {
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
-            <h3 className="truncate text-sm font-semibold text-text">{segment.name}</h3>
-            <StatusBadge status={segment.review_status} />
+            <h3 className="truncate text-sm font-semibold text-text">Frame</h3>
+            <StatusBadge status={frame.review_status} />
           </div>
 
-          {segment.estimated_size != null && (
-            <p className="mt-1 text-xs text-text-muted">
-              Estimated size: {segment.estimated_size.toLocaleString()}
+          <p className="mt-1 text-xs text-text-muted">Segment: {segmentName}</p>
+
+          <div className="mt-2 space-y-1">
+            <p className="text-xs">
+              <span className="font-medium text-text-muted">Hypothesis:</span>{' '}
+              <span className="text-text">{frame.hypothesis}</span>
             </p>
+            <p className="text-xs">
+              <span className="font-medium text-text-muted">Promise:</span>{' '}
+              <span className="text-text">{frame.promise}</span>
+            </p>
+            <p className="text-xs">
+              <span className="font-medium text-text-muted">Channel:</span>{' '}
+              <span className="text-text">{frame.channel}</span>
+            </p>
+          </div>
+
+          {frame.risk_notes && (
+            <div className="mt-2">
+              <button
+                type="button"
+                onClick={() => setRiskNotesExpanded((v) => !v)}
+                className="text-xs text-text-muted hover:text-text"
+              >
+                {riskNotesExpanded ? 'Hide risk notes' : 'Show risk notes'}
+              </button>
+              {riskNotesExpanded && (
+                <p className="mt-1 text-xs text-text">{frame.risk_notes}</p>
+              )}
+            </div>
           )}
 
-          {isDecided && segment.reviewed_by && (
-            <p className="mt-1 text-xs text-text-muted">
-              Reviewed by {segment.reviewed_by}
-              {segment.reviewed_at && (
-                <> &middot; {new Date(segment.reviewed_at).toLocaleDateString()}</>
+          {isDecided && frame.reviewed_by && (
+            <p className="mt-2 text-xs text-text-muted">
+              Reviewed by {frame.reviewed_by}
+              {frame.reviewed_at && (
+                <> &middot; {new Date(frame.reviewed_at).toLocaleDateString()}</>
               )}
             </p>
           )}
@@ -146,30 +177,6 @@ export function SegmentCard({ segment, showId }: SegmentCardProps) {
         </div>
       </div>
 
-      {/* Definition JSON preview */}
-      <div className="mt-3">
-        <button
-          type="button"
-          onClick={() => setDefinitionExpanded((v) => !v)}
-          className="text-xs text-text-muted hover:text-text"
-        >
-          {definitionExpanded ? 'Hide definition' : 'Show definition'}
-        </button>
-        {definitionExpanded && (
-          <pre className="mt-2 overflow-auto rounded-md bg-bg p-3 text-xs text-text">
-            {JSON.stringify(segment.definition_json, null, 2)}
-          </pre>
-        )}
-      </div>
-
-      {/* Edit modal */}
-      <SegmentEditModal
-        segment={segment}
-        showId={showId}
-        open={editModalOpen}
-        onClose={() => setEditModalOpen(false)}
-      />
-
       {/* Reject confirmation dialog */}
       <Dialog
         open={rejectDialogOpen}
@@ -177,17 +184,18 @@ export function SegmentCard({ segment, showId }: SegmentCardProps) {
           setRejectDialogOpen(false)
           setRejectReason('')
         }}
-        title="Reject segment"
+        title="Reject frame"
       >
-        <p className="text-sm text-text-muted">
-          Are you sure you want to reject <strong>{segment.name}</strong>?
-        </p>
+        <p className="text-sm text-text-muted">Are you sure you want to reject this frame?</p>
         <div className="mt-4">
-          <label htmlFor={`reject-reason-${segment.segment_id}`} className="block text-xs font-medium text-text-muted">
+          <label
+            htmlFor={`reject-reason-${frame.frame_id}`}
+            className="block text-xs font-medium text-text-muted"
+          >
             Reason (optional)
           </label>
           <textarea
-            id={`reject-reason-${segment.segment_id}`}
+            id={`reject-reason-${frame.frame_id}`}
             value={rejectReason}
             onChange={(e) => setRejectReason(e.target.value)}
             rows={3}
@@ -217,32 +225,41 @@ export function SegmentCard({ segment, showId }: SegmentCardProps) {
             )}
           >
             {rejectMutation.isPending && <SpinnerIcon className="h-4 w-4" />}
-            {rejectMutation.isPending ? 'Rejecting\u2026' : 'Reject segment'}
+            {rejectMutation.isPending ? 'Rejecting\u2026' : 'Reject frame'}
           </button>
         </div>
       </Dialog>
+
+      <FrameEditModal
+        frame={frame}
+        showId={showId}
+        open={editModalOpen}
+        onClose={() => setEditModalOpen(false)}
+      />
     </div>
   )
 }
 
-export function SegmentCardSkeleton() {
+export function FrameCardSkeleton() {
   return (
     <div aria-hidden="true" className="animate-pulse rounded-lg border border-border bg-surface p-4 shadow-sm">
       <div className="flex items-start justify-between gap-4">
         <div className="flex-1 space-y-2">
           <div className="flex items-center gap-2">
-            <div className="h-4 w-32 rounded bg-gray-200" />
+            <div className="h-4 w-20 rounded bg-gray-200" />
             <div className="h-5 w-16 rounded-full bg-gray-200" />
           </div>
-          <div className="h-3 w-24 rounded bg-gray-200" />
+          <div className="h-3 w-32 rounded bg-gray-200" />
+          <div className="space-y-1">
+            <div className="h-3 w-full rounded bg-gray-200" />
+            <div className="h-3 w-3/4 rounded bg-gray-200" />
+            <div className="h-3 w-1/2 rounded bg-gray-200" />
+          </div>
         </div>
         <div className="flex gap-2">
           <div className="h-7 w-16 rounded-md bg-gray-200" />
           <div className="h-7 w-16 rounded-md bg-gray-200" />
         </div>
-      </div>
-      <div className="mt-3">
-        <div className="h-3 w-24 rounded bg-gray-200" />
       </div>
     </div>
   )

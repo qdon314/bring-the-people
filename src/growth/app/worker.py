@@ -64,10 +64,13 @@ async def _dispatch(job, sc) -> dict:
     from uuid import UUID
     if job.job_type.value == "strategy":
         service = sc.strategy_service()
-        result = service.run(UUID(job.input_json["show_id"]))
+        result = service.run(
+            UUID(job.input_json["show_id"]),
+            UUID(job.input_json["cycle_id"]),
+        )
         return {
             "run_id": str(result.run_id),
-            "cycle_id": str(result.cycle_id) if hasattr(result, 'cycle_id') else "",
+            "cycle_id": str(result.cycle_id),
             "segment_ids": [str(s) for s in result.segment_ids],
             "frame_ids": [str(f) for f in result.frame_ids],
             "reasoning_summary": result.strategy_output.reasoning_summary,

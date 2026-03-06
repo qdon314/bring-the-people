@@ -7,6 +7,7 @@ import type { SegmentResponse } from '../api'
 // Mock mutations
 const mockApprove = vi.fn()
 const mockReject = vi.fn()
+const mockUndo = vi.fn()
 
 vi.mock('../mutations', () => ({
   useApproveSegment: () => ({
@@ -19,6 +20,10 @@ vi.mock('../mutations', () => ({
   }),
   useUpdateSegment: () => ({
     mutate: vi.fn(),
+    isPending: false,
+  }),
+  useUndoSegmentReview: () => ({
+    mutate: mockUndo,
     isPending: false,
   }),
 }))
@@ -62,6 +67,7 @@ describe('SegmentCard', () => {
   beforeEach(() => {
     mockApprove.mockReset()
     mockReject.mockReset()
+    mockUndo.mockReset()
   })
 
   describe('pending state', () => {

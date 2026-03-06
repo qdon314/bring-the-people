@@ -513,3 +513,9 @@ class MemoResponse(BaseModel):
             cycle_end=memo.cycle_end,
             markdown=memo.markdown,
         )
+
+
+# --- Strategy schemas ---
+
+class StrategyRunRequest(BaseModel):
+    cycle_id: UUID
