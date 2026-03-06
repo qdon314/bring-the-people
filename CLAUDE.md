@@ -23,7 +23,7 @@ Scale the process to the task:
 - **5+ tasks, cross-cutting changes, or schema/API additions:** Use `superpowers:writing-plans` for a full plan, then `superpowers:subagent-driven-development`.
 
 Use `superpowers:dispatching-parallel-agents` when tasks are independent and touch different files.
-Use `superpowers:using-git-worktrees` for any feature branch work.
+**Create a new worktree and use `superpowers:using-git-worktrees` for any feature branch work.**
 
 ## Delivery checklist
 
