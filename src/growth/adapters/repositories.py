@@ -404,6 +404,7 @@ def _segment_to_domain(orm: AudienceSegmentORM) -> AudienceSegment:
         review_status=ReviewStatus(orm.review_status),
         reviewed_at=orm.reviewed_at,
         reviewed_by=orm.reviewed_by,
+        edited_by_human=bool(orm.edited_by_human),
     )
 
 
@@ -420,6 +421,7 @@ def _segment_to_orm(domain: AudienceSegment) -> AudienceSegmentORM:
         review_status=domain.review_status.value,
         reviewed_at=domain.reviewed_at,
         reviewed_by=domain.reviewed_by,
+        edited_by_human=int(domain.edited_by_human),
     )
 
 
@@ -438,6 +440,7 @@ def _frame_to_domain(orm: CreativeFrameORM) -> CreativeFrame:
         review_status=ReviewStatus(orm.review_status),
         reviewed_at=orm.reviewed_at,
         reviewed_by=orm.reviewed_by,
+        edited_by_human=bool(orm.edited_by_human),
     )
 
 
@@ -456,6 +459,7 @@ def _frame_to_orm(domain: CreativeFrame) -> CreativeFrameORM:
         review_status=domain.review_status.value,
         reviewed_at=domain.reviewed_at,
         reviewed_by=domain.reviewed_by,
+        edited_by_human=int(domain.edited_by_human),
     )
 
 
@@ -516,6 +520,7 @@ def _variant_to_domain(orm: CreativeVariantORM) -> CreativeVariant:
         review_status=ReviewStatus(orm.review_status),
         reviewed_at=orm.reviewed_at,
         reviewed_by=orm.reviewed_by,
+        edited_by_human=bool(orm.edited_by_human),
     )
 
 
@@ -532,6 +537,7 @@ def _variant_to_orm(domain: CreativeVariant) -> CreativeVariantORM:
         review_status=domain.review_status.value,
         reviewed_at=domain.reviewed_at,
         reviewed_by=domain.reviewed_by,
+        edited_by_human=int(domain.edited_by_human),
     )
 
 

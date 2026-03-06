@@ -308,6 +308,7 @@ class SegmentResponse(BaseModel):
     review_status: ReviewStatus
     reviewed_at: Optional[datetime]
     reviewed_by: Optional[str]
+    edited_by_human: bool = False
 
     @classmethod
     def from_domain(cls, seg) -> SegmentResponse:
@@ -362,6 +363,7 @@ class FrameResponse(BaseModel):
     review_status: ReviewStatus
     reviewed_at: Optional[datetime]
     reviewed_by: Optional[str]
+    edited_by_human: bool = False
 
     @classmethod
     def from_domain(cls, frame) -> FrameResponse:
@@ -413,6 +415,7 @@ class VariantResponse(BaseModel):
     review_status: ReviewStatus
     reviewed_at: Optional[datetime]
     reviewed_by: Optional[str]
+    edited_by_human: bool = False
 
     @classmethod
     def from_domain(cls, variant) -> VariantResponse:
@@ -428,6 +431,7 @@ class VariantResponse(BaseModel):
             review_status=variant.review_status,
             reviewed_at=variant.reviewed_at,
             reviewed_by=variant.reviewed_by,
+            edited_by_human=variant.edited_by_human,
         )
 
 

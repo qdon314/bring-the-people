@@ -78,6 +78,11 @@ export function VariantCard({ variant, frameId, onEdit }: VariantCardProps) {
               {variant.platform}
             </span>
             <StatusBadge status={variant.review_status} />
+            {variant.edited_by_human && (
+              <span className="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800">
+                Human edited
+              </span>
+            )}
             {variant.constraints_passed === false && (
               <span className="inline-flex items-center rounded-full bg-orange-100 px-2.5 py-0.5 text-xs font-medium text-orange-800">
                 Constraints failed

@@ -9,6 +9,7 @@ from sqlalchemy import (
     DateTime,
     Enum as SAEnum,
     ForeignKey,
+    Boolean,
     Integer,
     String,
     create_engine,
@@ -152,6 +153,7 @@ class AudienceSegmentORM(Base):
     )
     reviewed_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
     reviewed_by: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
+    edited_by_human: Mapped[int] = mapped_column(Boolean, default=0)
 
 
 class CreativeFrameORM(Base):
@@ -173,6 +175,7 @@ class CreativeFrameORM(Base):
     )
     reviewed_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
     reviewed_by: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
+    edited_by_human: Mapped[int] = mapped_column(Boolean, default=0)
 
 
 class CreativeVariantORM(Base):
@@ -193,6 +196,7 @@ class CreativeVariantORM(Base):
     )
     reviewed_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
     reviewed_by: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
+    edited_by_human: Mapped[int] = mapped_column(Boolean, default=0)
 
 
 class ProducerMemoORM(Base):

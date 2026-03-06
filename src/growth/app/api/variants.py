@@ -44,6 +44,10 @@ def update_variant(variant_id: UUID, body: VariantUpdate, request: Request):
     if "cta" in body.model_fields_set:
         updates["cta"] = body.cta
 
+    # Mark as human-edited when any field is updated
+    if updates:
+        updates["edited_by_human"] = True
+
     updated = replace(variant, **updates)
     repo.save(updated)
     return VariantResponse.from_domain(updated)

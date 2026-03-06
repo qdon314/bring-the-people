@@ -138,6 +138,16 @@ def setup(tmp_path):
     )
     show_repo.save(show)
 
+    # Create a cycle for the show
+    from growth.domain.models import Cycle
+    cycle = Cycle(
+        cycle_id=uuid4(),
+        show_id=show.show_id,
+        started_at=datetime.now(timezone.utc),
+        label="Test Cycle",
+    )
+    cycle_repo.save(cycle)
+
     mock_client = MagicMock(spec=ClaudeClient)
 
     service = StrategyService(
@@ -156,6 +166,7 @@ def setup(tmp_path):
         "service": service,
         "client": mock_client,
         "show": show,
+        "cycle": cycle,
         "seg_repo": seg_repo,
         "frame_repo": frame_repo,
         "event_log": event_log,
@@ -172,7 +183,7 @@ class TestStrategyService:
             _make_text_response(VALID_STRATEGY_JSON),
         ]
 
-        result = s["service"].run(s["show"].show_id)
+        result = s["service"].run(s["show"].show_id, s["cycle"].cycle_id)
 
         assert len(result.segment_ids) == 3
         assert len(result.frame_ids) == 3
@@ -192,7 +203,7 @@ class TestStrategyService:
             _make_text_response(VALID_STRATEGY_JSON),
         ]
 
-        result = s["service"].run(s["show"].show_id)
+        result = s["service"].run(s["show"].show_id, s["cycle"].cycle_id)
 
         plan_path = s["runs_path"] / str(result.run_id) / "plan.json"
         assert plan_path.exists()
@@ -207,7 +218,7 @@ class TestStrategyService:
             _make_text_response(VALID_STRATEGY_JSON),
         ]
 
-        s["service"].run(s["show"].show_id)
+        s["service"].run(s["show"].show_id, s["cycle"].cycle_id)
 
         events = s["event_log"].read_all()
         assert len(events) == 1
@@ -215,7 +226,7 @@ class TestStrategyService:
 
     def test_run_show_not_found_raises(self, setup):
         with pytest.raises(ValueError, match="not found"):
-            setup["service"].run(uuid4())
+            setup["service"].run(uuid4(), uuid4())
 
     def test_run_agent_failure_emits_failed_event(self, setup):
         s = setup
@@ -225,7 +236,7 @@ class TestStrategyService:
         ]
 
         with pytest.raises(StrategyRunError):
-            s["service"].run(s["show"].show_id)
+            s["service"].run(s["show"].show_id, s["cycle"].cycle_id)
 
         events = s["event_log"].read_all()
         assert len(events) == 1
@@ -237,7 +248,7 @@ class TestStrategyService:
             _make_text_response(VALID_STRATEGY_JSON),
         ]
 
-        result = s["service"].run(s["show"].show_id)
+        result = s["service"].run(s["show"].show_id, s["cycle"].cycle_id)
 
         assert "show data analysis" in result.strategy_output.reasoning_summary
         assert result.run_id is not None
