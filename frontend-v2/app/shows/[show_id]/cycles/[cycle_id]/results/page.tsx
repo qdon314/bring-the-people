@@ -16,7 +16,7 @@ export default function ResultsPage({ params }: ResultsPageProps) {
   
   useEffect(() => {
     if (!selectedRunId && runs && runs.length > 0) {
-      const launchedRun = runs.find(r => r.status === 'launched' || r.status === 'completed')
+      const launchedRun = runs.find(r => r.status === 'active' || r.status === 'decided')
       if (launchedRun) {
         setSelectedRunId(launchedRun.run_id)
       }

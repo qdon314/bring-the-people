@@ -14,7 +14,7 @@ export function RunSelector({ cycleId, selectedRunId, onSelectRun }: RunSelector
   
   const launchableRuns = useMemo(() => {
     if (!runs) return []
-    return runs.filter(r => r.status === 'launched' || r.status === 'completed')
+    return runs.filter(r => r.status === 'active' || r.status === 'decided')
   }, [runs])
   
   if (isLoading) {

@@ -191,6 +191,7 @@ async function request<P extends PathKey, M extends HttpMethod>(
     headers,
     body: body === undefined ? undefined : JSON.stringify(body),
     signal: options?.signal,
+    cache: 'no-store',
   })
 
   if (!response.ok) {
